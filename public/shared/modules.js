@@ -45,6 +45,29 @@ export function transitBaseUrl(s) {
   return url;
 }
 
+export const CALENDAR_ICONS = [
+  { value: 'calendar', label: 'Kalender' },
+  { value: 'person', label: 'Person' },
+  { value: 'family', label: 'Familie' },
+  { value: 'heart', label: 'Herz / Partner' },
+  { value: 'work', label: 'Arbeit' },
+  { value: 'school', label: 'Schule / Uni' },
+  { value: 'sport', label: 'Sport' },
+  { value: 'ball', label: 'Fußball / Verein' },
+  { value: 'cake', label: 'Geburtstag' },
+  { value: 'party', label: 'Feier / Party' },
+  { value: 'medical', label: 'Arzt / Gesundheit' },
+  { value: 'plane', label: 'Reise / Urlaub' },
+  { value: 'car', label: 'Auto / Werkstatt' },
+  { value: 'home', label: 'Zuhause' },
+  { value: 'cart', label: 'Einkauf' },
+  { value: 'music', label: 'Musik / Konzert' },
+  { value: 'paw', label: 'Haustier' },
+  { value: 'star', label: 'Wichtig / Stern' },
+  { value: 'flag', label: 'Feiertag' },
+  { value: 'bell', label: 'Erinnerung' },
+];
+
 const locationFields = [
   { key: 'useGlobalLocation', label: 'Standort aus „Allgemein“ verwenden', type: 'bool', default: true },
   { key: 'location', label: 'Eigener Standort', type: 'location', default: null, showIf: { useGlobalLocation: false } },
@@ -142,7 +165,28 @@ export const MODULE_TYPES = {
         { key: 'name', label: 'Name', type: 'text', default: 'Kalender' },
         { key: 'url', label: 'iCal-URL (https:// oder webcal://)', type: 'text', default: '', secret: true, placeholder: 'https://calendar.google.com/calendar/ical/.../basic.ics' },
         { key: 'color', label: 'Farbe', type: 'color', default: '#7dd3fc' },
+        { key: 'icon', label: 'Icon', type: 'select', default: 'calendar', options: CALENDAR_ICONS },
         { key: 'enabled', label: 'Aktiv', type: 'bool', default: true },
+      ] },
+      { key: 'style', label: 'Darstellung', type: 'select', default: 'badge', options: [
+        { value: 'badge', label: 'Icon auf farbigem Kreis' },
+        { value: 'icon', label: 'Icon in Kalenderfarbe' },
+        { value: 'bar', label: 'Farbiger Balken + Icon' },
+        { value: 'dot', label: 'Nur farbiger Punkt' },
+      ] },
+      { key: 'colorTitle', label: 'Termintitel in Kalenderfarbe', type: 'bool', default: false },
+      { key: 'showLegend', label: 'Legende (Kalender mit Icon & Farbe) anzeigen', type: 'bool', default: false },
+      { key: 'iconRules', label: 'Icons nach Stichwort im Termin (überschreibt das Kalender-Icon)', type: 'list', itemLabel: 'Regel', default: [
+        { keywords: 'geburtstag, birthday, bday', icon: 'cake' },
+        { keywords: 'arzt, zahnarzt, termin praxis, impfung, physio', icon: 'medical' },
+        { keywords: 'urlaub, flug, reise, vacation', icon: 'plane' },
+        { keywords: 'training, fitness, gym, laufen, yoga, schwimmen', icon: 'sport' },
+        { keywords: 'werkstatt, tüv, reifen', icon: 'car' },
+        { keywords: 'konzert, festival', icon: 'music' },
+        { keywords: 'party, feier, hochzeit', icon: 'party' },
+      ], fields: [
+        { key: 'keywords', label: 'Stichworte (kommagetrennt)', type: 'text', default: '' },
+        { key: 'icon', label: 'Icon', type: 'select', default: 'star', options: CALENDAR_ICONS },
       ] },
       { key: 'daysAhead', label: 'Tage im Voraus', type: 'number', default: 14, min: 1, max: 365 },
       { key: 'maxEvents', label: 'Max. Termine', type: 'number', default: 10, min: 1, max: 50 },

@@ -39,6 +39,30 @@ export const icons = {
   camera: svg('<rect x="3" y="7" width="14" height="10" rx="2"/><path d="M17 10l4-2v8l-4-2"/>'),
 };
 
+// Calendar icons (keys = CALENDAR_ICONS in shared/modules.js)
+export const calIcons = {
+  calendar: svg('<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+  person: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  family: svg('<circle cx="8" cy="7" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M2.5 20a5.5 5.5 0 0 1 11 0M13.5 20a3.6 3.6 0 0 1 7.5 0"/>'),
+  heart: svg('<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>'),
+  work: svg('<rect x="3" y="7.5" width="18" height="12" rx="2"/><path d="M9 7.5V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5v2M3 12.5h18"/>'),
+  school: svg('<path d="M2 9l10-5 10 5-10 5-10-5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v6"/>'),
+  sport: svg('<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>'),
+  ball: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 2.9-1.5 4.7h-5L8 10.4z"/><path d="M12 3v4.5M16 10.4l4.4-1.5M14.5 15.1l2.7 3.8M9.5 15.1l-2.7 3.8M8 10.4L3.6 8.9"/>'),
+  cake: svg('<path d="M4 21h16M5 21v-7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7"/><path d="M5 16c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0M12 12V8.5"/><path d="M12 3.5c.9 1 1.3 1.8 1.3 2.5a1.3 1.3 0 0 1-2.6 0c0-.7.4-1.5 1.3-2.5z"/>'),
+  party: svg('<path d="M4 20l5-13 8 8-13 5z"/><path d="M14 4l.5 2M19 6l-2 1M20 11l-2-.5M11 3.5c1 1.5 1 3 0 4.5"/>'),
+  medical: svg('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/>'),
+  plane: svg('<path d="M10.5 13.5L3 11l1.5-1.5 7.5.5 4-4.5c.9-.9 2.4-1.2 3-.6s.3 2.1-.6 3l-4.5 4 .5 7.5L13 21l-2.5-7.5z"/>'),
+  car: svg('<path d="M5 16V11.5L7 6.5A2 2 0 0 1 8.9 5h6.2A2 2 0 0 1 17 6.5l2 5V16"/><rect x="3.5" y="11" width="17" height="6" rx="1.5"/><path d="M6 17v2.5M18 17v2.5"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/>'),
+  home: svg('<path d="M3.5 11L12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5M10 20v-5.5h4V20"/>'),
+  cart: svg('<path d="M3 4h2.5l2.2 11h10.3l2-7.5H6.6"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>'),
+  music: svg('<path d="M9 18V5.5l11-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>'),
+  paw: svg('<circle cx="6" cy="10.5" r="1.8"/><circle cx="9.5" cy="6.5" r="1.8"/><circle cx="14.5" cy="6.5" r="1.8"/><circle cx="18" cy="10.5" r="1.8"/><path d="M12 12c-2.6 0-5 3.4-5 5.6 0 1.6 1.4 2.4 2.8 2.4 1 0 1.5-.5 2.2-.5s1.2.5 2.2.5c1.4 0 2.8-.8 2.8-2.4 0-2.2-2.4-5.6-5-5.6z"/>'),
+  star: svg('<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/>'),
+  flag: icons.flag,
+  bell: svg('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'),
+};
+
 export function bin(color) {
   return `<svg class="ico bin" viewBox="0 0 24 24"><path d="M5 7h14l-1.2 13.2A2 2 0 0 1 15.8 22H8.2a2 2 0 0 1-2-1.8L5 7z" fill="${color}" stroke="${color}" stroke-width="1"/><rect x="3.5" y="4" width="17" height="3" rx="1" fill="${color}"/><path d="M10 2h4" stroke="${color}" stroke-width="2" stroke-linecap="round"/><path d="M9.5 10.5v8M14.5 10.5v8" stroke="rgba(0,0,0,.35)" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 }

@@ -1,4 +1,4 @@
-import { icons, bin, plane, weatherInfo, hintIcons } from './icons.js';
+import { icons, calIcons, bin, plane, weatherInfo, hintIcons } from './icons.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const num = (n, d = 0) => (n === null || n === undefined || Number.isNaN(n) ? '–' : Number(n).toFixed(d).replace('.', ','));
@@ -140,12 +140,35 @@ const weather_hints = (el) => ({
 
 const calendar = (el, mod, ctx) => {
   const s = mod.settings;
+  const rules = s.iconRules
+    .map((r) => ({ icon: r.icon, keys: r.keywords.split(',').map((k) => k.trim().toLowerCase()).filter(Boolean) }))
+    .filter((r) => r.keys.length);
   const evTime = (e) => (e.allDay ? 'ganztägig' : ctx.fmt.time(new Date(e.start)));
   const evDay = (e) => (e.allDay ? e.start : ctx.fmt.dayKey(new Date(e.start)));
+  const iconFor = (e) => {
+    const t = e.title.toLowerCase();
+    return rules.find((r) => r.keys.some((k) => t.includes(k)))?.icon || e.icon || 'calendar';
+  };
+  const marker = (e) => {
+    const color = esc(e.color);
+    if (s.style === 'dot') return `<span class="cal-mark dot" style="background:${color}"></span>`;
+    const svg = calIcons[iconFor(e)] || calIcons.calendar;
+    if (s.style === 'badge') return `<span class="cal-mark badge" style="--c:${color}">${svg}</span>`;
+    return `<span class="cal-mark icon" style="color:${color}">${svg}</span>`;
+  };
   const row = (e, withDay) => {
     const today = ctx.fmt.dayKey(new Date());
     const running = !e.allDay && new Date(e.start) <= new Date() && evDay(e) <= today;
-    return `<div class="cal-ev${running ? ' running' : ''}"><span class="dot" style="background:${esc(e.color)}"></span><span class="cal-time ${e.allDay ? 'dim' : ''}">${withDay ? `${esc(ctx.fmt.dayLabel(evDay(e)))} ` : ''}${running ? 'jetzt' : evTime(e)}</span><span class="cal-title">${esc(e.title)}${s.showLocation && e.location ? `<span class="dim small"> · ${esc(e.location)}</span>` : ''}${s.showCalendarName ? `<span class="dim small"> · ${esc(e.calendar)}</span>` : ''}</span></div>`;
+    const bar = s.style === 'bar' ? ` style="--c:${esc(e.color)}"` : '';
+    return `<div class="cal-ev style-${s.style}${running ? ' running' : ''}"${bar}>${marker(e)}<span class="cal-time ${e.allDay ? 'dim' : ''}">${withDay ? `${esc(ctx.fmt.dayLabel(evDay(e)))} ` : ''}${running ? 'jetzt' : evTime(e)}</span><span class="cal-title"${s.colorTitle ? ` style="color:${esc(e.color)}"` : ''}>${esc(e.title)}${s.showLocation && e.location ? `<span class="dim small"> · ${esc(e.location)}</span>` : ''}${s.showCalendarName ? `<span class="dim small"> · ${esc(e.calendar)}</span>` : ''}</span></div>`;
+  };
+  const legend = () => {
+    if (!s.showLegend) return '';
+    const cals = s.calendars.filter((c) => c.enabled);
+    if (cals.length < 2) return '';
+    return `<div class="cal-legend small">${cals
+      .map((c) => `<span class="cal-leg">${s.style === 'dot' ? `<span class="cal-mark dot" style="background:${esc(c.color)}"></span>` : `<span class="cal-mark icon" style="color:${esc(c.color)}">${calIcons[c.icon] || calIcons.calendar}</span>`}${esc(c.name)}</span>`)
+      .join('')}</div>`;
   };
   return {
     update(d) {
@@ -153,7 +176,7 @@ const calendar = (el, mod, ctx) => {
         el.innerHTML = `<div class="dim">${s.calendars.length ? 'Keine Termine' : 'Kein Kalender eingerichtet'}</div>${d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('')}`;
         return;
       }
-      let html = '<div class="cal">';
+      let html = `<div class="cal">${legend()}`;
       if (s.groupByDay) {
         const groups = new Map();
         const today = ctx.fmt.dayKey(new Date());

@@ -16,7 +16,7 @@ export async function calendar(settings, cfg) {
       .map(async (c) => {
         try {
           const items = await expandIcs(c.url, from, to);
-          for (const it of items) events.push({ ...it, description: undefined, calendar: c.name, color: c.color });
+          for (const it of items) events.push({ ...it, description: undefined, calendar: c.name, color: c.color, icon: c.icon });
         } catch (err) {
           errors.push(`${c.name}: ${err.message}`);
         }

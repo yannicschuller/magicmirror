@@ -9,7 +9,7 @@ Modularer Smart Mirror als Docker-Container – läuft auf einem **Raspberry Pi 
 | **Uhr & Datum** | Uhrzeit, Datum, Kalenderwoche | lokal |
 | **Wetter** | Aktuell, Stundenverlauf, 7-Tage-Vorhersage, Sonnenauf-/untergang | [Open-Meteo](https://open-meteo.com) (ohne API-Key) |
 | **Wetter-Hinweise** | „Regenschirm nicht vergessen!“, „Eincremen nicht vergessen!“ (UV), Frost/Glätte, Schnee, Hitze, Sturm + amtliche DWD-Warnungen | Open-Meteo, [Bright Sky](https://brightsky.dev) |
-| **Kalender** | Beliebig viele iCal-/ICS-Kalender mit Farben, Serienterminen, Ausnahmen | iCal-URLs (Google, Nextcloud, iCloud, Outlook …) |
+| **Kalender** | Beliebig viele iCal-/ICS-Kalender, je Kalender eigene **Farbe + Icon** (20 Icons), automatische Icons per Stichwort (Geburtstag → Torte, Arzt → Kreuz, Urlaub → Flugzeug …), 4 Darstellungen, Legende, Serientermine & Ausnahmen | iCal-URLs (Google, Nextcloud, iCloud, Outlook …) |
 | **Müllkalender** | Nächste Abholtermine mit farbigen Tonnen, Erinnerung „heute Abend rausstellen“ | iCal-Datei des Entsorgers und/oder feste Intervalle |
 | **Formel 1** | Nächstes Rennen: Runde, Strecke, alle Sessions in Ortszeit, Countdown/LIVE, Wetter an der Strecke, Vorjahressieger, letztes Podium, Fahrer-/Konstrukteurs-WM | [Jolpica (Ergast)](https://github.com/jolpica/jolpica-f1), Open-Meteo |
 | **ÖPNV-Abfahrten** | Live-Abfahrtstafel mit Verspätungen, Gleis, Filter nach Linie/Verkehrsmittel, Fußweg-Offset | EFA-Verbünde (VVS, MVV, bwegt, VRR, VGN, Bayern …) oder HAFAS-REST |
