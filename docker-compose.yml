@@ -1,0 +1,85 @@
+# Magic Mirror – Start:  docker compose up -d
+# Optionale Dienste per COMPOSE_PROFILES in .env aktivieren: camera, adsb, fr24
+services:
+  magicmirror:
+    image: ghcr.io/yannicschuller/magicmirror:latest
+    build: .
+    container_name: magicmirror
+    restart: unless-stopped
+    ports:
+      - "${MIRROR_PORT:-8080}:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      GO2RTC_URL: http://go2rtc:1984
+    volumes:
+      - ./data:/data
+
+  # RTSP-Kameras → Browser (Profil "camera")
+  go2rtc:
+    image: alexxit/go2rtc:1.9.9
+    container_name: magicmirror-go2rtc
+    profiles: ["camera"]
+    restart: unless-stopped
+    # Konfiguration inline: Streams legt der Mirror-Server zur Laufzeit an
+    # (Admin-Panel → Modul „Kamera“), Zugangsdaten landen so nicht in Dateien.
+    # RTSP intern nur für ffmpeg/Standbilder. Bewusst keine Ports veröffentlicht.
+    command: ["go2rtc", "-config", "{api: {listen: ':1984'}, rtsp: {listen: ':8554'}, webrtc: {listen: ''}}"]
+
+  # Eigener ADS-B-Empfänger mit RTL-SDR-USB-Stick (Profil "adsb")
+  # Liefert http://ultrafeeder/data/aircraft.json für das Flugzeug-Modul
+  # und tar1090-Weboberfläche auf Port ${TAR1090_PORT:-8090}.
+  ultrafeeder:
+    image: ghcr.io/sdr-enthusiasts/docker-adsb-ultrafeeder:latest
+    container_name: ultrafeeder
+    hostname: ultrafeeder
+    profiles: ["adsb", "fr24"]
+    restart: unless-stopped
+    device_cgroup_rules:
+      - "c 189:* rwm"
+    ports:
+      - "${TAR1090_PORT:-8090}:80"
+    environment:
+      - LOGLEVEL=error
+      - TZ=${TZ:-Europe/Berlin}
+      - READSB_DEVICE_TYPE=rtlsdr
+      - READSB_RTLSDR_DEVICE=${ADSB_SDR_SERIAL:-}
+      - READSB_RTLSDR_PPM=${ADSB_PPM:-0}
+      - READSB_GAIN=${ADSB_GAIN:-autogain}
+      - READSB_LAT=${ADSB_LAT:-}
+      - READSB_LON=${ADSB_LON:-}
+      - READSB_ALT=${ADSB_ALT:-50m}
+      - READSB_RX_LOCATION_ACCURACY=2
+      - READSB_STATS_RANGE=true
+      - UPDATE_TAR1090=true
+      - TAR1090_DEFAULTCENTERLAT=${ADSB_LAT:-}
+      - TAR1090_DEFAULTCENTERLON=${ADSB_LON:-}
+      - TAR1090_SITESHOW=true
+      # Optional an weitere Netzwerke senden, z. B.:
+      # ULTRAFEEDER_CONFIG=adsb,feed.adsb.lol,30004,beast_reduce_plus_out;mlat,feed.adsb.lol,31090,39001
+      - ULTRAFEEDER_CONFIG=${ULTRAFEEDER_CONFIG:-}
+      - MLAT_USER=${ADSB_MLAT_USER:-}
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - ./adsb/globe_history:/var/globe_history
+    tmpfs:
+      - /run:exec,size=64M
+      - /var/log:size=32M
+
+  # Daten an Flightradar24 senden (Profil "fr24", benötigt FR24_SHARING_KEY)
+  fr24:
+    image: ghcr.io/sdr-enthusiasts/docker-flightradar24:latest
+    container_name: fr24feed
+    profiles: ["fr24"]
+    restart: unless-stopped
+    depends_on:
+      - ultrafeeder
+    ports:
+      - "8754:8754"
+    environment:
+      - BEASTHOST=ultrafeeder
+      - FR24KEY=${FR24_SHARING_KEY:-}
+      - MLAT=no
+    tmpfs:
+      - /var/log
