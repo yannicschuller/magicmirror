@@ -38,13 +38,13 @@ Beliebig viele **Seiten**, die automatisch rotieren (Dauer pro Seite einstellbar
 git clone https://github.com/yannicschuller/magicmirror.git
 cd magicmirror
 cp .env.example .env    # OIDC-Daten eintragen
-docker compose up -d
+docker compose up -d --build
 ```
 
 - Spiegel: `http://<server>:8080`
 - Admin: `http://<server>:8080/admin`
 
-Das Image wird per GitHub Actions für `amd64`, `arm64` und `arm/v7` (Raspberry Pi OS 32 Bit) gebaut und unter `ghcr.io/yannicschuller/magicmirror` veröffentlicht. Alternativ lokal bauen: `docker compose up -d --build`.
+Das Image wird direkt auf dem Gerät gebaut (funktioniert auf `amd64`, `arm64` und `arm/v7` / Raspberry Pi OS 32 Bit). Update: `git pull && docker compose up -d --build`.
 
 Die Konfiguration liegt in `./data/config.json`.
 
@@ -119,7 +119,7 @@ Ja, das läuft direkt in Docker auf dem Pi 3. Benötigt wird ein RTL-SDR-Stick (
    sudo reboot
    ```
 2. In `.env`: `COMPOSE_PROFILES=adsb`, `ADSB_LAT`, `ADSB_LON`, `ADSB_ALT` (Antennenhöhe, z. B. `120m`).
-3. `docker compose up -d` – die Weboberfläche tar1090 läuft auf `http://<pi>:8090`.
+3. `docker compose up -d --build` – die Weboberfläche tar1090 läuft auf `http://<pi>:8090`.
 4. Im Admin-Panel beim Modul *Flugzeug-Karte* die Datenquelle *Eigener ADS-B-Empfänger* wählen (URL `http://ultrafeeder/data/aircraft.json` ist vorbelegt).
 
 Weitere Netzwerke (adsb.lol, adsb.fi, airplanes.live …) lassen sich über `ULTRAFEEDER_CONFIG` zusätzlich beliefern.

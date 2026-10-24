@@ -1,9 +1,10 @@
-# Magic Mirror – Start:  docker compose up -d
+# Magic Mirror – Start:  docker compose up -d --build
 # Optionale Dienste per COMPOSE_PROFILES in .env aktivieren: camera, adsb, fr24
 services:
   magicmirror:
-    image: ghcr.io/yannicschuller/magicmirror:latest
+    image: magicmirror:local
     build: .
+    pull_policy: build
     container_name: magicmirror
     restart: unless-stopped
     ports:
