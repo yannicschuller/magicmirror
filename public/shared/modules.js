@@ -279,6 +279,7 @@ export const MODULE_TYPES = {
       { key: 'viaStops', label: 'Only departures that stop at (comma-separated)', type: 'text', default: '', placeholder: 'Augustusplatz, Hauptbahnhof',
         help: 'Shows only departures that stop at one of these stops later on (part of the name is enough). Works with EFA networks that provide stop sequences (e.g. Saxony, Bavaria) and HAFAS.' },
       { key: 'showVia', label: 'Show the matching stop ("via …")', type: 'bool', default: true },
+      { key: 'hideCancelled', label: 'Hide cancelled departures', type: 'bool', default: false },
       { key: 'timeMode', label: 'Time display', type: 'select', default: 'relative', options: [
         { value: 'relative', label: 'in x min' }, { value: 'absolute', label: 'Time' }, { value: 'both', label: 'Both' },
       ] },

@@ -111,6 +111,7 @@ export async function transit(settings) {
     })
     .filter(Boolean)
     .map(({ next, ...d }) => d)
+    .filter((d) => !(settings.hideCancelled && d.cancelled))
     .filter((d) => cats.has(d.category))
     .filter((d) => !lines.length || lines.includes(d.line.toLowerCase()))
     .filter((d) => !exclude.some((x) => d.destination.toLowerCase().includes(x)))

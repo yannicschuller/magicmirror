@@ -139,8 +139,11 @@ export function selectAgenda(events, s, { now, today, agendaTo, dayKey }) {
 
 // ---- provider ----------------------------------------------------------------------------------
 
-export async function calendar(settings, cfg) {
-  const s = settings;
+// Height "fill": up to FILL_MAX events, the mirror shows as many as fit.
+const FILL_MAX = 40;
+
+export async function calendar(settings, cfg, mod) {
+  const s = mod?.height === 'fill' ? { ...settings, maxEvents: Math.max(settings.maxEvents, FILL_MAX) } : settings;
   const tz = cfg.general.timezone;
   const lang = langOf(cfg.general.locale);
   const t = translator(lang);

@@ -342,18 +342,38 @@ export default function render(el, mod, ctx) {
     const errors = d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('');
     const g = d.grid && (s.view === 'week' || s.view === 'month') ? d.grid : null;
     let html;
+    const build = (evs) => {
+      let h = `<div class="cal lines-${esc(s.titleLines)} view-${g ? esc(s.view) : 'list'}">${legend()}`;
+      if (g && s.view === 'week') h += weekHtml(g, now, today);
+      else if (g) h += monthHtml(g, today) + (s.monthAgenda && evs.length ? `<div class="cal-agenda">${agendaHtml(evs, now, today)}</div>` : '');
+      else h += agendaHtml(evs, now, today);
+      return `${h}${errors}</div>`;
+    };
     if (!g && !events.length) {
       const empty = s.calendars.length || s.showPublicHolidays || s.showSchoolHolidays ? t('No events') : t('No calendar set up');
       html = `<div class="dim">${esc(empty)}</div>${errors}`;
-    } else {
-      html = `<div class="cal lines-${esc(s.titleLines)} view-${g ? esc(s.view) : 'list'}">${legend()}`;
-      if (g && s.view === 'week') html += weekHtml(g, now, today);
-      else if (g) html += monthHtml(g, today) + (s.monthAgenda && events.length ? `<div class="cal-agenda">${agendaHtml(events, now, today)}</div>` : '');
-      else html += agendaHtml(events, now, today);
-      html += `${errors}</div>`;
-    }
-    if (html !== lastHtml) shell.main.innerHTML = lastHtml = html;
+    } else html = build(events);
+    // Height "fill": the server sends more events than maxEvents – show as many as fit.
+    const fill = !!el.closest('.module.fill') && (!g || s.monthAgenda) && events.length > 1;
+    const key = fill ? `${html}|${el.clientHeight}|${shell.slot.offsetHeight}` : html;
+    if (key === lastHtml) return fitCard();
+    shell.main.innerHTML = html;
+    lastHtml = key;
     fitCard();
+    if (fill) fitRows(events, build);
+  };
+
+  // Drops events from the end until the last one is inside the module's area.
+  const fitRows = (events, build) => {
+    const limit = el.getBoundingClientRect().bottom + 1;
+    let n = events.length;
+    while (n > 1) {
+      const rows = [...shell.main.querySelectorAll('.cal-ev')];
+      const over = rows.findIndex((r) => r.getBoundingClientRect().bottom > limit);
+      if (over < 0) return;
+      n = Math.max(1, Math.min(n - 1, over));
+      shell.main.innerHTML = build(events.slice(0, n));
+    }
   };
 
   return {
@@ -364,6 +384,8 @@ export default function render(el, mod, ctx) {
     tick: draw,
     tickEvery: 30000,
     show() {
+      lastHtml = ''; // the area may have changed size while hidden
+      setTimeout(draw, 60);
       if (tv) setTimeout(() => {
         fitCard();
         if (!tv?.mapEl) return;

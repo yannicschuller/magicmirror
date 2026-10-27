@@ -153,6 +153,7 @@ export default {
   "Max. altitude (ft, 0 = all)": "Max. Flughöhe (ft, 0 = alle)",
   "Max. collection days": "Max. Abholtage",
   "Max. events": "Max. Termine",
+  "With the height \"As much space as possible\", the module shows as many events as fit (within \"days ahead\").": "Mit der Höhe „So viel Platz wie möglich“ zeigt das Modul so viele Termine, wie hineinpassen (innerhalb von „Tage im Voraus“).",
   "Medium": "Mittel",
   "Middle left": "Mitte links",
   "Middle right": "Mitte rechts",
