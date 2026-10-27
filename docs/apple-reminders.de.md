@@ -1,56 +1,78 @@
 # Apple Erinnerungen auf dem Spiegel
 
-Apple bietet keine Schnittstelle für die Erinnerungen, und seit iOS 13 erstellte Listen werden nicht mehr per CalDAV synchronisiert. Stattdessen schickt eine **Kurzbefehle-Automation** auf iPhone, iPad oder Mac die offenen Erinnerungen an den Spiegel. Das Modul *Aufgaben & Einkaufsliste* zeigt dann den zuletzt empfangenen Stand.
+Apple bietet keine Schnittstelle für Erinnerungen, und seit iOS 13 laufen sie nicht mehr über CalDAV. Deshalb schickt ein **Kurzbefehl** auf iPhone, iPad oder Mac die offenen Erinnerungen an den Spiegel. Das Modul *Aufgaben & Einkaufsliste* zeigt dann den zuletzt empfangenen Stand.
 
 [English guide](apple-reminders.md)
 
 ## 1. Modul einrichten
 
-1. Im Admin-Panel ein Modul *Aufgaben & Einkaufsliste* anlegen (oder das vorhandene nehmen).
-2. **Quelle** auf *Apple Erinnerungen (Kurzbefehle)* stellen.
-3. Den darunter angezeigten **Token** kopieren. Er wird automatisch erzeugt und ist das Passwort für den Kurzbefehl.
+1. Admin-Panel → *Module* → *Aufgaben & Einkaufsliste* anlegen (oder das vorhandene öffnen).
+2. **Quelle:** *Apple Erinnerungen (Kurzbefehle)*.
+3. Den angezeigten **Token** kopieren. Er wird automatisch erzeugt und ist das Passwort für den Kurzbefehl.
 4. Speichern.
 
-## 2. Kurzbefehl erstellen
+Du brauchst gleich drei Angaben:
 
-In der App **Kurzbefehle** einen neuen Kurzbefehl anlegen, z. B. „Erinnerungen → Spiegel“, mit diesen Aktionen:
+| Platzhalter | Beispiel |
+|---|---|
+| `SPIEGEL_URL` | `http://mirror.local:8080/api/push/tasks` (Adresse deines Spiegels + `/api/push/tasks`) |
+| `TOKEN` | der Token aus Schritt 3 |
+| `LISTE` | Name deiner Erinnerungsliste, z. B. `Einkauf` – oder `alle` |
 
-1. **Erinnerungen suchen**
-   - Filter: *Ist erledigt* ist *nicht aktiviert*
-   - Optional: *Liste* ist *Einkauf* (sonst alle Listen)
-   - Sortieren nach *Fälligkeitsdatum*, Limit aus
-2. **Wiederholen mit jedem Objekt** (Eingabe: *Erinnerungen*). In die Schleife eine Aktion **Text** einfügen:
+## 2. Kurzbefehl per KI erstellen lassen
+
+Kurzbefehle lassen sich inzwischen aus einer Beschreibung erstellen, zum Beispiel mit Apple Intelligence in der Kurzbefehle-App oder mit einem KI-Assistenten, der dir die Aktionen Schritt für Schritt baut. Ersetze die drei Platzhalter und gib diesen Text ein:
+
+```text
+Erstelle einen Kurzbefehl namens "Erinnerungen → Spiegel":
+
+1. Suche alle Erinnerungen, die NICHT erledigt sind, aus der Liste "LISTE"
+   (bei "alle": aus allen Listen), sortiert nach Fälligkeitsdatum.
+2. Wiederhole für jede gefundene Erinnerung: Erzeuge einen Text im Format
+   Titel | Fälligkeitsdatum | Priorität
+   – Fälligkeitsdatum im Format ISO 8601 (leer lassen, wenn keins gesetzt ist),
+   – Priorität als Keine/Niedrig/Mittel/Hoch.
+3. Kombiniere die Ergebnisse der Wiederholung zu einem Text, getrennt durch neue Zeilen.
+4. Sende diesen Text mit "Inhalte von URL abrufen" an SPIEGEL_URL:
+   Methode POST, Header "Authorization" mit dem Wert "Bearer TOKEN",
+   Hauptteil der Anfrage: Datei = der kombinierte Text.
+
+Lege außerdem zwei persönliche Automationen an, die diesen Kurzbefehl
+sofort ausführen, ohne nachzufragen und ohne Benachrichtigung:
+a) wenn die App "Erinnerungen" geschlossen wird,
+b) täglich um 6:00 Uhr.
+```
+
+Danach den Kurzbefehl einmal mit ▶ starten. Als Antwort kommt `{"ok":true,"received":…}`, und das Modul auf dem Spiegel aktualisiert sich sofort.
+
+> **Tipp:** Kontrolliere die erzeugten Aktionen kurz. KI-Assistenten vertauschen gelegentlich Header-Name und -Wert oder lassen das Datumsformat weg. Wie es richtig aussieht, steht unten.
+
+## 3. Manuell (falls die KI nicht hilft)
+
+In der App **Kurzbefehle** einen neuen Kurzbefehl mit diesen Aktionen anlegen:
+
+1. **Erinnerungen suchen**: Filter *Ist erledigt* ist *nicht aktiviert*, optional *Liste* ist *Einkauf*, sortiert nach *Fälligkeitsdatum*.
+2. **Wiederholen mit jedem Objekt** (Eingabe: *Erinnerungen*), darin eine Aktion **Text**:
    ```
    [Wiederholungsobjekt › Titel] | [Wiederholungsobjekt › Fälligkeitsdatum] | [Wiederholungsobjekt › Priorität]
    ```
-   Die Variablen fügst du ein, indem du auf *Wiederholungsobjekt* tippst und die Eigenschaft wählst. Beim Fälligkeitsdatum die Variable noch einmal antippen und **Datumsformat → ISO 8601** einstellen.
-3. Nach *Wiederholung beenden*: **Text kombinieren**, Eingabe *Wiederholungsergebnisse*, Trennzeichen *Neue Zeilen*.
-4. **Inhalte von URL abrufen**
-   - URL: `http://mirror.local:8080/api/push/tasks` (Adresse deines Spiegels)
-   - Methode: **POST**
-   - Header: `Authorization` = `Bearer DEIN_TOKEN`
-   - Hauptteil der Anfrage: **Datei** → *Kombinierter Text*
+   Beim Fälligkeitsdatum die Variable antippen und **Datumsformat → ISO 8601** wählen.
+3. Nach *Wiederholung beenden*: **Text kombinieren** – *Wiederholungsergebnisse*, Trennzeichen *Neue Zeilen*.
+4. **Inhalte von URL abrufen**: URL `SPIEGEL_URL`, Methode **POST**, Header `Authorization` = `Bearer TOKEN`, Hauptteil **Datei** → *Kombinierter Text*.
 
-Einmal mit ▶ ausführen. Als Antwort kommt `{"ok":true,"received":…}`, und das Modul auf dem Spiegel aktualisiert sich sofort.
+**Automation:** Kurzbefehle → **Automation** → **+** → *App* → *Erinnerungen* → *Wird geschlossen* (und optional *Tageszeit* 6:00) → **Sofort ausführen**, *Bei Ausführung benachrichtigen* aus → deinen Kurzbefehl wählen.
 
-> **Einfache Variante:** Wenn dir die Titel reichen, lass Schritt 2 und 3 weg und kombiniere direkt die gefundenen Erinnerungen per **Text kombinieren** (jede Erinnerung wird zu ihrem Titel).
-
-## 3. Automatisch ausführen
-
-Kurzbefehle → **Automation** → **+** → *Persönliche Automation erstellen*:
-
-- **App** → *Erinnerungen* → *Wird geschlossen*: schickt die Liste jedes Mal, wenn du die Erinnerungen-App verlässt (empfohlen).
-- Optional zusätzlich **Tageszeit**, z. B. täglich um 6:00, damit der Spiegel morgens aktuell ist.
-
-**Sofort ausführen** wählen und *Bei Ausführung benachrichtigen* ausschalten. Als Aktion deinen Kurzbefehl auswählen.
+> **Ganz einfache Variante:** Wenn dir die Titel reichen, lass die Wiederholung weg und kombiniere direkt die gefundenen Erinnerungen per **Text kombinieren**.
 
 ## Gut zu wissen
 
-- Das Handy muss den Spiegel erreichen. Im eigenen WLAN klappt das direkt. Unterwegs nur per VPN oder wenn der Spiegel über einen Reverse-Proxy erreichbar ist (dann die `https://`-Adresse nehmen).
-- Der Spiegel merkt sich die zuletzt empfangene Liste, auch über Neustarts (`data/push/`). Kommt länger als die eingestellte Stundenzahl nichts Neues, zeigt das Modul klein „Stand: …“.
-- Zeilenformat, das der Endpunkt versteht: `Titel | Fällig | Priorität`. Fälligkeit als `2026-10-28` (ganztägig) oder ISO 8601 mit Uhrzeit, Priorität als *Hoch/Mittel/Niedrig* oder Apples Zahlen 1–9. JSON (`["Milch", …]` oder `{"items":[{"title":…,"due":…}]}`) geht auch.
+- Das Handy muss den Spiegel erreichen, also im Heim-WLAN sein. Unterwegs geht es nur per VPN oder über einen Reverse-Proxy mit `https://`.
+- Der Spiegel behält die zuletzt empfangene Liste, auch nach einem Neustart. Kommt länger als eingestellt nichts Neues, zeigt das Modul klein „Stand: …“.
+- Formate, die der Spiegel versteht:
+  - Zeilen: `Titel | Fällig | Priorität`. Fälligkeit als `2026-10-28` (ganztägig) oder ISO 8601 mit Uhrzeit, Priorität als Hoch/Mittel/Niedrig, High/Medium/Low oder Apples Zahlen 1–9.
+  - JSON: `["Milch", …]` oder `{"items":[{"title":…,"due":…}]}`.
 - Test vom Rechner aus:
   ```bash
-  curl -X POST -H "Authorization: Bearer DEIN_TOKEN" --data-binary $'Milch\nBrot | 2026-10-28' http://mirror.local:8080/api/push/tasks
+  curl -X POST -H "Authorization: Bearer TOKEN" --data-binary $'Milch\nBrot | 2026-10-28' SPIEGEL_URL
   ```
 - Ein neuer Token im Admin-Panel sperrt alte Kurzbefehle aus.
