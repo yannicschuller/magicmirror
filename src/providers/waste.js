@@ -100,13 +100,16 @@ export async function waste(settings, cfg) {
   const now = new Date();
   const today = dateKey(now, tz);
   const last = addDays(today, settings.daysAhead);
+  // past collections stay visible for this many days ("yesterday", "the day before yesterday", …)
+  const pastDays = settings.showPastDays || 0;
+  const first = addDays(today, -pastDays);
   const types = settings.types.map((t) => ({ ...t, keys: splitList(t.keywords) }));
   const byName = new Map(types.map((t) => [t.name.toLowerCase(), t]));
   const days = new Map();
   const errors = [];
 
   const add = (day, item) => {
-    if (day < today || day > last) return;
+    if (day < first || day > last) return;
     if (!days.has(day)) days.set(day, []);
     const list = days.get(day);
     if (!list.some((i) => i.name === item.name)) list.push(item);
@@ -139,7 +142,7 @@ export async function waste(settings, cfg) {
       .filter((s) => s.url)
       .map(async (s) => {
         try {
-          const items = await expandIcs(s.url, new Date(now.getTime() - 86400000), new Date(now.getTime() + (settings.daysAhead + 1) * 86400000));
+          const items = await expandIcs(s.url, new Date(now.getTime() - (pastDays + 1) * 86400000), new Date(now.getTime() + (settings.daysAhead + 1) * 86400000));
           for (const it of items) addTitled(eventDay(it, tz), it.title);
         } catch (err) {
           errors.push(`${s.name}: ${err.message}`);
@@ -154,17 +157,17 @@ export async function waste(settings, cfg) {
     if (type && !type.enabled) continue;
     const step = m.intervalWeeks * 7;
     const start = new Date(`${m.startDate}T12:00:00Z`);
-    const diffDays = Math.round((new Date(`${today}T12:00:00Z`) - start) / 86400000);
+    const diffDays = Math.round((new Date(`${first}T12:00:00Z`) - start) / 86400000);
     let k = diffDays > 0 ? Math.ceil(diffDays / step) : 0;
     for (let day = addDays(m.startDate, k * step); day <= last; day = addDays(m.startDate, ++k * step)) {
       add(day, { name: type?.name || m.type, color: type?.color || '#9ca3af' });
     }
   }
 
-  const list = [...days.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(0, settings.maxEntries)
-    .map(([date, items]) => ({ date, items }));
+  const sorted = [...days.entries()].sort(([a], [b]) => a.localeCompare(b));
+  // "max. collection days" counts upcoming days; past ones come on top
+  const list = [...sorted.filter(([d]) => d < today), ...sorted.filter(([d]) => d >= today).slice(0, settings.maxEntries)]
+    .map(([date, items]) => ({ date, items, past: date < today }));
 
   return { today, tomorrow: addDays(today, 1), days: list, errors };
 }

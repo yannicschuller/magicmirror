@@ -634,3 +634,6 @@ td:last-child { padding-right: 0; }
 .ap-mark .ap-dot { position: absolute; left: 1px; top: 1px; width: 8px; height: 8px; border-radius: 50%; background: #000; border: 2px solid var(--accent); box-sizing: border-box; }
 .ap-mark.from .ap-dot { border-color: rgb(255 255 255 / .6); }
 .ap-mark .ap-code { position: absolute; left: 12px; top: -4px; font-size: 11px; font-weight: 600; color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; white-space: nowrap; }
+
+/* waste: collections that already happened (option "keep showing past collections") */
+.waste-day.past { opacity: .45; }

@@ -60,6 +60,7 @@ export function makeFmt(general) {
       if (diff === 1) return t('Tomorrow');
       if (diff === 2 && locale.startsWith('de')) return 'Übermorgen';
       if (diff === -1) return t('Yesterday');
+      if (diff === -2 && locale.startsWith('de')) return 'Vorgestern';
       return fu(long ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' }).format(utc(key));
     },
     weekdayShort: (key) => fu({ weekday: 'short' }).format(utc(key)).replace('.', ''),
@@ -360,8 +361,12 @@ const waste = (el, mod, ctx) => {
         const diff = ctx.fmt.keyDiff(today, day.date);
         const remind = (diff === 1 && hour >= s.reminderHour) || (diff === 0 && hour < 10);
         const note = diff === 1 && hour >= s.reminderHour ? t('Put it out tonight!') : diff === 0 && hour < 10 ? t('Collection today!') : '';
-        const when = diff > 2 ? `${ctx.fmt.weekdayShort(day.date)}, ${ctx.fmt.dateShort(day.date)} <span class="dim small">${t('in {n} days', { n: diff })}</span>` : esc(ctx.fmt.dayLabel(day.date));
-        return `<div class="waste-day${remind ? ' remind' : ''}${diff <= 1 ? ' soon' : ''}"><div class="waste-when">${when}</div><div class="waste-items">${day.items
+        const when = diff > 2
+          ? `${ctx.fmt.weekdayShort(day.date)}, ${ctx.fmt.dateShort(day.date)} <span class="dim small">${t('in {n} days', { n: diff })}</span>`
+          : diff < -2
+            ? `${ctx.fmt.weekdayShort(day.date)}, ${ctx.fmt.dateShort(day.date)} <span class="dim small">${t('{n} days ago', { n: -diff })}</span>`
+            : esc(ctx.fmt.dayLabel(day.date));
+        return `<div class="waste-day${remind ? ' remind' : ''}${diff <= 1 && diff >= 0 ? ' soon' : ''}${diff < 0 ? ' past' : ''}"><div class="waste-when">${when}</div><div class="waste-items">${day.items
           .map((i) => `<span class="waste-item">${bin(esc(i.color))}<span>${esc(i.name)}</span></span>`)
           .join('')}</div>${note ? `<div class="waste-note">${note}</div>` : ''}</div>`;
       })

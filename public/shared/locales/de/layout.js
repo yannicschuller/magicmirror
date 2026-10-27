@@ -1,5 +1,7 @@
 // Admin: module height and schedule.
 export default {
+  "{n} days ago": "vor {n} Tagen",
+  "Keep showing past collections for (days, 0 = off)": "Vergangene Abholungen noch anzeigen (Tage, 0 = aus)",
   "Dots and progress bar": "Punkte und Fortschrittsleiste",
   "Progress bar until the next page": "Fortschrittsleiste bis zur nächsten Seite",
   "Dots": "Punkte",

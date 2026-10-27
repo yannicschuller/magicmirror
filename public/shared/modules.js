@@ -216,6 +216,7 @@ export const MODULE_TYPES = {
       ] },
       { key: 'daysAhead', label: 'Days ahead', type: 'number', default: 21, min: 1, max: 120 },
       { key: 'maxEntries', label: 'Max. collection days', type: 'number', default: 4, min: 1, max: 20 },
+      { key: 'showPastDays', label: 'Keep showing past collections for (days, 0 = off)', type: 'number', default: 0, min: 0, max: 7 },
       { key: 'showUnknown', label: 'Show unmatched entries', type: 'bool', default: true },
       { key: 'reminderHour', label: '"Put the bin out today" reminder from hour (day before)', type: 'number', default: 15, min: 0, max: 23 },
     ],

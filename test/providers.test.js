@@ -266,3 +266,16 @@ test('transit: "via" filter keeps only departures stopping at a given stop', asy
     server.close();
   }
 });
+
+test('waste: past collections stay visible for the configured days', async () => {
+  const { waste } = await import('../src/providers/waste.js');
+  const { dateKey } = await import('../src/util.js');
+  const tz = 'Europe/Berlin';
+  const day = (n) => dateKey(new Date(Date.now() + n * 86400000), tz);
+  const s = applyDefaults(MODULE_TYPES.waste.fields, {
+    manual: [{ type: 'Restmüll', startDate: day(-2), intervalWeeks: 1 }, { type: 'Papier', startDate: day(-1), intervalWeeks: 1 }],
+    daysAhead: 10, showPastDays: 1, maxEntries: 1,
+  }, translator('de'));
+  const res = await waste(s, { general: { timezone: tz } });
+  assert.deepEqual(res.days.map((d) => [d.date, d.past]), [[day(-1), true], [day(5), false]]);
+});
