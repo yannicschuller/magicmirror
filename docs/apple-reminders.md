@@ -1,77 +1,50 @@
 # Apple Reminders on the mirror
 
-Apple offers no Reminders API, and lists created since iOS 13 no longer sync via CalDAV. Instead, a **Shortcut** on your iPhone, iPad or Mac sends the open reminders to the mirror. The *Tasks & shopping list* module then shows the last state it received.
+Apple offers no Reminders API. Instead, a **Shortcut** on your iPhone, iPad or Mac sends the open reminders to the mirror. The *Tasks & shopping list* module then shows the last state it received.
 
 [Deutsche Anleitung](apple-reminders.de.md)
 
 ## 1. Set up the module
 
-1. Admin panel → *Modules* → add *Tasks & shopping list* (or open the existing one).
+1. Admin panel → *Modules* → add (or open) *Tasks & shopping list*.
 2. **Source:** *Apple Reminders (Shortcuts)*.
-3. Copy the **token** shown below it. It is generated automatically and acts as the password for the Shortcut.
-4. Save.
+3. Save. Below, the module shows the **address** and the **header value** (with the token) to copy – that's what goes into block 4.
 
-You'll need three values:
+## 2. Build the shortcut
 
-| Placeholder | Example |
-|---|---|
-| `MIRROR_URL` | `http://mirror.local:8080/api/push/tasks` (your mirror's address + `/api/push/tasks`) |
-| `TOKEN` | the token from step 3 |
-| `LIST` | the name of your reminders list, e.g. `Groceries` – or `all` |
+In the **Shortcuts** app → **+** (new shortcut), add these four actions in this order. The result looks like this:
 
-## 2. Let AI build the Shortcut
+<p align="center"><img src="img/shortcut-reminders.en.svg" alt="The four actions of the shortcut and the automation" width="640"></p>
 
-The Shortcuts app can build a shortcut from a short description. It prefers **short, simple sentences** – long descriptions get "Try a different description". Replace the three placeholders and try the simple version first:
+| # | Action (search the action list) | What to set |
+|---|---|---|
+| 1 | **Find Reminders** | *Add Filter* → **Is Completed** – *is not*. Optionally a second filter **List** – *is* – your list (e.g. "Groceries"). *Sort by* **Due Date**. |
+| 2 | **Repeat with Each** | Input: *Reminders* (set automatically). Inside, add a **Text** action and type: variable *Repeat Item* → **Title**, then ` \| `, then *Repeat Item* → **Due Date**. Tap the date variable → **Date Format: ISO 8601**. |
+| 3 | **Combine Text** | Input: *Repeat Results*, separator: **New Lines**. |
+| 4 | **Get Contents of URL** | URL: the **address** from the module. *Show More* → Method **POST** → *Add new header*: key `Authorization`, value: the **header value** from the module (`Bearer …`). *Request Body*: **File** → variable *Combined Text*. |
 
-**Simple (titles only):**
+Test once with ▶: the result is `{"ok":true,"received":…}` and the module on the mirror shows your list immediately.
 
-```text
-Find all incomplete reminders in the list LIST, combine their titles with new lines and send the text via POST to MIRROR_URL with the header Authorization: Bearer TOKEN.
-```
+> **Titles are enough?** Skip block 2 and use the found *Reminders* directly as the input of block 3.
 
-**With due dates** (if the simple version works and you want dates):
+## 3. Send automatically (automation)
 
-```text
-Find all incomplete reminders in the list LIST. For each, make a line with Title | due date in ISO 8601 format. Combine the lines with new lines and send the text via POST to MIRROR_URL with the header Authorization: Bearer TOKEN.
-```
+Shortcuts → **Automation** tab → **+** (*New Automation*):
 
-Then run the shortcut once with ▶. The response should be `{"ok":true,"received":…}` and the module on the mirror updates immediately.
+1. Choose **App** → *Reminders* → **Is Closed** → *Next*.
+2. Choose **Run Immediately**, turn off *Notify When Run*.
+3. Pick your shortcut ("Reminders → Mirror") as the action → *Done*.
 
-> **If it doesn't work:** if you keep getting "Try a different description", or the generated actions are wrong (typically: header name and value swapped, body not sent as text/file), build it with the four actions in section 4 – it takes about two minutes.
-
-## 3. Set up the automation (always manual)
-
-The AI can't create automations. Do it by hand:
-
-Shortcuts → **Automation** → **+**:
-
-1. **App** → *Reminders* → *Is Closed* → **Run Immediately**, *Notify When Run* off → pick your shortcut. The list is now sent every time you leave the Reminders app.
-2. Optionally also **Time of Day** → daily 6:00 → same settings, so the mirror is up to date in the morning.
-
-## 4. Build the shortcut manually
-
-In the **Shortcuts** app, create a shortcut with these actions:
-
-1. **Find Reminders**: filter *Is Completed* is *off*, optionally *List* is *Groceries*, sort by *Due Date*.
-2. **Repeat with Each** (input: *Reminders*) containing one **Text** action:
-   ```
-   [Repeat Item › Title] | [Repeat Item › Due Date] | [Repeat Item › Priority]
-   ```
-   Tap the due-date variable and set **Date Format → ISO 8601**.
-3. After *End Repeat*: **Combine Text** – *Repeat Results*, separator *New Lines*.
-4. **Get Contents of URL**: URL `MIRROR_URL`, method **POST**, header `Authorization` = `Bearer TOKEN`, request body **File** → *Combined Text*.
-
-> **Simplest variant:** if titles are enough, skip the repeat and use **Combine Text** directly on the found reminders.
+Optionally a second automation **Time of Day** (e.g. daily 6:00) with the same settings, so the mirror is up to date in the morning.
 
 ## Good to know
 
-- The phone has to reach the mirror: in your home Wi-Fi that just works; from outside only via VPN or a reverse proxy with `https://`.
+- The phone has to reach the mirror – in your home Wi-Fi that just works; from outside only via VPN or a reverse proxy with `https://`.
+- The address must be the mirror's **IP or name** (e.g. `http://192.168.1.50:8080/…` or `http://mirror.local:8080/…`), not `localhost`.
 - The mirror keeps the last list it received, also across restarts. If no update arrives for longer than configured, the module shows a small "Last update" note.
-- Formats the endpoint understands:
-  - lines: `title | due | priority` – due as `2026-10-28` (all-day) or ISO 8601 with time, priority as High/Medium/Low (also German) or Apple's numbers 1–9;
-  - JSON: `["Milk", …]` or `{"items":[{"title":…,"due":…}]}`.
+- Accepted formats: lines `title | due | priority` (due `2026-10-28` or ISO 8601 with time, priority High/Medium/Low or 1–9) or JSON (`["Milk", …]`, `{"items":[{"title":…,"due":…}]}`).
 - Test from a computer:
   ```bash
-  curl -X POST -H "Authorization: Bearer TOKEN" --data-binary $'Milk\nBread | 2026-10-28' MIRROR_URL
+  curl -X POST -H "Authorization: Bearer TOKEN" --data-binary $'Milk\nBread | 2026-10-28' http://MIRROR:8080/api/push/tasks
   ```
 - Creating a new token in the admin panel locks out old shortcuts.

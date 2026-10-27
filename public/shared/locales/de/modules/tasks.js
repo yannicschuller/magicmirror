@@ -20,7 +20,6 @@ export default {
   "Long-lived access token": "Langlebiges Zugriffstoken",
   "Mark high priority": "Hohe Priorität markieren",
   "Max. entries": "Max. Einträge",
-  "Name of your Reminders list (for the prompt below)": "Name deiner Erinnerungsliste (für den Prompt unten)",
   "No CalDAV URL configured": "Keine CalDAV-URL eingetragen",
   "No reminders received yet – run your Shortcut once": "Noch keine Erinnerungen empfangen – führe deinen Kurzbefehl einmal aus",
   "No to-do items for {entity} in the Home Assistant response": "Keine Aufgaben für {entity} in der Antwort von Home Assistant",
@@ -29,7 +28,6 @@ export default {
   "Only this project (name or ID, empty = all)": "Nur dieses Projekt (Name oder ID, leer = alle)",
   "Open to-dos from Todoist, Home Assistant, CalDAV (Nextcloud, …) or Apple Reminders": "Offene Aufgaben aus Todoist, Home Assistant, CalDAV (Nextcloud, …) oder Apple Erinnerungen",
   "Password (app password)": "Passwort (App-Passwort)",
-  "Ready-made prompt for the Shortcuts app": "Fertiger Prompt für die Kurzbefehle-App",
   "Show a note if no update for (hours, 0 = never)": "Hinweis zeigen, wenn so lange kein Update kam (Stunden, 0 = nie)",
   "Show due date": "Fälligkeitsdatum anzeigen",
   "Show number of further tasks": "Anzahl weiterer Aufgaben anzeigen",
@@ -47,5 +45,6 @@ export default {
   "Token for the Shortcut": "Token für den Kurzbefehl",
   "URL of the task list": "URL der Aufgabenliste",
   "Username": "Benutzername",
+  "Values for the Shortcut": "Werte für den Kurzbefehl",
   "Your Shortcut sends the open reminders to <mirror address>/api/push/tasks with the header \"Authorization: Bearer <this token>\". Step-by-step guide: README → Apple Reminders. Changing the token locks out old Shortcuts.": "Dein Kurzbefehl schickt die offenen Erinnerungen an <Spiegel-Adresse>/api/push/tasks mit dem Header „Authorization: Bearer <dieser Token>“. Schritt-für-Schritt-Anleitung: README → Apple Reminders. Ein neuer Token sperrt alte Kurzbefehle aus.",
 };

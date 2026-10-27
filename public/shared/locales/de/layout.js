@@ -1,11 +1,11 @@
 // Admin: module height and schedule.
 export default {
+  "Enter both in the action \"Get Contents of URL\" (method POST). Which blocks you need is shown in the guide:": "Beides in der Aktion „Inhalte von URL abrufen“ eintragen (Methode POST). Welche Blöcke du brauchst, zeigt die Anleitung:",
+  "You opened the admin panel via localhost – your phone needs the mirror's IP address or name instead.": "Du hast das Admin-Panel über localhost geöffnet – das Handy braucht stattdessen die IP-Adresse oder den Namen des Spiegels.",
+  "Header \"Authorization\"": "Header „Authorization“",
   "Step-by-step guide": "Schritt-für-Schritt-Anleitung",
-  "Paste it into the Shortcuts app (\"New shortcut\" → describe it). The automation (run when the Reminders app is closed) has to be set up by hand.": "In der Kurzbefehle-App einfügen („Neuer Kurzbefehl“ → beschreiben). Die Automation (ausführen, wenn die Erinnerungen-App geschlossen wird) muss von Hand angelegt werden.",
   "Copy": "Kopieren",
   "Copied": "Kopiert",
-  "With due dates": "Mit Fälligkeit",
-  "Simple (titles only)": "Einfach (nur Titel)",
   "Duplicates merged – modules are now shared between the pages.": "Doppelte Module zusammengeführt – sie werden jetzt von den Seiten gemeinsam genutzt.",
   "Merge": "Zusammenführen",
   "{n} duplicate module(s) found (same settings, only on different pages).": "{n} doppelte(s) Modul(e) gefunden (gleiche Einstellungen, nur auf anderen Seiten).",

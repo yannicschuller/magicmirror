@@ -1,4 +1,4 @@
-import { ShortcutPromptField } from '@/components/shortcut-prompt-field';
+import { ShortcutSetupField } from '@/components/shortcut-setup-field';
 import { useEffect, useId, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ChevronRight, Loader2, MapPin, Plus, Search, TramFront, X } from 'lucide-react';
 import { cn } from 'cn';
@@ -252,10 +252,10 @@ function FieldInput({ field, values, onChange }: { field: Field; values: Values;
           <TransitStopField value={v} values={values} onValue={set} />
         </FieldRow>
       );
-    case 'shortcutPrompt':
+    case 'shortcutSetup':
       return (
         <FieldRow field={field} wide>
-          <ShortcutPromptField values={values} />
+          <ShortcutSetupField values={values} />
         </FieldRow>
       );
     case 'wasteService':
