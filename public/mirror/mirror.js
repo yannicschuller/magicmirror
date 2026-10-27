@@ -104,6 +104,8 @@ async function loadData(inst) {
       const first = !inst.lastSig;
       inst.lastSig = sig;
       inst.api.update(json.data);
+      clearTimeout(layoutTimer);
+      layoutTimer = setTimeout(layoutFill, 50); // a module may have become empty / non-empty
       if (first) {
         const body = inst.wrap.querySelector('.mod-body');
         body.classList.remove('fade-in');
@@ -135,7 +137,8 @@ function onPage(mod, page) {
 const COLUMNS = { left: 1, center: 2, right: 3 };
 const ROWS = ['top', 'middle', 'bottom'];
 function layoutFill() {
-  const visible = (region) => instances.some((i) => i.visible && i.mod.region === region);
+  // modules that currently show nothing (e.g. no weather hints → class "empty") don't occupy their area
+  const visible = (region) => instances.some((i) => i.visible && i.mod.region === region && !i.wrap.classList.contains('empty'));
   for (const [col, colIndex] of Object.entries(COLUMNS)) {
     const regions = ROWS.map((row) => grid.querySelector(`.region[data-region="${row}_${col}"]`));
     regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = ''));

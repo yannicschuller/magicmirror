@@ -22,6 +22,8 @@ export default {
 
     { key: 'pushToken', label: 'Token for the Shortcut', type: 'text', default: randomToken, secret: true, showIf: { source: 'shortcuts' },
       help: 'Your Shortcut sends the open reminders to <mirror address>/api/push/tasks with the header "Authorization: Bearer <this token>". Step-by-step guide: README → Apple Reminders. Changing the token locks out old Shortcuts.' },
+    { key: 'shortcutList', label: 'Name of your Reminders list (for the prompt below)', type: 'text', default: '', placeholder: 'Einkauf', showIf: { source: 'shortcuts' } },
+    { key: 'shortcutPrompt', label: 'Ready-made prompt for the Shortcuts app', type: 'shortcutPrompt', default: '', showIf: { source: 'shortcuts' } },
     { key: 'staleHours', label: 'Show a note if no update for (hours, 0 = never)', type: 'number', default: 24, min: 0, max: 720, showIf: { source: 'shortcuts' } },
 
     { key: 'todoistToken', label: 'Todoist API token (Settings → Integrations → Developer)', type: 'text', default: '', secret: true, showIf: { source: 'todoist' } },

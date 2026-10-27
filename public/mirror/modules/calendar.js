@@ -196,12 +196,13 @@ export default function render(el, mod, ctx) {
   };
 
   const legsHtml = (x) => x.legs.map((l) => {
-    if (l.walk) return `<span class="tvl walk">${MODE_ICONS.foot}${esc(t('{m} min', { m: l.min }))}</span>`;
+    if (l.walk) return `<div class="tvl walk">${MODE_ICONS.foot}<span>${esc(t('{m} min', { m: l.min }))}</span></div>`;
     const late = (d) => (d > 0 ? `<span class="tvl-late">+${d}</span>` : '');
-    return `<span class="tvl ride"><span class="line cat-${esc(l.category)}">${esc(l.line)}</span>`
-      + `<span class="tvl-stop">${esc(l.from.name)} <b>${esc(ctx.fmt.time(new Date(l.from.time)))}</b>${late(l.from.delay)}</span>`
-      + `<span class="tvl-arr">→</span><span class="tvl-stop">${esc(l.to.name)} ${esc(ctx.fmt.time(new Date(l.to.time)))}</span></span>`;
-  }).join('<span class="tvl-sep">›</span>');
+    // one row per leg: [line] 17:53 Hauptbahnhof → 18:05 Angerbrücke
+    return `<div class="tvl ride"><span class="line cat-${esc(l.category)}">${esc(l.line)}</span>`
+      + `<span class="tvl-stop"><b>${esc(ctx.fmt.time(new Date(l.from.time)))}</b>${late(l.from.delay)} ${esc(l.from.name)}</span>`
+      + `<span class="tvl-arr">→</span><span class="tvl-stop">${esc(ctx.fmt.time(new Date(l.to.time)))} ${esc(l.to.name)}</span></div>`;
+  }).join('');
 
   const travelInfo = (x, now) => {
     const leave = new Date(x.leaveAt);
@@ -307,8 +308,8 @@ export default function render(el, mod, ctx) {
   };
 
   // Keeps the next events visible: if the card would push the 3rd event out of the region,
-  // it drops the note line ("tight"), then the map and the duration line ("tiny"), then
-  // shrinks to one line ("mini").
+  // it drops the note line and the map ("tight" – all legs stay), then the walks and the
+  // duration line ("tiny"), then shrinks to one line ("mini").
   const FIT = ['tight', 'tiny', 'mini'];
   const fitCard = () => {
     const region = el.closest('.region');

@@ -1,5 +1,11 @@
 // Admin: module height and schedule.
 export default {
+  "Step-by-step guide": "Schritt-für-Schritt-Anleitung",
+  "Paste it into the Shortcuts app (\"New shortcut\" → describe it). The automation (run when the Reminders app is closed) has to be set up by hand.": "In der Kurzbefehle-App einfügen („Neuer Kurzbefehl“ → beschreiben). Die Automation (ausführen, wenn die Erinnerungen-App geschlossen wird) muss von Hand angelegt werden.",
+  "Copy": "Kopieren",
+  "Copied": "Kopiert",
+  "With due dates": "Mit Fälligkeit",
+  "Simple (titles only)": "Einfach (nur Titel)",
   "Duplicates merged – modules are now shared between the pages.": "Doppelte Module zusammengeführt – sie werden jetzt von den Seiten gemeinsam genutzt.",
   "Merge": "Zusammenführen",
   "{n} duplicate module(s) found (same settings, only on different pages).": "{n} doppelte(s) Modul(e) gefunden (gleiche Einstellungen, nur auf anderen Seiten).",

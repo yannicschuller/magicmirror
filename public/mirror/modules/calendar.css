@@ -66,10 +66,8 @@
 .cal-tv-map { flex: 0 0 32%; max-width: 32%; min-height: 5.5em; max-height: 30vh; border-radius: .35em; overflow: hidden; background: #0b0b0b; }
 /* small regions (set by JS): note line off, then map and duration line off */
 .cal-tv.tight, .cal-tv.tiny { padding: .35em .5em; margin-bottom: .5em; }
-.cal-tv.tight .cal-tv-note, .cal-tv.tiny .cal-tv-note, .cal-tv.tiny.transit .cal-tv-sub, .cal-tv.tiny .cal-tv-map { display: none; }
+.cal-tv.tight .cal-tv-note, .cal-tv.tiny .cal-tv-note, .cal-tv.tiny.transit .cal-tv-sub, .cal-tv.tight .cal-tv-map, .cal-tv.tiny .cal-tv-map, .cal-tv.tiny .tvl.walk { display: none; }
 .cal-tv.tight .cal-tv-ico, .cal-tv.tiny .cal-tv-ico { display: none; }
-.cal-tv.tight .cal-tv-legs, .cal-tv.tiny .cal-tv-legs { -webkit-line-clamp: 1; line-clamp: 1; }
-.cal-tv.tight .cal-tv-map { min-height: 3.5em; }
 .cal-tv-first { display: none; flex: 1; min-width: 0; font-size: .75em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--dim); }
 .cal-tv.mini { padding: .25em .5em; }
 .cal-tv.mini .cal-tv-leave { flex: none; }
@@ -80,8 +78,11 @@
 .cal-tv-map img.leaflet-tile { width: 257px !important; height: 257px !important; mix-blend-mode: normal; outline: 1px solid transparent; }
 
 /* public transport legs: 🚶 5 min › [7] Hbf 08:54 → Augustusplatz 08:56 › 🚶 4 min */
-.cal-tv-legs { margin: .2em 0 .1em; font-size: .72em; line-height: 1.55; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-.tvl { white-space: nowrap; }
+/* every leg on its own row so the whole connection is visible */
+.cal-tv-legs { margin: .25em 0 .1em; font-size: .74em; line-height: 1.4; display: flex; flex-direction: column; gap: .2em; }
+.tvl { display: flex; align-items: center; gap: .4em; min-width: 0; white-space: nowrap; }
+.tvl .tvl-stop { overflow: hidden; text-overflow: ellipsis; }
+.tvl.walk { color: var(--dim); }
 .tvl.walk { color: var(--dim); }
 .tvl.walk .ico { width: 1.1em; height: 1.1em; vertical-align: -.2em; margin-right: .1em; }
 .tvl-sep { color: var(--dim); margin: 0 .3em; }
