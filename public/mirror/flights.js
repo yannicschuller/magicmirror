@@ -266,9 +266,9 @@ export function flights(el, mod, ctx, region) {
       if (src !== photoSrc) {
         photoSrc = src;
         photoEl.innerHTML = p
-          ? `<img src="${esc(p.src)}" alt="" decoding="async"><figcaption><a href="${esc(p.link)}">© ${esc(p.photographer || '?')} / planespotters.net</a></figcaption>`
+          ? `<img class="fl-ph-bg" src="${esc(p.src)}" alt="" aria-hidden="true" decoding="async"><img class="fl-ph" src="${esc(p.src)}" alt="" decoding="async"><figcaption><a href="${esc(p.link)}">© ${esc(p.photographer || '?')} / planespotters.net</a></figcaption>`
           : silhouette();
-        const img = photoEl.querySelector('img');
+        const img = photoEl.querySelector('img.fl-ph');
         if (img) img.onerror = () => (photoEl.innerHTML = silhouette());
       }
     }

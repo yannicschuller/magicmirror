@@ -498,7 +498,10 @@ td:last-child { padding-right: 0; }
 .flights .fl-media:empty { display: none; }
 .flights .fl-photo { margin: 0; position: relative; border-radius: 1vmin; overflow: hidden; background: #111; aspect-ratio: 3 / 2; align-self: start; }
 .flights .fl-photo:empty { display: none; }
-.flights .fl-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* the whole photo stays visible (contain); a blurred copy fills the rest of the box */
+.flights .fl-photo img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.flights .fl-photo img.fl-ph { object-fit: contain; }
+.flights .fl-photo img.fl-ph-bg { object-fit: cover; filter: blur(2vmin) brightness(.45); transform: scale(1.15); }
 .flights .fl-photo figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: .25em .5em; font-size: .62em; background: linear-gradient(transparent, rgba(0, 0, 0, .8)); }
 .flights .fl-photo figcaption a { color: #ccc; text-decoration: none; }
 .flights .fl-nophoto { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
