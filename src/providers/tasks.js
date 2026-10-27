@@ -5,6 +5,7 @@
 import { createHash } from 'node:crypto';
 import { fetchJson, fetchRaw, cached, dateKey } from '../util.js';
 import { translator, langOf } from '../../public/shared/i18n.js';
+import { readPushedTasks } from '../push.js';
 
 // Errors carry their message id so provider() can translate them.
 function fail(id, params) {
@@ -273,11 +274,21 @@ export function sortItems(items, mode) {
   return list.map(({ idx, ...i }) => i);
 }
 
-export async function provider(settings, cfg) {
+export async function provider(settings, cfg, mod) {
   const tz = cfg.general.timezone || 'Europe/Berlin';
   let key;
   let load;
-  if (settings.source === 'homeassistant') {
+  let receivedAt = null;
+  if (settings.source === 'shortcuts') {
+    // Pushed by an Apple Shortcuts automation – no cache, the file is the source.
+    key = null;
+    load = async () => {
+      const pushed = mod && (await readPushedTasks(mod.id));
+      if (!pushed) throw fail('No reminders received yet – run your Shortcut once');
+      receivedAt = pushed.receivedAt;
+      return pushed.items;
+    };
+  } else if (settings.source === 'homeassistant') {
     key = hash('ha', settings.haUrl, settings.haToken, settings.haEntity);
     load = () => haTasks(settings, tz);
   } else if (settings.source === 'caldav') {
@@ -289,7 +300,7 @@ export async function provider(settings, cfg) {
   }
   let all;
   try {
-    all = (await cached(`tasks:${key}:${tz}`, TTL, load)).filter((i) => i.title);
+    all = (key ? await cached(`tasks:${key}:${tz}`, TTL, load) : await load()).filter((i) => i.title);
   } catch (err) {
     if (err.msgId) throw new Error(translator(langOf(cfg.general.locale))(err.msgId, err.params));
     throw err;
@@ -298,5 +309,6 @@ export async function provider(settings, cfg) {
   const items = sortItems(all, settings.sort)
     .slice(0, settings.maxItems)
     .map((i) => ({ ...i, overdue: isOverdue(i, now, tz) }));
-  return { items, total: all.length };
+  const stale = Boolean(receivedAt && settings.staleHours > 0 && Date.now() - Date.parse(receivedAt) > settings.staleHours * 3600000);
+  return { items, total: all.length, receivedAt, stale };
 }

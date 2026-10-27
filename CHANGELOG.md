@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Tasks module: Apple Reminders via an Apple Shortcuts automation (push endpoint `POST /api/push/tasks`)
+
 ## 1.1.0
 
 - English and German for the mirror and the admin panel (`general.locale`, `MM_LOCALE`)

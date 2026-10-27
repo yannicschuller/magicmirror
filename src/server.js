@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { VERSION } from './version.js';
 import { systemInfo } from './system.js';
+import { pushRouter } from './push.js';
 import { loadConfig, getConfig, saveConfig, onConfigChange, DEFAULT_LOCALE_ENV } from './config.js';
 import { setupAuth, requireAdmin, changePassword, oidcEnabled, localEnabled } from './auth.js';
 import { sseHandler, broadcast, clientCount } from './events.js';
@@ -161,6 +162,8 @@ admin.post('/command', (req, res) => {
 admin.get('/system', async (req, res) => res.json(await systemInfo(getConfig())));
 admin.get('/status', (req, res) => res.json({ clients: clientCount(), go2rtc: go2rtcStatus(), moduleTypes: Object.keys(MODULE_TYPES) }));
 
+// Token-authenticated push API (Apple Shortcuts → tasks module); mirrors refresh at once.
+app.use('/api/push', pushRouter(getConfig, (id) => broadcast('refresh', { module: id })));
 app.use('/api/admin', requireAdmin({ api: true }), admin);
 app.use('/login', express.static(path.join(root, 'public/login'), { index: 'index.html' }));
 app.use('/admin', requireAdmin(), express.static(path.join(root, 'public/admin'), { index: 'index.html' }));

@@ -26,8 +26,9 @@ export default function render(el, mod, ctx) {
   const draw = () => {
     const d = last;
     if (!d) return;
+    const staleNote = d.stale ? `<div class="tasks-stale dim small">${esc(t('Last update: {when}', { when: `${ctx.fmt.dayLabel(ctx.fmt.dayKey(new Date(d.receivedAt)))} ${ctx.fmt.time(new Date(d.receivedAt))}` }))}</div>` : '';
     if (!d.items.length) {
-      el.innerHTML = `<div class="dim">${esc(t('Nothing to do'))}</div>`;
+      el.innerHTML = `<div class="dim">${esc(t('Nothing to do'))}</div>${staleNote}`;
       return;
     }
     const now = new Date();
@@ -43,7 +44,7 @@ export default function render(el, mod, ctx) {
       })
       .join('');
     const more = s.showCount && d.total > d.items.length ? `<div class="tasks-more dim small">${esc(t('+ {n} more', { n: d.total - d.items.length }))}</div>` : '';
-    el.innerHTML = `<ul class="tasks-list style-${esc(s.listStyle)}">${rows}</ul>${more}`;
+    el.innerHTML = `<ul class="tasks-list style-${esc(s.listStyle)}">${rows}</ul>${more}${staleNote}`;
   };
 
   return {

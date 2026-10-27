@@ -41,7 +41,7 @@
 | **Free text** | Notes, Wi-Fi info, … | local |
 | **News / RSS** | Latest headlines from any RSS/Atom feeds, as a list or a rotating ticker | any feed (tagesschau, BBC, …) |
 | **Home Assistant** | Entity states: indoor temperature, open windows, power, … (e.g. show windows only when open) | your Home Assistant (long-lived token) |
-| **Tasks & shopping list** | Open to-dos with due dates and overdue highlight | Todoist, Home Assistant to-do lists, CalDAV (Nextcloud, iCloud, …) |
+| **Tasks & shopping list** | Open to-dos with due dates and overdue highlight | Todoist, Home Assistant to-do lists, CalDAV (Nextcloud, …), **Apple Reminders** via Shortcuts |
 | **Fuel prices** | Cheapest stations nearby or your favourites, E5/E10/diesel | [Tankerkönig](https://creativecommons.tankerkoenig.de) (free API key, Germany) |
 | **Moon & sun** | Moon phase drawn to scale, next full/new moon, sun arc with current position, twilight and golden hour, day length | computed locally |
 | **Football** | Bundesliga & more: matchday with live scores, table, next matches, favourite team | [OpenLigaDB](https://www.openligadb.de) |
@@ -208,6 +208,10 @@ You don't need a stick: by default, the aircraft map uses the free adsb.lol API.
 ### Public transport
 
 In the *Public transport* module, pick your network and search for the stop. Presets cover VVS, bwegt/NVBW (all of Baden-Württemberg), MVV, bahnland bayern, VGN and VRR. Any other EFA server can be entered as a custom URL, and any HAFAS-REST API in [db-rest](https://github.com/public-transport/db-rest) format works too.
+
+### Apple Reminders
+
+Apple has no Reminders API, so an Apple Shortcuts automation pushes your open reminders to the mirror (e.g. whenever you close the Reminders app). Choose the source *Apple Reminders (Shortcuts)* in the *Tasks & shopping list* module and follow the step-by-step guide: [docs/apple-reminders.md](docs/apple-reminders.md) · [Deutsch](docs/apple-reminders.de.md).
 
 ### Waste collection
 

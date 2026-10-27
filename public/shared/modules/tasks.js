@@ -1,10 +1,14 @@
 // Tasks & shopping list – open to-dos from Todoist, a Home Assistant to-do
-// entity or a CalDAV task list (Nextcloud, iCloud, …).
+// entity, a CalDAV task list (Nextcloud, …) or Apple Reminders pushed by an
+// Apple Shortcuts automation (POST /api/push/tasks, see README).
+
+// Random token for the push endpoint (browser and Node 22 both have crypto.getRandomValues).
+const randomToken = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, '0')).join('');
 
 export default {
   type: 'tasks',
   label: 'Tasks & shopping list',
-  description: 'Open to-dos from Todoist, Home Assistant or CalDAV (Nextcloud, iCloud, …)',
+  description: 'Open to-dos from Todoist, Home Assistant, CalDAV (Nextcloud, …) or Apple Reminders',
   defaultRegion: 'middle_right',
   defaultTitle: 'To-dos',
   refresh: 120,
@@ -13,7 +17,12 @@ export default {
       { value: 'todoist', label: 'Todoist' },
       { value: 'homeassistant', label: 'Home Assistant to-do list' },
       { value: 'caldav', label: 'CalDAV (Nextcloud, iCloud, …)' },
+      { value: 'shortcuts', label: 'Apple Reminders (Shortcuts)' },
     ] },
+
+    { key: 'pushToken', label: 'Token for the Shortcut', type: 'text', default: randomToken, secret: true, showIf: { source: 'shortcuts' },
+      help: 'Your Shortcut sends the open reminders to <mirror address>/api/push/tasks with the header "Authorization: Bearer <this token>". Step-by-step guide: README → Apple Reminders. Changing the token locks out old Shortcuts.' },
+    { key: 'staleHours', label: 'Show a note if no update for (hours, 0 = never)', type: 'number', default: 24, min: 0, max: 720, showIf: { source: 'shortcuts' } },
 
     { key: 'todoistToken', label: 'Todoist API token (Settings → Integrations → Developer)', type: 'text', default: '', secret: true, showIf: { source: 'todoist' } },
     { key: 'todoistProject', label: 'Only this project (name or ID, empty = all)', type: 'text', default: '', placeholder: 'Einkauf', showIf: { source: 'todoist' } },

@@ -235,6 +235,14 @@ function connectEvents() {
     serverVersion = version;
   });
   es.addEventListener('reload', () => location.reload());
+  // New data was pushed for a module (e.g. Apple Reminders) – fetch it now.
+  es.addEventListener('refresh', (e) => {
+    const { module } = JSON.parse(e.data);
+    for (const inst of instances.filter((i) => i.mod.id === module)) {
+      if (inst.visible) loadData(inst);
+      else inst.stale = true;
+    }
+  });
   es.addEventListener('page', (e) => {
     const { page } = JSON.parse(e.data);
     const i = pages.findIndex((p) => p.id === page);
