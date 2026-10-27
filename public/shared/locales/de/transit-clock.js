@@ -1,5 +1,9 @@
 // German strings for the transit leave-now indicator and the analog / word clock.
 export default {
+  "via {stop}": "über {stop}",
+  "Show the matching stop (\"via …\")": "Passende Haltestelle anzeigen („über …“)",
+  "Shows only departures that stop at one of these stops later on (part of the name is enough). Works with EFA networks that provide stop sequences (e.g. Saxony, Bavaria) and HAFAS.": "Zeigt nur Abfahrten, die später an einer dieser Haltestellen halten (ein Teil des Namens reicht). Funktioniert mit EFA-Verbünden, die Haltestellenfolgen liefern (z. B. Sachsen, Bayern), und HAFAS.",
+  "Only departures that stop at (comma-separated)": "Nur Abfahrten, die hier halten (kommagetrennt)",
   'Analog': 'Analog',
   'Analog + digital': 'Analog + digital',
   'Analog styles only': 'Nur für analoge Darstellungen',

@@ -398,7 +398,7 @@ const transit = (el, mod, ctx) => {
         const abs = ctx.fmt.time(planned);
         const time = s.timeMode === 'absolute' ? abs : s.timeMode === 'both' ? `${rel} <span class="dim small">${abs}</span>` : rel;
         const delayHtml = s.showDelay && delay !== null ? `<span class="delay ${delay > 0 ? 'late' : 'ontime'}">${delay > 0 ? `+${delay}` : '±0'}</span>` : '';
-        return `<tr class="${x.cancelled ? 'cancelled' : ''}${mins <= 1 && !go ? ' imminent' : ''}${goCls}">${dot}<td><span class="line cat-${x.category}">${esc(x.line)}</span></td><td class="dest">${esc(x.destination)}</td>${s.showPlatform ? `<td class="plat dim small">${esc(x.platform.replace(/^(Gleis|Bstg\.?|Steig|Bussteig)\s*/i, ''))}</td>` : ''}<td class="r tm">${x.cancelled ? `<span class="late">${t('cancelled')}</span>` : `${time}${delayHtml}`}</td></tr>`;
+        return `<tr class="${x.cancelled ? 'cancelled' : ''}${mins <= 1 && !go ? ' imminent' : ''}${goCls}">${dot}<td><span class="line cat-${x.category}">${esc(x.line)}</span></td><td class="dest">${esc(x.destination)}${s.showVia !== false && x.via ? `<span class="via dim small"> · ${esc(t('via {stop}', { stop: x.via }))}</span>` : ''}</td>${s.showPlatform ? `<td class="plat dim small">${esc(x.platform.replace(/^(Gleis|Bstg\.?|Steig|Bussteig)\s*/i, ''))}</td>` : ''}<td class="r tm">${x.cancelled ? `<span class="late">${t('cancelled')}</span>` : `${time}${delayHtml}`}</td></tr>`;
       });
     let banner = '';
     if (go === 'banner') {

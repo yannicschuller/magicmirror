@@ -26,10 +26,10 @@ async function efaSearch(base, q) {
     .map((l) => ({ id: l.id, name: l.name }));
 }
 
-async function efaDepartures(base, stopId, count) {
+async function efaDepartures(base, stopId, count, withStops = false) {
   const params = new URLSearchParams({
     outputFormat: 'rapidJSON', mode: 'direct', type_dm: 'any', name_dm: stopId, useRealtime: '1',
-    limit: String(count), depType: 'stopEvents', includeCompleteStopSeq: '0', useAllStops: '1',
+    limit: String(count), depType: 'stopEvents', includeCompleteStopSeq: withStops ? '1' : '0', useAllStops: '1',
   });
   const data = await fetchJson(`${base}XML_DM_REQUEST?${params}`);
   return (data.stopEvents || []).map((e) => {
@@ -44,6 +44,8 @@ async function efaDepartures(base, stopId, count) {
       realtime: e.departureTimeEstimated || null,
       platform: props.platformName || props.platform || e.location?.disassembledName || '',
       cancelled: (e.realtimeStatus || []).includes('TRIP_CANCELLED') || e.isCancelled === true,
+      // following stops (only requested for the "via" filter)
+      next: (e.onwardLocations || []).map((o) => o.parent?.name || o.name || '').filter(Boolean),
     };
   });
 }
@@ -54,8 +56,8 @@ async function hafasSearch(base, q) {
   return (Array.isArray(data) ? data : []).filter((l) => l.type === 'stop' || l.type === 'station').map((l) => ({ id: l.id, name: l.name }));
 }
 
-async function hafasDepartures(base, stopId, count) {
-  const data = await fetchJson(`${base}/stops/${encodeURIComponent(stopId)}/departures?${new URLSearchParams({ duration: '120', results: String(count), remarks: 'false' })}`);
+async function hafasDepartures(base, stopId, count, withStops = false) {
+  const data = await fetchJson(`${base}/stops/${encodeURIComponent(stopId)}/departures?${new URLSearchParams({ duration: '120', results: String(count), remarks: 'false', stopovers: String(withStops) })}`);
   const list = Array.isArray(data) ? data : data.departures || [];
   return list.map((d) => ({
     line: d.line?.name || '?',
@@ -66,8 +68,13 @@ async function hafasDepartures(base, stopId, count) {
     realtime: d.when && d.delay !== null && d.delay !== undefined ? d.when : null,
     platform: d.platform || d.plannedPlatform || '',
     cancelled: d.cancelled === true,
+    next: (d.nextStopovers || []).slice(1).map((s) => s.stop?.name || '').filter(Boolean),
   }));
 }
+
+// "Leipzig, Augustusplatz" → "augustusplatz" for matching; umlauts/ß folded.
+export const normStop = (s) => s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+const shortStop = (s) => s.replace(/^[^,]+,\s*/, '');
 
 export async function searchStops(settings, q) {
   const base = transitBaseUrl(settings);
@@ -81,9 +88,11 @@ export async function transit(settings) {
   const base = transitBaseUrl(settings);
   if (!base) return { departures: [], needsSetup: true };
   assertHttpUrl(base);
-  const fetchCount = Math.min(80, settings.limit * 4 + 10);
-  const raw = await cached(`transit:${settings.provider}:${base}:${settings.stop.id}:${fetchCount}`, 25, () =>
-    settings.provider === 'hafas' ? hafasDepartures(base, settings.stop.id, fetchCount) : efaDepartures(base, settings.stop.id, fetchCount),
+  // "via" filter: only departures that stop at one of these stops later on.
+  const via = splitList(settings.viaStops).map(normStop);
+  const fetchCount = Math.min(via.length ? 120 : 80, settings.limit * (via.length ? 8 : 4) + 10);
+  const raw = await cached(`transit:${settings.provider}:${base}:${settings.stop.id}:${fetchCount}:${via.length > 0}`, 25, () =>
+    settings.provider === 'hafas' ? hafasDepartures(base, settings.stop.id, fetchCount, via.length > 0) : efaDepartures(base, settings.stop.id, fetchCount, via.length > 0),
   );
 
   const lines = splitList(settings.lines);
@@ -95,6 +104,13 @@ export async function transit(settings) {
   const walk = goNow ? (settings.hideUnreachable === false ? 0 : Math.max(0, settings.walkMinutes - (settings.rushMinutes ?? 3))) : settings.walkMinutes;
   const earliest = Date.now() + walk * 60000 - 30000;
   const departures = raw
+    .map((d) => {
+      if (!via.length) return d;
+      const hit = d.next.find((n) => via.some((v) => normStop(n).includes(v)));
+      return hit ? { ...d, via: shortStop(hit) } : null;
+    })
+    .filter(Boolean)
+    .map(({ next, ...d }) => d)
     .filter((d) => cats.has(d.category))
     .filter((d) => !lines.length || lines.includes(d.line.toLowerCase()))
     .filter((d) => !exclude.some((x) => d.destination.toLowerCase().includes(x)))

@@ -241,3 +241,28 @@ test('F1 track layout: GeoJSON line becomes a normalised SVG path', async () => 
   assert.ok(shape.h > 0 && shape.h < 100);
   assert.deepEqual([shape.length, shape.firstGp], [4300, 1990]);
 });
+
+test('transit: "via" filter keeps only departures stopping at a given stop', async () => {
+  const http = await import('node:http');
+  const { transit } = await import('../src/providers/transit.js');
+  const soon = (min) => new Date(Date.now() + min * 60000).toISOString();
+  const ev = (line, dest, stops, min) => ({
+    departureTimePlanned: soon(min), transportation: { number: line, destination: { name: dest }, product: { class: 4 } },
+    location: { properties: {} }, onwardLocations: stops.map((n) => ({ parent: { name: n } })),
+  });
+  let lastQuery = '';
+  const server = http.createServer((req, res) => {
+    lastQuery = req.url;
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ stopEvents: [ev('4', 'Stötteritz', ['Leipzig, Augustusplatz', 'Leipzig, Johannisplatz'], 5), ev('12', 'Gohlis', ['Leipzig, Zoo'], 6), ev('15', 'Meusdorf', ['Leipzig, Augustusplätzchen'], 7)] }));
+  }).listen(0);
+  try {
+    const settings = applyDefaults(MODULE_TYPES.transit.fields, { provider: 'efa', efaPreset: 'custom', baseUrl: `http://127.0.0.1:${server.address().port}/`, stop: { id: 'x', name: 'Hbf' }, viaStops: 'augustusplatz' });
+    const data = await transit(settings);
+    assert.match(lastQuery, /includeCompleteStopSeq=1/);
+    assert.deepEqual(data.departures.map((d) => [d.line, d.via]), [['4', 'Augustusplatz']]);
+    assert.ok(!('next' in data.departures[0]));
+  } finally {
+    server.close();
+  }
+});

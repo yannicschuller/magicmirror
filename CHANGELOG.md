@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Public transport: "only departures that stop at …" filter (via stops), optionally shown as "via …"
 - Smoother pages: next page's data is loaded in the background before it shows; fade out → swap → fade in (no layout jumps); unchanged data is not re-rendered; first data fades in
 - Page indicator: dots, a progress bar running until the next page, or both
 - Formula 1: track layout (bacinger/f1-circuits, MIT) with length and first GP; facts and podium centred in centred areas
