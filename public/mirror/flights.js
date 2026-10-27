@@ -1,5 +1,6 @@
 // "Aircraft map" renderer: live map of nearby aircraft and/or a spotlight card for the nearest one.
 // Pi 3 friendly: no per-frame animation – markers and the map only change when new data arrives.
+import { greatCircle } from '/shared/geo.js';
 import { esc, num } from './renderers.js';
 import { plane } from './icons.js';
 import { compass } from './weather-chart.js';
@@ -175,6 +176,16 @@ export function flights(el, mod, ctx, region) {
     L.polyline([[c.lat, c.lon], [spot.lat, spot.lon]], { color: ctx.general.accentColor || '#fff', weight: 2, opacity: 0.8, dashArray: '6 6', interactive: false }).addTo(overlay);
     const trail = trails.get(spot.hex);
     if (trail && trail.length > 1) L.polyline(trail, { color: '#fff', weight: 2, opacity: 0.45, interactive: false }).addTo(overlay);
+    const path = routePath(spot);
+    if (path) {
+      // flown part: thin and faint, remaining part: dashed in the accent colour, airports labelled
+      L.polyline(path.flown, { color: '#fff', weight: 1.5, opacity: 0.35, interactive: false }).addTo(overlay);
+      L.polyline(path.ahead, { color: ctx.general.accentColor || '#7dd3fc', weight: 2, opacity: 0.75, dashArray: '2 7', lineCap: 'round', interactive: false }).addTo(overlay);
+      for (const [ap, cls] of [[path.from, 'from'], [path.to, 'to']]) {
+        const html = `<span class="ap-dot"></span><span class="ap-code">${esc(ap.iata || ap.icao)}</span>`;
+        L.marker([ap.lat, ap.lon], { icon: L.divIcon({ className: `ap-mark ${cls}`, html, iconSize: [10, 10], iconAnchor: [5, 5] }), interactive: false, keyboard: false }).addTo(overlay);
+      }
+    }
     if (spotOnly && mapEl.offsetWidth && mapEl.offsetHeight) frame(c, spot);
   }
 
@@ -182,7 +193,8 @@ export function flights(el, mod, ctx, region) {
   let framedHex;
   function frame(c, a) {
     const L = window.L;
-    const bounds = L.latLngBounds([[c.lat, c.lon], [a.lat, a.lon]]);
+    const path = s.spotMapView === 'route' ? routePath(a) : null;
+    const bounds = L.latLngBounds([[c.lat, c.lon], [a.lat, a.lon], ...(path ? [[path.from.lat, path.from.lon], [path.to.lat, path.to.lon]] : [])]);
     const pad = [40, 40];
     const want = Math.min(13, map.getBoundsZoom(bounds, false, L.point(pad)));
     const inner = map.getBounds().pad(-0.12);
@@ -190,6 +202,13 @@ export function flights(el, mod, ctx, region) {
       map.fitBounds(bounds, { padding: pad, maxZoom: 13, animate: false, reset: true });
       framedHex = a.hex;
     }
+  }
+
+  // Great-circle flight path origin → aircraft → destination (needs airport coordinates).
+  function routePath(a) {
+    const r = a.route;
+    if (s.routeOnMap === false || !r || r.plausible === false || !Number.isFinite(r.from?.lat) || !Number.isFinite(r.to?.lat)) return null;
+    return { from: r.from, to: r.to, flown: greatCircle(r.from, a), ahead: greatCircle(a, r.to) };
   }
 
   function updateTrails(d) {

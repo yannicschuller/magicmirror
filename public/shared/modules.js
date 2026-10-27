@@ -331,6 +331,10 @@ export const MODULE_TYPES = {
       { key: 'spotMinAltitudeFt', label: 'Nearest aircraft: min. altitude (ft, 0 = any)', type: 'number', default: 0, min: 0, max: 40000 },
       { key: 'spotRequireCallsign', label: 'Nearest aircraft: ignore aircraft without callsign', type: 'bool', default: false },
       { key: 'showRoute', label: 'Nearest aircraft: route (adsb.lol)', type: 'bool', default: true },
+      { key: 'routeOnMap', label: 'Nearest aircraft: flight path on the map (flown / remaining)', type: 'bool', default: true },
+      { key: 'spotMapView', label: 'Nearest aircraft: map shows', type: 'select', default: 'near', options: [
+        { value: 'near', label: 'Me and the aircraft (close-up)' }, { value: 'route', label: 'The whole route (origin → destination)' },
+      ] },
       { key: 'showPhoto', label: 'Nearest aircraft: photo (planespotters.net)', type: 'bool', default: true },
       { key: 'showSquawk', label: 'Nearest aircraft: squawk', type: 'bool', default: false },
       { key: 'trailLength', label: 'Nearest aircraft: track trail (positions, 0 = off)', type: 'number', default: 20, min: 0, max: 120 },

@@ -13,8 +13,11 @@ export default {
   "Map height (% of screen height, 0 = fit to free space)": "Höhe der Karte (% Bildschirmhöhe, 0 = freien Platz füllen)",
   "Map with all aircraft": "Karte mit allen Flugzeugen",
   "Map with all aircraft + nearest aircraft": "Karte mit allen Flugzeugen + nächstes Flugzeug",
+  "Me and the aircraft (close-up)": "Mich und das Flugzeug (nah)",
   "Nearest aircraft (photo, route, map)": "Nächstes Flugzeug (Foto, Route, Karte)",
+  "Nearest aircraft: flight path on the map (flown / remaining)": "Nächstes Flugzeug: Flugroute auf der Karte (geflogen / verbleibend)",
   "Nearest aircraft: ignore aircraft without callsign": "Nächstes Flugzeug: Flugzeuge ohne Rufzeichen ignorieren",
+  "Nearest aircraft: map shows": "Nächstes Flugzeug: Karte zeigt",
   "Nearest aircraft: min. altitude (ft, 0 = any)": "Nächstes Flugzeug: Mindesthöhe (ft, 0 = egal)",
   "Nearest aircraft: only airborne": "Nächstes Flugzeug: nur in der Luft",
   "Nearest aircraft: photo (planespotters.net)": "Nächstes Flugzeug: Foto (planespotters.net)",
@@ -24,5 +27,6 @@ export default {
   "No aircraft nearby right now": "Gerade kein Flugzeug in der Nähe",
   "Speed": "Geschwindigkeit",
   "Squawk": "Squawk",
+  "The whole route (origin → destination)": "Die ganze Route (Start → Ziel)",
   "Vertical": "Steigrate",
 };

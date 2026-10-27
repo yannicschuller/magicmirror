@@ -89,7 +89,9 @@ export function parseRoute(json, callsign) {
   const airports = Array.isArray(r._airports) ? r._airports : [];
   const ap = (icao) => {
     const a = airports.find((x) => x && x.icao === icao) || {};
-    return { icao, iata: a.iata || '', name: a.name || '', city: a.location || '', country: a.countryiso2 || '' };
+    const lat = Number(a.lat);
+    const lon = Number(a.lon);
+    return { icao, iata: a.iata || '', name: a.name || '', city: a.location || '', country: a.countryiso2 || '', ...(Number.isFinite(lat) && Number.isFinite(lon) && (lat || lon) ? { lat, lon } : {}) };
   };
   if (codes.length < 2) return null;
   // `plausible: false` = the position doesn't fit the route (callsign reused, diverted, …): shown with a "?".

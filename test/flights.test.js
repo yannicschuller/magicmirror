@@ -141,3 +141,12 @@ test('new flights settings keep old behaviour and are translated', () => {
   const keys = Object.keys(de);
   assert.deepEqual(keys, [...keys].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })));
 });
+
+test('great circle between two airports passes through sensible points', async () => {
+  const { greatCircle } = await import('../public/shared/geo.js');
+  const pts = greatCircle({ lat: 49.21, lon: 7.11 }, { lat: 52.37, lon: 13.5 }, 4); // Saarbrücken → Berlin
+  assert.equal(pts.length, 5);
+  assert.deepEqual(pts[0].map((v) => +v.toFixed(2)), [49.21, 7.11]);
+  assert.deepEqual(pts[4].map((v) => +v.toFixed(2)), [52.37, 13.5]);
+  assert.ok(pts[2][0] > 50.6 && pts[2][0] < 51.0 && pts[2][1] > 10.1 && pts[2][1] < 10.6, String(pts[2])); // midpoint near Thuringia
+});
