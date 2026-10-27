@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/vendor/inter/600.css">
   <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="mirror.css">
+  <link rel="stylesheet" href="ambient.css">
   <link rel="stylesheet" href="modules/news.css">
   <link rel="stylesheet" href="modules/homeassistant.css">
   <link rel="stylesheet" href="modules/tasks.css">
@@ -20,6 +21,8 @@
 </head>
 <body>
   <div id="stage">
+    <!-- inside the stage so it follows the screen rotation -->
+    <div id="ambient"></div>
     <div id="grid"></div>
     <div id="indicator" hidden></div>
     <div id="status" hidden></div>

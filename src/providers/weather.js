@@ -257,3 +257,30 @@ export async function weatherHints(settings, cfg) {
   }
   return { hints };
 }
+
+// Current conditions for the animated page background (public, no secrets).
+const AMBIENT_KINDS = [
+  [[95, 96, 99], 'thunder'],
+  [[71, 73, 75, 77, 85, 86], 'snow'],
+  [[61, 63, 65, 66, 67, 80, 81, 82], 'rain'],
+  [[51, 53, 55, 56, 57], 'drizzle'],
+  [[45, 48], 'fog'],
+  [[3], 'cloudy'],
+  [[1, 2], 'partly'],
+  [[0], 'clear'],
+];
+export async function ambientWeather(cfg) {
+  const loc = resolveLocation(null, cfg.general);
+  const raw = await openMeteo(loc, cfg.general.timezone, 'metric');
+  const c = raw.current;
+  const kind = AMBIENT_KINDS.find(([codes]) => codes.includes(c.weather_code))?.[1] || 'cloudy';
+  return {
+    kind,
+    code: c.weather_code,
+    isDay: Boolean(c.is_day),
+    intensity: kind === 'rain' || kind === 'snow' ? (c.precipitation >= 4 || [65, 75, 82, 86].includes(c.weather_code) ? 'heavy' : c.precipitation >= 1 ? 'moderate' : 'light') : 'light',
+    wind: c.wind_speed_10m,
+    gusts: c.wind_gusts_10m,
+    cloud: c.cloud_cover,
+  };
+}

@@ -11,7 +11,7 @@ import { sseHandler, broadcast, clientCount } from './events.js';
 import { mountGo2rtc, syncStreams, streamName, go2rtcStatus } from './go2rtc.js';
 import { cached, fetchJson } from './util.js';
 import { MODULE_TYPES, publicConfig, defaultConfig } from '../public/shared/modules.js';
-import { weather, weatherHints } from './providers/weather.js';
+import { weather, weatherHints, ambientWeather } from './providers/weather.js';
 import { provider as news } from './providers/news.js';
 import { provider as homeassistant, startHaLive } from './providers/homeassistant.js';
 import { provider as tasks } from './providers/tasks.js';
@@ -65,6 +65,13 @@ app.use('/brand', express.static(path.join(root, 'public/brand'), { maxAge: '7d'
 app.get('/favicon.ico', (req, res) => res.redirect(301, '/brand/favicon.svg'));
 app.use('/', express.static(path.join(root, 'public/mirror'), { index: 'index.html' }));
 
+app.get('/api/ambient', async (req, res) => {
+  try {
+    res.set('Cache-Control', 'no-store').json({ ok: true, ...(await ambientWeather(getConfig())) });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err.message });
+  }
+});
 app.get('/api/config', (req, res) => res.set('Cache-Control', 'no-store').json(publicConfig(getConfig())));
 app.get('/api/events', sseHandler);
 

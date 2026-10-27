@@ -67,6 +67,8 @@ export function normalizePageOptions(p) {
     dateTo: isDateKey(p.dateTo) ? p.dateTo : '',
     exclusive: p.exclusive === true,
     skipEmpty: p.skipEmpty !== false,
+    // animated background with the current weather: off / subtle / full
+    ambient: ['subtle', 'full'].includes(p.ambient) ? p.ambient : 'off',
   };
 }
 

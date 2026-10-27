@@ -1,5 +1,18 @@
 // Admin: module height and schedule.
 export default {
+  "Starry sky": "Sternenhimmel",
+  "Sun": "Sonne",
+  "Clouds": "Wolken",
+  "Fog": "Nebel",
+  "Thunderstorm": "Gewitter",
+  "Snow": "Schnee",
+  "Rain": "Regen",
+  "Preview": "Vorschau",
+  "Rain, snow, thunderstorm, fog, drifting clouds, sunshine or stars – matching the current weather at your location.": "Regen, Schnee, Gewitter, Nebel, ziehende Wolken, Sonnenschein oder Sterne – passend zum aktuellen Wetter an deinem Standort.",
+  "Strong": "Kräftig",
+  "Subtle": "Dezent",
+  "Off": "Aus",
+  "Weather animation in the background": "Wetter-Animation im Hintergrund",
   "Skipped while all modules placed only on this page are hidden by their schedules.": "Wird übersprungen, solange alle Module, die nur auf dieser Seite liegen, durch ihren Zeitplan ausgeblendet sind.",
   "Skip when empty": "Überspringen, wenn leer",
   "While this page is active, only it (and other exclusive pages) is shown – e.g. a morning page from 6 to 8.": "Solange diese Seite aktiv ist, wird nur sie (und andere exklusive Seiten) gezeigt – z. B. eine Morgenseite von 6 bis 8 Uhr.",

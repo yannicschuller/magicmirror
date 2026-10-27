@@ -1,0 +1,44 @@
+/* Animated weather background (page option "ambient"). Behind all modules,
+   transform/opacity animations only, everything off for reduced motion. */
+/* z-index 0 + #grid above it: a negative z-index would vanish behind the body background */
+#ambient { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity 1.5s ease; }
+#ambient.amb-subtle { opacity: .45; }
+#ambient.amb-full { opacity: .8; }
+#ambient i { position: absolute; display: block; will-change: transform; }
+
+/* rain / drizzle */
+.amb-drop { top: -12%; width: .24vmin; height: calc(7vmin * var(--len)); background: linear-gradient(to bottom, transparent, rgb(170 200 255 / .7)); border-radius: 1px; transform: rotate(var(--tilt)); animation: amb-fall linear infinite; }
+.amb-drop.light { height: calc(3.5vmin * var(--len)); background: linear-gradient(to bottom, transparent, rgb(190 210 255 / .4)); }
+@keyframes amb-fall { from { transform: translate3d(0, 0, 0) rotate(var(--tilt)); } to { transform: translate3d(var(--dx), 125vh, 0) rotate(var(--tilt)); } }
+
+/* snow: falling + sideways sway (two animations) */
+.amb-flake { top: -5%; border-radius: 50%; background: rgb(255 255 255 / .8); animation-name: amb-snow, amb-sway; animation-timing-function: linear, ease-in-out; animation-iteration-count: infinite; animation-direction: normal, alternate; }
+@keyframes amb-snow { from { top: -5%; } to { top: 105%; } }
+@keyframes amb-sway { from { transform: translate3d(-2vmin, 0, 0); } to { transform: translate3d(2vmin, 0, 0); } }
+
+/* thunder flash: rare, short */
+.amb-flash { inset: 0; background: rgb(220 230 255 / .55); opacity: 0; animation: amb-flash 11s infinite; }
+@keyframes amb-flash { 0%, 61%, 63.5%, 65%, 100% { opacity: 0; } 62% { opacity: .9; } 64% { opacity: .5; } }
+
+/* clouds: big soft blobs drifting across */
+.amb-cloud { left: -40%; width: calc(45vmax * var(--s)); height: calc(20vmax * var(--s)); background: radial-gradient(closest-side, rgb(255 255 255 / .16), transparent); border-radius: 50%; animation: amb-drift linear infinite; }
+.amb-cloud.dark { background: radial-gradient(closest-side, rgb(120 130 150 / .22), transparent); }
+@keyframes amb-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(190vw, 0, 0); } }
+
+/* fog: two wide bands moving slowly */
+.amb-fog { left: -50%; width: 200%; height: 60%; top: 25%; background: radial-gradient(ellipse at center, rgb(220 225 235 / .22), transparent 70%); animation: amb-fog 40s ease-in-out infinite alternate; }
+.amb-fog.b { top: 50%; animation-duration: 55s; animation-direction: alternate-reverse; }
+@keyframes amb-fog { from { transform: translate3d(-10%, 0, 0); } to { transform: translate3d(10%, 0, 0); } }
+
+/* sun: warm glow in the top corner, slowly breathing */
+.amb-sun { top: -30vmax; right: -30vmax; width: 80vmax; height: 80vmax; border-radius: 50%; background: radial-gradient(closest-side, rgb(255 210 120 / .38), rgb(255 180 80 / .12) 55%, transparent); animation: amb-glow 9s ease-in-out infinite alternate; }
+@keyframes amb-glow { from { transform: scale(.94); opacity: .75; } to { transform: scale(1.04); opacity: 1; } }
+
+/* clear night: twinkling stars + an occasional shooting star */
+.amb-star { border-radius: 50%; background: #fff; animation: amb-twinkle ease-in-out infinite alternate; }
+@keyframes amb-twinkle { from { opacity: .15; } to { opacity: .9; } }
+.amb-shooting { top: 12%; left: 70%; width: 14vmin; height: .15vmin; background: linear-gradient(to right, rgb(255 255 255 / .9), transparent); transform: rotate(-20deg); opacity: 0; animation: amb-shoot 23s linear infinite; }
+@keyframes amb-shoot { 0%, 92% { opacity: 0; transform: translate3d(0, 0, 0) rotate(-20deg); } 93% { opacity: 1; } 97% { opacity: 0; transform: translate3d(-40vw, 15vh, 0) rotate(-20deg); } 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) { #ambient i { animation: none !important; } }
+#grid { z-index: 1; }

@@ -48,6 +48,8 @@ export type Page = {
   exclusive?: boolean;
   /** skip when all of its own modules are hidden by their schedules */
   skipEmpty?: boolean;
+  /** animated background with the current weather */
+  ambient?: 'off' | 'subtle' | 'full';
 };
 
 export type Module = {

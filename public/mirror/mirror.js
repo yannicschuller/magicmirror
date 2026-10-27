@@ -2,6 +2,7 @@ import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
 import { translator, langOf } from '/shared/i18n.js';
 import { scheduleActive, activePages } from '/shared/schedule.js';
+import { setAmbient } from './ambient.js';
 
 const params = new URLSearchParams(location.search);
 const pinnedPage = params.get('page');
@@ -182,6 +183,7 @@ function showPage(index, immediate = false) {
   pageIndex = ((index % pages.length) + pages.length) % pages.length;
   const page = pages[pageIndex];
   applyVisibility(immediate);
+  setAmbient(page.ambient);
   renderIndicator();
   if (config.general.rotatePages && pages.length > 1 && !pinnedPage) {
     pageTimer = setTimeout(() => showPage(pageIndex + 1), page.duration * 1000);
