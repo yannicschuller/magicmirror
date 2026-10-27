@@ -53,6 +53,8 @@ export function UpdateCard() {
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+  // startedAt of the previous run – its "done" must not be mistaken for the new run's result
+  const [prevRun, setPrevRun] = useState<string | null | undefined>(undefined);
 
   const load = useCallback(async () => {
     try {
@@ -89,6 +91,7 @@ export function UpdateCard() {
     });
     if (!ok) return;
     try {
+      setPrevRun(status?.startedAt ?? null);
       await api('/update/run', { method: 'POST' });
       setRunning(true);
     } catch (err) {
@@ -171,15 +174,18 @@ export function UpdateCard() {
           </div>
         )}
       </CardContent>
-      {running && status && <UpdateOverlay initial={status} onClose={() => { setRunning(false); load(); }} />}
+      {running && status && <UpdateOverlay initial={status} prevRun={prevRun} onClose={() => { setRunning(false); setPrevRun(undefined); load(); }} />}
     </Card>
   );
 }
 
 /** Full-screen progress while the updater runs; survives the server restart by polling. */
-function UpdateOverlay({ initial, onClose }: { initial: UpdateStatus; onClose: () => void }) {
+function UpdateOverlay({ initial, prevRun, onClose }: { initial: UpdateStatus; prevRun?: string | null; onClose: () => void }) {
   const { t } = useStore();
-  const [s, setS] = useState<UpdateStatus>(initial);
+  // Until the updater reports the new run, the status still describes the previous one.
+  const fresh = (x: UpdateStatus) => prevRun === undefined || (x.state === 'running' || (!!x.startedAt && x.startedAt !== prevRun));
+  const pending = (x: UpdateStatus): UpdateStatus => ({ ...x, state: 'running', phase: 'start', error: null, log: [] });
+  const [s, setS] = useState<UpdateStatus>(() => (fresh(initial) ? initial : pending(initial)));
   const [offline, setOffline] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const startedVersion = useRef(initial.version);
@@ -192,7 +198,7 @@ function UpdateOverlay({ initial, onClose }: { initial: UpdateStatus; onClose: (
         const next = await api<UpdateStatus>('/update');
         if (!alive) return;
         setOffline(false);
-        setS(next);
+        setS(fresh(next) ? next : pending(next));
       } catch {
         // The server container is being recreated – keep waiting.
         if (alive) setOffline(true);
