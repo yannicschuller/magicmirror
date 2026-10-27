@@ -88,9 +88,12 @@ export function parseNominatim(json) {
   const lat = Number(hit.lat);
   const lon = Number(hit.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  // Without a name: "50, Karl-Heine-Straße, …" → "Karl-Heine-Straße 50".
+  // Prefer "Street 50" over a shop/venue name that happens to share the address.
+  const a = hit.address || {};
+  const street = [a.road || a.pedestrian, a.house_number].filter(Boolean).join(' ');
+  // Without address details: "50, Karl-Heine-Straße, …" → "Karl-Heine-Straße 50".
   const parts = String(hit.display_name || '').split(',').map((x) => x.trim());
-  const label = hit.name || (/^\d+\w?$/.test(parts[0]) && parts[1] ? `${parts[1]} ${parts[0]}` : parts[0]) || '';
+  const label = (a.house_number && street) || hit.name || (/^\d+\w?$/.test(parts[0]) && parts[1] ? `${parts[1]} ${parts[0]}` : parts[0]) || '';
   return { lat, lon, label: String(label).trim() };
 }
 
@@ -115,6 +118,29 @@ export function parseOsrm(json) {
 
 const normQuery = (q) => String(q || '').replace(/\s+/g, ' ').trim();
 
+const STREET = /([A-ZÄÖÜa-zäöüß][\wÄÖÜäöüß.\-]*(?:straße|strasse|str\.|weg|platz|allee|ring|gasse|damm|ufer|chaussee|markt|steig|pfad|promenade))\s*(\d+\s*[a-z]?\b)/i;
+const COUNTRY = /^(deutschland|germany|österreich|austria|schweiz|switzerland)$/i;
+
+// "Strombad Stromstraße 14, 03046 Cottbus, Deutschland" →
+//   [as given, "Stromstraße 14, 03046 Cottbus", "Strombad, Cottbus", "03046 Cottbus"]
+export function geocodeVariants(query) {
+  const out = [query];
+  const parts = query.split(',').map((x) => x.trim()).filter((x) => x && !COUNTRY.test(x));
+  const city = parts.length > 1 ? parts[parts.length - 1] : '';
+  const cityName = city.replace(/^\d{4,5}\s*/, '');
+  for (let i = 0; i < parts.length; i++) {
+    const m = parts[i].match(STREET);
+    if (!m) continue;
+    out.push([`${m[1]} ${m[2].replace(/\s+/g, '')}`, ...parts.slice(i + 1)].join(', '));
+    const venue = parts[i].slice(0, m.index).trim() || (i > 0 ? parts[0] : '');
+    if (venue && cityName) out.push(`${venue}, ${cityName}`);
+    break;
+  }
+  const postal = query.match(/\b\d{5}\s+[^,]+/);
+  if (postal) out.push(postal[0].trim());
+  return [...new Set(out)];
+}
+
 // Location text → { lat, lon, label } or null. `near` biases the search to the mirror's area.
 export async function geocode(query, { near, lang = 'de' } = {}) {
   const q = normQuery(query);
@@ -124,11 +150,21 @@ export async function geocode(query, { near, lang = 'de' } = {}) {
   if (hit !== undefined) return hit;
   const pending = recall(geoCache, `pending:${key}`);
   if (pending) return pending;
-  const params = new URLSearchParams({ format: 'jsonv2', limit: '1', q, 'accept-language': lang });
-  if (near) params.set('viewbox', [near.lon - 1, near.lat + 0.7, near.lon + 1, near.lat - 0.7].map((n) => n.toFixed(3)).join(','));
-  const p = throttled(() => deps.fetchJson(`${NOMINATIM}?${params}`, { timeout: 10000 }))
-    .then((json) => {
-      const value = parseNominatim(json);
+  const lookup = async (text) => {
+    const params = new URLSearchParams({ format: 'jsonv2', limit: '1', q: text, 'accept-language': lang, addressdetails: '1' });
+    if (near) params.set('viewbox', [near.lon - 1, near.lat + 0.7, near.lon + 1, near.lat - 0.7].map((n) => n.toFixed(3)).join(','));
+    return parseNominatim(await throttled(() => deps.fetchJson(`${NOMINATIM}?${params}`, { timeout: 10000 })));
+  };
+  // Calendar locations often mix a venue name with the address ("Strombad Stromstraße 14, …"),
+  // which Nominatim can't find as a whole – try simpler variants one after another.
+  const p = (async () => {
+    for (const variant of geocodeVariants(q)) {
+      const found = await lookup(variant);
+      if (found) return found;
+    }
+    return null;
+  })()
+    .then((value) => {
       if (!value) logOnce(`geo:${key}`, `no coordinates found for event location "${q}"`);
       return remember(geoCache, key, value, GEO_TTL);
     })

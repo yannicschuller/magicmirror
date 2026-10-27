@@ -8,7 +8,7 @@ export default {
   "ft, kt, NM": "ft, kn, NM",
   "ft, mph, mi": "ft, mph, mi",
   "Heading": "Kurs",
-  "level": "gleichbleibend",
+  "level": "konstant",
   "m, km/h, km": "m, km/h, km",
   "Map height (% of screen height, 0 = fit to free space)": "Höhe der Karte (% Bildschirmhöhe, 0 = freien Platz füllen)",
   "Map with all aircraft": "Karte mit allen Flugzeugen",
