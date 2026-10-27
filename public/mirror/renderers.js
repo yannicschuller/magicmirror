@@ -360,17 +360,28 @@ const waste = (el, mod, ctx) => {
     const now = new Date();
     const today = ctx.fmt.dayKey(now);
     const hour = ctx.fmt.hourOf(now);
-    el.innerHTML = `<div class="waste">${d.days
+    const layout = s.layout || 'list';
+    el.innerHTML = `<div class="waste layout-${esc(layout)}">${d.days
       .map((day) => {
         const diff = ctx.fmt.keyDiff(today, day.date);
         const remind = (diff === 1 && hour >= s.reminderHour) || (diff === 0 && hour < 10);
         const note = diff === 1 && hour >= s.reminderHour ? t('Put it out tonight!') : diff === 0 && hour < 10 ? t('Collection today!') : '';
+        const cls = `waste-day${remind ? ' remind' : ''}${diff <= 1 && diff >= 0 ? ' soon' : ''}${diff < 0 ? ' past' : ''}`;
+        if (layout !== 'list') {
+          // short day: Heute / Morgen / Übermorgen, then weekday (this week) or date
+          const short = Math.abs(diff) <= 2 ? esc(ctx.fmt.dayLabel(day.date)) : diff > 0 && diff < 7 ? esc(ctx.fmt.weekdayShort(day.date)) : esc(ctx.fmt.dateShort(day.date));
+          if (layout === 'icons') {
+            return day.items.map((i) => `<div class="${cls}" title="${esc(note)}">${bin(esc(i.color))}<div class="waste-name">${esc(i.name)}</div><div class="waste-when">${short}</div></div>`).join('');
+          }
+          const items = day.items.map((i) => `<span class="waste-item">${bin(esc(i.color))}<span>${esc(i.name)}</span></span>`).join('');
+          return `<div class="${cls}"><span class="waste-when">${short}</span><span class="waste-items">${items}</span>${note ? `<span class="waste-note">${note}</span>` : ''}</div>`;
+        }
         const when = diff > 2
           ? `${ctx.fmt.weekdayShort(day.date)}, ${ctx.fmt.dateShort(day.date)} <span class="dim small">${t('in {n} days', { n: diff })}</span>`
           : diff < -2
             ? `${ctx.fmt.weekdayShort(day.date)}, ${ctx.fmt.dateShort(day.date)} <span class="dim small">${t('{n} days ago', { n: -diff })}</span>`
             : esc(ctx.fmt.dayLabel(day.date));
-        return `<div class="waste-day${remind ? ' remind' : ''}${diff <= 1 && diff >= 0 ? ' soon' : ''}${diff < 0 ? ' past' : ''}"><div class="waste-when">${when}</div><div class="waste-items">${day.items
+        return `<div class="${cls}"><div class="waste-when">${when}</div><div class="waste-items">${day.items
           .map((i) => `<span class="waste-item">${bin(esc(i.color))}<span>${esc(i.name)}</span></span>`)
           .join('')}</div>${note ? `<div class="waste-note">${note}</div>` : ''}</div>`;
       })

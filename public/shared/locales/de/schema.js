@@ -140,6 +140,8 @@ export default {
   "Last race podium": "Podium letztes Rennen",
   "Last year's winner": "Vorjahressieger",
   "Layout": "Darstellung",
+  "Compact (one line per day)": "Kompakt (eine Zeile pro Tag)",
+  "Icons side by side": "Symbole nebeneinander",
   "Left": "Links",
   "List of nearest aircraft": "Liste der nächsten Flugzeuge",
   "Live departure board for a stop (EFA networks or HAFAS-REST)": "Live-Abfahrtstafel einer Haltestelle (EFA-Verbünde oder HAFAS-REST)",

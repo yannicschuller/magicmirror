@@ -382,6 +382,25 @@ td:last-child { padding-right: 0; }
   border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent);
 }
 .waste-note { color: var(--warn); font-weight: 600; font-size: .9em; margin-top: .15em; }
+/* compact: one line per day */
+.waste.layout-compact { gap: .3em; }
+.waste.layout-compact .waste-day { display: flex; align-items: center; gap: .3em .8em; flex-wrap: wrap; padding: .1em 0; }
+.waste.layout-compact .waste-day.remind { padding: .25em .6em; }
+.waste.layout-compact .waste-when { min-width: 6.5em; }
+.waste.layout-compact .waste-item { font-size: 1em; }
+.waste.layout-compact .waste-item .bin { width: 1.15em; height: 1.15em; }
+.waste.layout-compact .waste-note { margin: 0; font-size: .8em; }
+.region[data-region$='right'] .waste.layout-compact .waste-day { justify-content: flex-end; }
+.region[data-region$='right'] .waste.layout-compact .waste-when { order: 2; min-width: 0; }
+.region[data-region$='center'] .waste.layout-compact .waste-day { justify-content: center; }
+/* icons: one tile per bin, side by side */
+.waste.layout-icons { flex-direction: row; flex-wrap: wrap; gap: .8em 1.2em; }
+.region[data-region$='right'] .waste.layout-icons { justify-content: flex-end; }
+.region[data-region$='center'] .waste.layout-icons, .region[data-region$='bar'] .waste.layout-icons { justify-content: center; }
+.waste.layout-icons .waste-day { display: flex; flex-direction: column; align-items: center; text-align: center; padding: .3em .4em; min-width: 4em; }
+.waste.layout-icons .bin { width: 2em; height: 2em; }
+.waste.layout-icons .waste-name { font-size: .8em; margin-top: .2em; }
+.waste.layout-icons .waste-when { font-size: .75em; }
 
 /* ---- F1 ---- */
 .f1-name { font-size: 1.6em; font-weight: 400; line-height: 1.15; margin-top: .1em; }
