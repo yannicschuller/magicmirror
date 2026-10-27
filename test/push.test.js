@@ -71,3 +71,8 @@ test('every tasks module gets its own random push token', () => {
   assert.notEqual(a, b);
   assert.equal(MODULE_TYPES.tasks.fields.find((f) => f.key === 'pushToken').secret, true);
 });
+
+test('duplicate reminder lines are merged', () => {
+  const items = parseReminders('Milch\nBrot | 2026-10-28\nmilch\nBrot | 2026-10-28\nBrot | 2026-10-29');
+  assert.deepEqual(items.map((i) => `${i.title}|${i.due || ''}`), ['Milch|', 'Brot|2026-10-28', 'Brot|2026-10-29']);
+});

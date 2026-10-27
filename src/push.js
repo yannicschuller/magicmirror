@@ -68,7 +68,19 @@ export function parseReminders(body) {
   } else {
     list = [];
   }
-  return list.map(normalize).filter(Boolean).slice(0, MAX_ITEMS);
+  // Drop exact duplicates (same title + due date) – e.g. when a Shortcut adds the
+  // reminders twice (repeat results and the reminders themselves combined).
+  const seen = new Set();
+  return list
+    .map(normalize)
+    .filter(Boolean)
+    .filter((i) => {
+      const key = `${i.title.toLowerCase()}|${i.due || ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, MAX_ITEMS);
 }
 
 function tokenMatches(given, expected) {
