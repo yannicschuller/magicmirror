@@ -113,6 +113,23 @@ export default {
     { key: 'hideCancelled', label: 'Hide cancelled events', type: 'bool', default: true },
     { key: 'hidePrivate', label: 'Hide private/confidential events', type: 'bool', default: false },
 
+    // ---- time to leave
+    { key: 'travelCard', label: "Show a 'time to leave' card for events with a location", type: 'bool', default: false,
+      help: 'Shortly before it is time to leave for a timed event with a place, a card with travel time and route map appears above the events. Places are looked up with OpenStreetMap (Nominatim), routes with OSRM – without live traffic. All-day events, online meetings and busy-only calendars are skipped.' },
+    { key: 'travelMode', label: 'Travel by', type: 'select', default: 'car', showIf: { travelCard: true }, options: [
+      { value: 'car', label: 'Car' },
+      { value: 'bike', label: 'Bike' },
+      { value: 'foot', label: 'On foot' },
+    ] },
+    { key: 'travelLeadMinutes', label: 'Show the card this many minutes before leaving', type: 'number', default: 30, min: 0, max: 180, showIf: { travelCard: true } },
+    { key: 'travelBufferMinutes', label: 'Buffer added to the travel time (minutes)', type: 'number', default: 5, min: 0, max: 60, showIf: { travelCard: true } },
+    { key: 'travelFrom', label: 'Start of the route', type: 'location', default: null, showIf: { travelCard: true },
+      help: 'Leave empty to use the location from "General".' },
+    { key: 'travelFromAddress', label: 'Start address (optional, more exact than a city)', type: 'text', default: '', secret: true, showIf: { travelCard: true },
+      placeholder: 'Musterstraße 1, 04109 Leipzig',
+      help: 'Looked up once with OpenStreetMap (Nominatim) and preferred over the start location above. Stays on the server.' },
+    { key: 'travelMapHeight', label: 'Map height (% of screen height, 0 = auto)', type: 'number', default: 0, min: 0, max: 80, showIf: { travelCard: true } },
+
     // ---- holidays
     { key: 'holidayCountry', label: 'Holidays: country', type: 'select', default: 'DE', options: [
       { value: 'DE', label: 'Germany' },

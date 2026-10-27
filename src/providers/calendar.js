@@ -3,6 +3,8 @@ import { cached, fetchText, dateKey } from '../util.js';
 import { translator, langOf } from '../../public/shared/i18n.js';
 import { DAY, addDays, eventSpan } from '../../public/shared/calendar-days.js';
 import { publicHolidaysBetween, schoolHolidaysBetween } from './holidays.js';
+import { resolveLocation } from '../../public/shared/modules.js';
+import { computeTravel, geocode } from './route.js';
 
 const GRID_LIMIT = 300;
 
@@ -151,6 +153,7 @@ export async function calendar(settings, cfg) {
   const errors = [];
   const agenda = [];
   const gridEvents = [];
+  const travelEvents = []; // timed events with a place (never from busy-only calendars)
 
   const inGrid = (e) => {
     if (!grid) return false;
@@ -169,6 +172,9 @@ export async function calendar(settings, cfg) {
           const ics = await loadIcs(c.url);
           const items = filterEvents(expandCalendarIcs(ics, from, new Date(Math.max(until.getTime(), gridEnd))), s);
           for (const it of items) {
+            if (s.travelCard && !c.busyOnly && !it.allDay && it.location && it.status !== 'CANCELLED') {
+              travelEvents.push({ title: it.title, location: it.location, start: it.start, allDay: false });
+            }
             let e = c.busyOnly ? toBusy(it, t) : { allDay: it.allDay, start: it.start, end: it.end, title: it.title, location: it.location };
             if (!c.busyOnly && s.birthdayAge && isBirthdayEvent(it, c, s.iconRules)) {
               const year = Number((it.allDay ? it.start : dayKey(new Date(it.start))).slice(0, 4));
@@ -215,6 +221,16 @@ export async function calendar(settings, cfg) {
 
   const events = selectAgenda(agenda, s, { now, today, agendaTo, dayKey });
   const out = { today, events, errors };
+  if (s.travelCard && travelEvents.length) {
+    try {
+      const base = resolveLocation({ location: s.travelFrom }, cfg.general);
+      const from = (s.travelFromAddress && (await geocode(s.travelFromAddress, { near: base, lang }))) || base;
+      const travel = await computeTravel(travelEvents, s, from, { now, lang });
+      if (travel) out.travel = travel;
+    } catch (err) {
+      console.warn(`[calendar] time to leave: ${err.message}`);
+    }
+  }
   if (grid) {
     out.grid = {
       from: grid.from,

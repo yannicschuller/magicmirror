@@ -49,3 +49,20 @@
 .cm-d.out { opacity: .25; }
 .cm-dots { display: flex; justify-content: center; gap: .14em; height: .38em; }
 .cm-dots i { width: .38em; height: .38em; border-radius: 50%; }
+
+/* time to leave */
+.cal-tv { margin-bottom: .9em; padding: .55em .65em .65em; border-radius: .5em; background: color-mix(in srgb, var(--accent) 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
+.cal-tv-head { display: flex; align-items: center; gap: .45em; }
+.cal-tv-ico { flex: none; width: 1.25em; height: 1.25em; color: var(--accent); }
+.cal-tv-ico .ico { width: 100%; height: 100%; }
+.cal-tv-leave { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-tv-cd { flex: none; font-size: .8em; white-space: nowrap; color: var(--accent); border: 1px solid color-mix(in srgb, currentColor 55%, transparent); border-radius: 1em; padding: 0 .6em; }
+.cal-tv-cd.warn { color: var(--warn); }
+.cal-tv-cd.late { color: #111; background: var(--severe); border-color: var(--severe); font-weight: 600; }
+.cal-tv-sub { margin-top: .15em; font-size: .9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-tv-sub b { font-weight: 600; }
+.cal-tv-note { font-size: .7em; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-tv-map { margin-top: .5em; border-radius: .35em; overflow: hidden; background: #0b0b0b; height: 13em; }
+.cal-tv-map.auto { height: 11em; } /* JS fits it into the region's free height */
+.cal-tv-map .leaflet-container, .cal-tv-map.leaflet-container { font-size: 10px; }
+.cal-tv-map img.leaflet-tile { width: 257px !important; height: 257px !important; mix-blend-mode: normal; outline: 1px solid transparent; }

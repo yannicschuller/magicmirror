@@ -76,6 +76,30 @@ export default {
   "Public holidays": "Feiertage",
   "School holidays": "Schulferien",
 
+  // time to leave (schema)
+  "Show a 'time to leave' card for events with a location": "Karte „Zeit zum Aufbrechen“ für Termine mit Ort anzeigen",
+  "Shortly before it is time to leave for a timed event with a place, a card with travel time and route map appears above the events. Places are looked up with OpenStreetMap (Nominatim), routes with OSRM – without live traffic. All-day events, online meetings and busy-only calendars are skipped.": "Kurz bevor du zu einem Termin mit Ort aufbrechen musst, erscheint über den Terminen eine Karte mit Fahrzeit und Routenkarte. Orte werden über OpenStreetMap (Nominatim) gesucht, Routen über OSRM berechnet – ohne aktuelle Verkehrslage. Ganztägige Termine, Online-Meetings und „Nur belegt“-Kalender werden übersprungen.",
+  "Travel by": "Unterwegs mit",
+  "Car": "Auto",
+  "Bike": "Fahrrad",
+  "On foot": "Zu Fuß",
+  "Show the card this many minutes before leaving": "Karte so viele Minuten vor dem Aufbruch zeigen",
+  "Buffer added to the travel time (minutes)": "Puffer zur Fahrzeit (Minuten)",
+  "Start of the route": "Startpunkt der Route",
+  "Leave empty to use the location from \"General\".": "Leer lassen = Standort aus „Allgemein“.",
+  "Start address (optional, more exact than a city)": "Startadresse (optional, genauer als ein Ort)",
+  "Looked up once with OpenStreetMap (Nominatim) and preferred over the start location above. Stays on the server.": "Wird einmalig über OpenStreetMap (Nominatim) gesucht und hat Vorrang vor dem Startpunkt oben. Bleibt auf dem Server.",
+  "Map height (% of screen height, 0 = auto)": "Kartenhöhe (% der Bildschirmhöhe, 0 = automatisch)",
+
+  // time to leave (mirror)
+  "Leave at {time}": "Losfahren um {time}",
+  "Start walking at {time}": "Losgehen um {time}",
+  "Leave now!": "jetzt losfahren!",
+  "Leave now on foot!": "jetzt losgehen!",
+  "{duration} ({km} km) to {place}": "{duration} ({km} km) bis {place}",
+  "Starts {time}": "Beginn {time}",
+  "without live traffic": "ohne Verkehrslage",
+
   // public holidays
   "New Year's Day": "Neujahr",
   "Epiphany": "Heilige Drei Könige",

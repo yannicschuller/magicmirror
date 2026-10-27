@@ -5,7 +5,7 @@ import { plane } from './icons.js';
 import { compass } from './weather-chart.js';
 
 let leafletPromise = null;
-function loadLeaflet() {
+export function loadLeaflet() {
   if (window.L) return Promise.resolve(window.L);
   leafletPromise ||= new Promise((resolve, reject) => {
     const css = document.createElement('link');
@@ -30,7 +30,7 @@ function altColor(a) {
   return '#c084fc';
 }
 
-const TILES = {
+export const TILES = {
   esri_dark: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', attribution: '© Esri, HERE, Garmin, © OpenStreetMap', className: 'tiles-dim' },
   osm_dark: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '© OpenStreetMap', className: 'tiles-dark' },
   osm: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '© OpenStreetMap' },

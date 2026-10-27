@@ -4,10 +4,17 @@
 import { esc } from '../renderers.js';
 import { calIcons } from '../icons.js';
 import { eventSpan, dayOfSpan, groupByDay, eventsOnDay, addDays } from '/shared/calendar-days.js';
+import { loadLeaflet, TILES } from '../flights.js';
 
 const FADE = { subtle: { start: 0.5, min: 0.45 }, strong: { start: 0.25, min: 0.15 } };
 const MAX_CHIPS = 6;
 const MAX_DOTS = 4;
+const WARN_MS = 5 * 60000; // countdown turns amber this long before leaving
+const ico = (body) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+const MODE_ICONS = {
+  bike: ico('<circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5L9 9h7l2.5 7.5M9 9l3.5 7.5L16 9M8 6.5h3"/>'),
+  foot: ico('<circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2.2-6-2.7-2.7.8-4.3 3.2 1.8 2.5 2.7M9.7 8.2L6.8 10l-.8 3.2M12.2 15l2.3 2 1 4"/>'),
+};
 
 export default function render(el, mod, ctx) {
   const s = mod.settings;
@@ -160,10 +167,117 @@ export default function render(el, mod, ctx) {
       .join('')}</div>`;
   };
 
+  // ---- "time to leave" card: text redrawn on every tick, the map only when the route changes.
+  let shell = null; // { slot, main }
+  let tv = null; // { id, card, info, mapEl, map, routeKey, obs }
+  const routeKey = (x) => `${x.mode}|${x.geometry.length}|${x.geometry[0]}|${x.to.lat},${x.to.lon}`;
+
+  const travelInfo = (x, now) => {
+    const leave = new Date(x.leaveAt);
+    const ms = leave - now;
+    const foot = x.mode === 'foot';
+    const state = ms <= 0 ? 'late' : ms <= WARN_MS ? 'warn' : '';
+    const cd = ms <= 0 ? t(foot ? 'Leave now on foot!' : 'Leave now!') : relative(ms);
+    const km = x.distanceKm.toLocaleString(ctx.fmt.locale, { maximumFractionDigits: x.distanceKm < 10 ? 1 : 0 });
+    const head = t(foot ? 'Start walking at {time}' : 'Leave at {time}', { time: ctx.fmt.time(leave) });
+    const sub = t('{duration} ({km} km) to {place}', { duration: duration(x.durationMin * 60000), km, place: '\u0000' });
+    const [pre, post] = esc(sub).split('\u0000');
+    const note = [t('Starts {time}', { time: ctx.fmt.time(new Date(x.start)) }), x.location, x.mode === 'car' ? t('without live traffic') : ''].filter(Boolean);
+    return `<div class="cal-tv-head"><span class="cal-tv-ico">${x.mode === 'car' ? calIcons.car : MODE_ICONS[x.mode] || calIcons.car}</span><span class="cal-tv-leave">${esc(head)}</span><span class="cal-tv-cd${state ? ` ${state}` : ''}">${esc(cd)}</span></div>`
+      + `<div class="cal-tv-sub">${pre}<b>${esc(x.title)}</b>${post || ''}</div>`
+      + `<div class="cal-tv-note">${note.map(esc).join(' · ')}</div>`;
+  };
+
+  const fitRoute = () => {
+    if (!tv?.map || !tv.mapEl.offsetWidth || !tv.mapEl.offsetHeight) return;
+    tv.map.invalidateSize({ pan: false, animate: false });
+    const L = window.L;
+    const x = last.travel;
+    const bounds = L.latLngBounds([[x.from.lat, x.from.lon], [x.to.lat, x.to.lon], ...x.geometry]);
+    tv.map.fitBounds(bounds, { padding: [22, 22], maxZoom: 16, animate: false });
+  };
+
+  const drawRoute = () => {
+    const L = window.L;
+    const x = last?.travel;
+    if (!tv || !L || !x) return;
+    if (!tv.map) {
+      if (!tv.mapEl.offsetWidth) return; // hidden page: try again on show()/tick
+      tv.map = L.map(tv.mapEl, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, fadeAnimation: false, zoomAnimation: false, markerZoomAnimation: false });
+      tv.map.attributionControl.setPrefix('');
+      const tiles = TILES.esri_dark;
+      L.tileLayer(tiles.url, { maxZoom: 18, attribution: `${tiles.attribution} · OSRM`, className: tiles.className }).addTo(tv.map);
+      tv.layer = L.layerGroup().addTo(tv.map);
+      if (window.ResizeObserver) {
+        let timer = 0;
+        tv.obs = new ResizeObserver(() => {
+          clearTimeout(timer);
+          timer = setTimeout(fitRoute, 80);
+        });
+        tv.obs.observe(tv.mapEl);
+      }
+    }
+    const key = routeKey(x);
+    if (key === tv.routeKey) return;
+    tv.routeKey = key;
+    const accent = ctx.general.accentColor || '#7dd3fc';
+    tv.layer.clearLayers();
+    if (x.geometry.length > 1) {
+      L.polyline(x.geometry, { color: '#000', weight: 7, opacity: 0.55, interactive: false }).addTo(tv.layer);
+      L.polyline(x.geometry, { color: accent, weight: 4, opacity: 0.95, interactive: false }).addTo(tv.layer);
+    }
+    L.circleMarker([x.from.lat, x.from.lon], { radius: 5, color: '#fff', weight: 2, fillColor: accent, fillOpacity: 1, interactive: false }).addTo(tv.layer);
+    L.circleMarker([x.to.lat, x.to.lon], { radius: 7, color: '#fff', weight: 2.5, fillColor: '#f87171', fillOpacity: 1, interactive: false }).addTo(tv.layer);
+    fitRoute();
+  };
+
+  // Auto height: fill the region's free height (between 90 px and half the width / 30 vh).
+  const sizeMap = () => {
+    const region = el.closest('.region');
+    if (!tv || !region || !tv.mapEl.classList.contains('auto') || !tv.mapEl.offsetWidth) return;
+    const free = region.getBoundingClientRect().bottom - tv.mapEl.getBoundingClientRect().top - 6;
+    const h = Math.round(Math.max(90, Math.min(tv.mapEl.offsetWidth / 2, window.innerHeight * 0.3, free)));
+    if (Math.abs(h - tv.mapEl.offsetHeight) > 2) tv.mapEl.style.height = `${h}px`;
+  };
+
+  const closeTravel = () => {
+    if (!tv) return;
+    tv.obs?.disconnect();
+    tv.map?.remove();
+    tv.card.remove();
+    tv = null;
+  };
+
+  const drawTravel = (now) => {
+    const x = s.travelCard ? last?.travel : null;
+    const visible = x && now >= new Date(x.leaveAt).getTime() - x.lead * 60000 && now < new Date(x.start);
+    if (!visible) return closeTravel();
+    const id = `${x.start}|${x.location}`;
+    if (tv && tv.id !== id) closeTravel();
+    if (!tv) {
+      const card = document.createElement('div');
+      card.className = 'cal-tv';
+      const h = Number(s.travelMapHeight) > 0 ? ` style="height:${Number(s.travelMapHeight)}vh"` : '';
+      card.innerHTML = `<div class="cal-tv-info"></div><div class="cal-tv-map${h ? '' : ' auto'}"${h}></div>`;
+      shell.slot.append(card);
+      tv = { id, card, info: card.querySelector('.cal-tv-info'), mapEl: card.querySelector('.cal-tv-map'), map: null, routeKey: '' };
+      loadLeaflet().then(drawRoute).catch(() => {});
+    }
+    const html = travelInfo(x, now);
+    if (html !== tv.infoHtml) tv.info.innerHTML = tv.infoHtml = html;
+    sizeMap();
+    if (window.L) drawRoute();
+  };
+
   const draw = () => {
     const d = last;
     if (!d) return;
+    if (!shell) {
+      el.innerHTML = '<div class="cal-tv-slot"></div><div class="cal-main"></div>';
+      shell = { slot: el.firstChild, main: el.lastChild };
+    }
     const now = new Date();
+    drawTravel(now);
     const today = dk(now);
     const events = d.events.filter((e) => !ended(e, now, today));
     const errors = d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('');
@@ -179,7 +293,7 @@ export default function render(el, mod, ctx) {
       else html += agendaHtml(events, now, today);
       html += `${errors}</div>`;
     }
-    if (html !== lastHtml) el.innerHTML = lastHtml = html;
+    if (html !== lastHtml) shell.main.innerHTML = lastHtml = html;
   };
 
   return {
@@ -189,5 +303,13 @@ export default function render(el, mod, ctx) {
     },
     tick: draw,
     tickEvery: 30000,
+    show() {
+      if (tv) setTimeout(() => {
+        sizeMap();
+        if (tv?.map) fitRoute();
+        else drawRoute();
+      }, 50);
+    },
+    destroy: closeTravel,
   };
 }
