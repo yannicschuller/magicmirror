@@ -141,3 +141,8 @@
     grid-template-areas: 'tb tb tb' 'tl tc tr' 'ml mc mr' 'bl bc br' 'bb bb bb' 'fs fs fs';
   }
 }
+
+/* thin native scrollbars for scrollable lists (module list) */
+.mm-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.mm-scroll::-webkit-scrollbar { width: 6px; }
+.mm-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

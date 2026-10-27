@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Copy, FlaskConical, Loader2, Plus, Trash2 } from 'lucide-react';
 import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -40,12 +39,13 @@ function ModuleList({ selected }: { selected?: string }) {
   const { cfg, t, touch, page, setModule } = useStore();
   const types = Object.entries(MODULE_TYPES).map(([value, type]) => ({ value, label: type.label }));
   const [addType, setAddType] = useState(types[0].value);
+  const listRef = useRef<HTMLDivElement>(null);
   return (
     <Card className="gap-3 overflow-hidden lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)]">
       <CardHeader>
         <CardTitle className="text-base font-semibold">{t('Modules')}</CardTitle>
       </CardHeader>
-      <ScrollArea className="min-h-0 flex-1 overflow-hidden px-2">
+      <div ref={listRef} className="mm-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2">
         <div className="flex flex-col gap-0.5">
           {cfg.modules.map((m) => (
             <div
@@ -88,7 +88,7 @@ function ModuleList({ selected }: { selected?: string }) {
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
       <CardContent className="relative z-10 flex shrink-0 gap-2 border-t bg-card pt-3">
         <OptionSelect value={addType} options={types} onValue={setAddType} className="min-w-0 flex-1" />
         <Button
@@ -98,6 +98,8 @@ function ModuleList({ selected }: { selected?: string }) {
             cfg.modules.push(m);
             setModule(m.id);
             touch();
+            // show the new module at the end of the list
+            setTimeout(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }), 0);
           }}
         >
           <Plus />
