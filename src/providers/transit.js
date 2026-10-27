@@ -12,7 +12,7 @@ const HAFAS_PRODUCT = {
 
 function assertHttpUrl(url) {
   const u = new URL(url);
-  if (!/^https?:$/.test(u.protocol)) throw new Error('Nur http(s)-URLs erlaubt');
+  if (!/^https?:$/.test(u.protocol)) throw new Error('Only http(s) URLs are allowed');
   return u;
 }
 
@@ -71,7 +71,7 @@ async function hafasDepartures(base, stopId, count) {
 
 export async function searchStops(settings, q) {
   const base = transitBaseUrl(settings);
-  if (!base) throw new Error('Keine Basis-URL konfiguriert');
+  if (!base) throw new Error('No base URL configured');
   assertHttpUrl(base);
   return settings.provider === 'hafas' ? hafasSearch(base, q) : efaSearch(base, q);
 }

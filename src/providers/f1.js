@@ -1,12 +1,13 @@
+import { translator, langOf } from '../../public/shared/i18n.js';
 import { cached, fetchJson } from '../util.js';
 
 const API = 'https://api.jolpi.ca/ergast/f1';
 const SESSION_KEYS = [
-  ['FirstPractice', '1. Training'],
-  ['SecondPractice', '2. Training'],
-  ['ThirdPractice', '3. Training'],
-  ['SprintShootout', 'Sprint-Quali'],
-  ['SprintQualifying', 'Sprint-Quali'],
+  ['FirstPractice', 'Practice 1'],
+  ['SecondPractice', 'Practice 2'],
+  ['ThirdPractice', 'Practice 3'],
+  ['SprintShootout', 'Sprint Quali'],
+  ['SprintQualifying', 'Sprint Quali'],
   ['Sprint', 'Sprint'],
   ['Qualifying', 'Qualifying'],
 ];
@@ -48,7 +49,9 @@ async function trackWeather(race) {
 
 const driverName = (d) => `${d.givenName} ${d.familyName}`;
 
-export async function f1(settings) {
+export async function f1(settings, cfg) {
+  const lang = langOf(cfg.general.locale);
+  const t = translator(lang);
   const now = Date.now();
   const year = new Date().getUTCFullYear();
   let races = await schedule('current');
@@ -60,8 +63,8 @@ export async function f1(settings) {
   }
   if (!next) return { offseason: true };
 
-  const sessions = SESSION_KEYS.filter(([k]) => next[k]).map(([k, label]) => ({ key: k, label, start: iso(next[k]) }));
-  sessions.push({ key: 'Race', label: 'Rennen', start: iso(next) });
+  const sessions = SESSION_KEYS.filter(([k]) => next[k]).map(([k, label]) => ({ key: k, label: t(label), start: iso(next[k]) }));
+  sessions.push({ key: 'Race', label: t('Race'), start: iso(next) });
   sessions.sort((a, b) => a.start.localeCompare(b.start));
   const upcoming = sessions.find((s) => new Date(s.start).getTime() + 2 * 3600 * 1000 > now) || sessions[sessions.length - 1];
 
@@ -73,7 +76,7 @@ export async function f1(settings) {
     raceNameFull: next.raceName,
     circuit: next.Circuit.circuitName,
     locality: next.Circuit.Location.locality,
-    country: COUNTRY_DE[next.Circuit.Location.country] || next.Circuit.Location.country,
+    country: (lang === 'de' && COUNTRY_DE[next.Circuit.Location.country]) || next.Circuit.Location.country,
     isSprint: sessions.some((s) => s.key === 'Sprint'),
     sessions,
     nextSession: upcoming,

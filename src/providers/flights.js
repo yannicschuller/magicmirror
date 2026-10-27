@@ -13,7 +13,7 @@ export async function flights(settings, cfg) {
   let list;
   if (settings.source === 'local') {
     const url = new URL(settings.localUrl);
-    if (!/^https?:$/.test(url.protocol)) throw new Error('Nur http(s)-URLs erlaubt');
+    if (!/^https?:$/.test(url.protocol)) throw new Error('Only http(s) URLs are allowed');
     const data = await cached(`flights:local:${url}`, 2, () => fetchJson(url.toString(), { timeout: 5000 }));
     list = data.aircraft || data.ac || [];
   } else {

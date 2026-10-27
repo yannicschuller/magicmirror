@@ -1,0 +1,37 @@
+/* ---- sky (moon & sun) ---- */
+.mod-sky { --moon: #f4efe1; --sun: #fcd34d; }
+.mod-sky .sky { display: flex; flex-direction: column; gap: .7em; }
+.mod-sky .sky.size-small { font-size: .85em; }
+.mod-sky .sky.size-large { font-size: 1.25em; }
+.region[data-region$='right'] .mod-sky .sky { align-items: flex-end; }
+.region[data-region$='center'] .mod-sky .sky, .region[data-region$='bar'] .mod-sky .sky { align-items: center; }
+
+.mod-sky .sky-moonrow { display: flex; align-items: center; gap: .8em; }
+.region[data-region$='right'] .mod-sky .sky-moonrow { flex-direction: row-reverse; }
+.mod-sky .sky-moon { width: 4.6em; height: 4.6em; flex: none; }
+.mod-sky .sky-moon-dark { fill: color-mix(in srgb, var(--fg) 9%, transparent); stroke: var(--faint); stroke-width: 1; }
+.mod-sky .sky-moon-lit { fill: var(--moon); }
+.mod-sky .sky-phase { font-size: 1.3em; font-weight: 300; line-height: 1.15; }
+.mod-sky .sky-next { margin-top: .2em; font-variant-numeric: tabular-nums; }
+.mod-sky .sky-dot { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-right: .35em; vertical-align: -.05em; }
+.mod-sky .sky-dot.full { background: var(--moon); }
+.mod-sky .sky-dot.new { border: 1px solid var(--dim); box-sizing: border-box; }
+
+.mod-sky .sky-arcwrap { display: flex; flex-direction: column; align-items: inherit; }
+.mod-sky .sky-arc { width: 13em; height: auto; overflow: visible; }
+.mod-sky .sky-arc-night { fill: none; stroke: var(--faint); stroke-width: 1.2; stroke-dasharray: 2 3; }
+.mod-sky .sky-arc-day { fill: none; stroke: var(--dim); stroke-width: 1.6; stroke-linecap: round; }
+.mod-sky .sky-arc-horizon { stroke: var(--faint); stroke-width: 1; }
+.mod-sky .sky-arc-glow { fill: var(--sun); opacity: .18; }
+.mod-sky .sky-arc-sun { fill: var(--sun); }
+.mod-sky .sky-arc-sun.down { fill: var(--bg); stroke: var(--dim); stroke-width: 1.2; }
+.mod-sky .sky-pos { margin-top: .2em; font-variant-numeric: tabular-nums; }
+
+.mod-sky .sky-times { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.mod-sky .sky-times td { padding: .12em 0; }
+.mod-sky .sky-ti { color: var(--dim); padding-right: .45em !important; }
+.mod-sky .sky-tl { color: var(--dim); padding-right: 1em !important; text-align: left; }
+.mod-sky .sky-tt { text-align: right; }
+.mod-sky .sky-times tr.golden .sky-ti { color: var(--sun); }
+.mod-sky .sky-times tr.past { opacity: .5; }
+.mod-sky .sky-daylen { font-variant-numeric: tabular-nums; }

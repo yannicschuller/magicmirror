@@ -1,0 +1,29 @@
+/* ---- football ---- */
+.mod-football .fb { font-variant-numeric: tabular-nums; }
+.mod-football .fb-sub { margin-top: .75em; text-transform: uppercase; letter-spacing: .1em; }
+.mod-football .fb > .fb-sub:first-child { margin-top: 0; }
+.mod-football .fb-live-dot { color: #ff4d4d; letter-spacing: .05em; animation: fb-blink 2s ease-in-out infinite; }
+@keyframes fb-blink { 50% { opacity: .35; } }
+
+.mod-football .fb-matches td { padding-top: .08em; padding-bottom: .08em; }
+.mod-football .fb-day td { padding-top: .45em; font-size: .72em; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; text-align: center; }
+.mod-football .fb-matches tr:first-child.fb-day td { padding-top: .1em; }
+.mod-football .fb-mid { text-align: center; min-width: 3.2em; }
+.mod-football .fb-score { font-weight: 400; }
+.mod-football .fb-score.live { color: #ff4d4d; font-weight: 600; }
+.mod-football tr.finished .fb-name { color: color-mix(in srgb, var(--fg) 80%, transparent); }
+.mod-football tr.scheduled .fb-name { color: var(--dim); }
+.mod-football td.me .fb-name,
+.mod-football .fb-table tr.fav td { color: var(--accent); }
+.mod-football .fb-x { font-size: .7em; color: var(--dim); margin-left: .3em; }
+
+.mod-football .fb-table .fb-pts { font-weight: 400; min-width: 1.6em; }
+.mod-football .fb-gap td { color: var(--dim); text-align: center; line-height: .8; padding: 0; }
+
+.mod-football .fb-logo { width: 1.1em; height: 1.1em; object-fit: contain; vertical-align: -.2em; margin: 0 .4em; opacity: .9; }
+.mod-football .fb-table .fb-logo { margin-left: 0; }
+.mod-football .fb-logo.gray { filter: grayscale(1) brightness(1.15); opacity: .75; }
+
+.mod-football .fb-team-name { font-size: 1.5em; font-weight: 300; line-height: 1.15; }
+.mod-football .fb-team-name .fb-logo { margin-left: 0; }
+.mod-football .fb-team-facts { margin-bottom: .2em; }

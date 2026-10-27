@@ -1,11 +1,22 @@
-# Magic Mirror – Start:  docker compose up -d --build
-# Optionale Dienste per COMPOSE_PROFILES in .env aktivieren: camera, adsb, fr24
+# Magic Mirror – https://github.com/yannicschuller/magicmirror
+#
+#   cp .env.example .env      # or run the installer (install.sh)
+#   docker compose up -d
+#
+# Optional services are enabled via COMPOSE_PROFILES in .env:
+#   kiosk       full-screen browser on the HDMI output of this machine
+#   autoupdate  daily update of images (and the git checkout)
+#   camera      go2rtc for RTSP cameras
+#   adsb        own ADS-B receiver (RTL-SDR USB stick)
+#   fr24        feed Flightradar24 (implies the ADS-B receiver)
+#
+# Images are published for amd64, arm64 and arm/v7 (Raspberry Pi 3/4/5).
+# To build locally instead: docker compose up -d --build
+
 services:
   magicmirror:
-    image: magicmirror:local
+    image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror:${MM_TAG:-latest}
     build: .
-    pull_policy: build
-    container_name: magicmirror
     restart: unless-stopped
     ports:
       - "${MIRROR_PORT:-8080}:8080"
@@ -17,23 +28,60 @@ services:
     volumes:
       - ./data:/data
 
-  # RTSP-Kameras → Browser (Profil "camera")
+  # Full-screen kiosk on the HDMI output (profile "kiosk").
+  # Needs a Raspberry Pi OS *Lite* host (no desktop running on the display).
+  kiosk:
+    # KIOSK_BROWSER=cog (WPE WebKit, light – default) or chromium
+    image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror-kiosk-${KIOSK_BROWSER:-cog}:${MM_TAG:-latest}
+    build:
+      context: ./kiosk
+      args:
+        BROWSER: ${KIOSK_BROWSER:-cog}
+    profiles: ["kiosk"]
+    restart: unless-stopped
+    depends_on:
+      - magicmirror
+    # Direct access to the GPU (DRM/KMS), input devices and the virtual terminal.
+    privileged: true
+    shm_size: 256m
+    environment:
+      MIRROR_URL: ${KIOSK_URL:-http://magicmirror:8080/}
+      KIOSK_FLAGS: ${KIOSK_FLAGS:-}
+    volumes:
+      - /run/udev:/run/udev:ro
+    tmpfs:
+      - /tmp
+
+  # Daily auto-update (profile "autoupdate").
+  updater:
+    image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror-updater:${MM_TAG:-latest}
+    build: ./updater
+    profiles: ["autoupdate"]
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Berlin}
+      UPDATE_TIME: ${UPDATE_TIME:-04:00}
+      UPDATE_MODE: ${UPDATE_MODE:-pull}
+      UPDATE_GIT: ${UPDATE_GIT:-true}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/project
+
+  # RTSP cameras → browser (profile "camera")
   go2rtc:
     image: alexxit/go2rtc:1.9.9
-    container_name: magicmirror-go2rtc
     profiles: ["camera"]
     restart: unless-stopped
-    # Konfiguration inline: Streams legt der Mirror-Server zur Laufzeit an
-    # (Admin-Panel → Modul „Kamera“), Zugangsdaten landen so nicht in Dateien.
-    # RTSP intern nur für ffmpeg/Standbilder. Bewusst keine Ports veröffentlicht.
+    # Inline configuration: the mirror server registers streams at runtime
+    # (admin panel → camera module), so credentials never land in files.
+    # RTSP is only used internally (ffmpeg/snapshots). No ports are published.
     command: ["go2rtc", "-config", "{api: {listen: ':1984'}, rtsp: {listen: ':8554'}, webrtc: {listen: ''}}"]
 
-  # Eigener ADS-B-Empfänger mit RTL-SDR-USB-Stick (Profil "adsb")
-  # Liefert http://ultrafeeder/data/aircraft.json für das Flugzeug-Modul
-  # und tar1090-Weboberfläche auf Port ${TAR1090_PORT:-8090}.
+  # Own ADS-B receiver with an RTL-SDR USB stick (profile "adsb")
+  # Serves http://ultrafeeder/data/aircraft.json for the aircraft module
+  # and the tar1090 web UI on port ${TAR1090_PORT:-8090}.
   ultrafeeder:
     image: ghcr.io/sdr-enthusiasts/docker-adsb-ultrafeeder:latest
-    container_name: ultrafeeder
     hostname: ultrafeeder
     profiles: ["adsb", "fr24"]
     restart: unless-stopped
@@ -57,7 +105,7 @@ services:
       - TAR1090_DEFAULTCENTERLAT=${ADSB_LAT:-}
       - TAR1090_DEFAULTCENTERLON=${ADSB_LON:-}
       - TAR1090_SITESHOW=true
-      # Optional an weitere Netzwerke senden, z. B.:
+      # Optionally feed other networks, e.g.:
       # ULTRAFEEDER_CONFIG=adsb,feed.adsb.lol,30004,beast_reduce_plus_out;mlat,feed.adsb.lol,31090,39001
       - ULTRAFEEDER_CONFIG=${ULTRAFEEDER_CONFIG:-}
       - MLAT_USER=${ADSB_MLAT_USER:-}
@@ -68,10 +116,9 @@ services:
       - /run:exec,size=64M
       - /var/log:size=32M
 
-  # Daten an Flightradar24 senden (Profil "fr24", benötigt FR24_SHARING_KEY)
+  # Share data with Flightradar24 (profile "fr24", needs FR24_SHARING_KEY)
   fr24:
     image: ghcr.io/sdr-enthusiasts/docker-flightradar24:latest
-    container_name: fr24feed
     profiles: ["fr24"]
     restart: unless-stopped
     depends_on:

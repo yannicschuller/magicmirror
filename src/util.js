@@ -6,7 +6,7 @@ export async function fetchRaw(url, { timeout = 15000, headers = {}, ...opts } =
     headers: { 'User-Agent': UA, ...headers },
     signal: AbortSignal.timeout(timeout),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status} von ${new URL(url).host}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status} from ${new URL(url).host}`);
   return res;
 }
 
@@ -35,7 +35,7 @@ export async function cached(key, ttlSeconds, fn) {
     } catch (err) {
       if (hit && hit.value !== undefined) {
         store.set(key, { ...hit, pending: null, expires: Date.now() + Math.min(ttlSeconds, 60) * 1000 });
-        console.warn(`[cache] ${key}: ${err.message} – liefere alte Daten`);
+        console.warn(`[cache] ${key}: ${err.message} – serving stale data`);
         return hit.value;
       }
       store.delete(key);

@@ -1,3 +1,4 @@
+import { translator, langOf } from '../../public/shared/i18n.js';
 import { cached, fetchJson } from '../util.js';
 import { resolveLocation } from '../../public/shared/modules.js';
 
@@ -78,15 +79,19 @@ export async function weather(settings, cfg) {
 
 const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
 const THUNDER_CODES = new Set([95, 96, 99]);
-const hourLabel = (t) => `${Number(t.slice(11, 13))} Uhr`;
-const dayPrefix = (t, today) => (t.slice(0, 10) === today ? '' : 'morgen ');
-const at = (t, today) => `${dayPrefix(t, today)}${hourLabel(t)}`;
+// "15:00" / "tomorrow 15:00" (German: "15 Uhr" / "morgen 15 Uhr")
+function atFn(t, today) {
+  return (time) => {
+    const label = t('{h}:00', { h: Number(time.slice(11, 13)) });
+    return time.slice(0, 10) === today ? label : t('tomorrow {time}', { time: label });
+  };
+}
 
 function uvLevel(uv) {
-  if (uv >= 11) return 'extrem';
-  if (uv >= 8) return 'sehr hoch';
-  if (uv >= 6) return 'hoch';
-  return 'mäßig';
+  if (uv >= 11) return 'extreme';
+  if (uv >= 8) return 'very high';
+  if (uv >= 6) return 'high';
+  return 'moderate';
 }
 
 async function dwdAlerts(loc) {
@@ -104,6 +109,10 @@ export async function weatherHints(settings, cfg) {
   const today = raw.current.time.slice(0, 10);
   const hours = hourlyFromNow(raw).slice(0, settings.lookaheadHours);
   const hints = [];
+  const lang = langOf(cfg.general.locale);
+  const t = translator(lang);
+  const at = atFn(t, today);
+  const dec = (n) => (lang === 'de' ? n.replace('.', ',') : n);
 
   if (settings.rain && hours.length) {
     const wet = hours.filter((h) => h.pop >= settings.rainProbability && h.precip >= settings.rainMinMm);
@@ -115,15 +124,15 @@ export async function weatherHints(settings, cfg) {
       hints.push({
         kind: thunder ? 'thunder' : 'rain',
         level: thunder || total >= 15 ? 'warn' : 'info',
-        title: 'Regenschirm nicht vergessen!',
-        detail: `${now ? 'Regen schon jetzt' : `Regen ab ${at(wet[0].time, today)}`} · bis ${maxPop} % · ca. ${total.toFixed(1).replace('.', ',')} mm${thunder ? ' · Gewitter möglich' : ''}`,
+        title: t("Don't forget your umbrella!"),
+        detail: `${now ? t('Raining already') : t('Rain from {time}', { time: at(wet[0].time) })} · ${t('up to {p} %', { p: maxPop })} · ${t('approx. {mm} mm', { mm: dec(total.toFixed(1)) })}${thunder ? ` · ${t('thunderstorms possible')}` : ''}`,
       });
     }
   }
 
   if (settings.snow) {
     const snowy = hours.find((h) => SNOW_CODES.has(h.code));
-    if (snowy) hints.push({ kind: 'snow', level: 'warn', title: 'Schnee erwartet – warm anziehen!', detail: `ab ${at(snowy.time, today)}` });
+    if (snowy) hints.push({ kind: 'snow', level: 'warn', title: t('Snow expected – dress warmly!'), detail: t('from {time}', { time: at(snowy.time) }) });
   }
 
   if (settings.uv) {
@@ -134,8 +143,8 @@ export async function weatherHints(settings, cfg) {
         hints.push({
           kind: 'uv',
           level: peak.uv >= 8 ? 'warn' : 'info',
-          title: 'Eincremen nicht vergessen!',
-          detail: `UV-Index ${Math.round(peak.uv)} (${uvLevel(peak.uv)}) gegen ${at(peak.time, today)}`,
+          title: t("Don't forget sunscreen!"),
+          detail: t('UV index {uv} ({level}) around {time}', { uv: Math.round(peak.uv), level: t(uvLevel(peak.uv)), time: at(peak.time) }),
         });
       }
     }
@@ -147,8 +156,8 @@ export async function weatherHints(settings, cfg) {
       hints.push({
         kind: 'frost',
         level: coldest.temp <= -5 ? 'warn' : 'info',
-        title: coldest.temp <= 0 ? 'Frost – Vorsicht Glätte & Scheibe kratzen' : 'Kalt – an die Jacke denken',
-        detail: `Tiefstwert ${Math.round(coldest.temp)} °C ${at(coldest.time, today)}`,
+        title: coldest.temp <= 0 ? t('Frost – watch out for ice & scrape the windscreen') : t("Cold – don't forget your jacket"),
+        detail: t('Low of {temp} °C at {time}', { temp: Math.round(coldest.temp), time: at(coldest.time) }),
       });
     }
   }
@@ -156,7 +165,7 @@ export async function weatherHints(settings, cfg) {
   if (settings.heat && hours.length) {
     const hottest = hours.reduce((a, b) => (b.temp > a.temp ? b : a));
     if (hottest.temp >= settings.heatTemp) {
-      hints.push({ kind: 'heat', level: hottest.temp >= 35 ? 'warn' : 'info', title: 'Heiß – viel trinken!', detail: `bis ${Math.round(hottest.temp)} °C ${at(hottest.time, today)}` });
+      hints.push({ kind: 'heat', level: hottest.temp >= 35 ? 'warn' : 'info', title: t('Hot – drink plenty!'), detail: t('Up to {temp} °C at {time}', { temp: Math.round(hottest.temp), time: at(hottest.time) }) });
     }
   }
 
@@ -166,8 +175,8 @@ export async function weatherHints(settings, cfg) {
       hints.push({
         kind: 'wind',
         level: windiest.gust >= 90 ? 'severe' : 'warn',
-        title: 'Stürmisch – lose Gegenstände sichern',
-        detail: `Böen bis ${Math.round(windiest.gust)} km/h ${at(windiest.time, today)}`,
+        title: t('Stormy – secure loose objects'),
+        detail: t('Gusts up to {gust} km/h at {time}', { gust: Math.round(windiest.gust), time: at(windiest.time) }),
       });
     }
   }
@@ -179,17 +188,18 @@ export async function weatherHints(settings, cfg) {
       for (const a of alerts) {
         if (a.expires && new Date(a.expires).getTime() < now) continue;
         const sev = a.severity === 'extreme' || a.severity === 'severe' ? 'severe' : a.severity === 'moderate' ? 'warn' : 'info';
-        hints.push({ kind: 'dwd', level: sev, title: a.headline_de || a.event_de || 'Wetterwarnung', detail: a.event_de ? `DWD · ${a.event_de}` : 'DWD' });
+        const event = lang === 'de' ? a.event_de : a.event_en || a.event_de;
+        hints.push({ kind: 'dwd', level: sev, title: (lang === 'de' ? a.headline_de : a.headline_en) || event || t('Weather warning'), detail: event ? `DWD · ${event}` : 'DWD' });
       }
     } catch (err) {
-      console.warn('[hints] DWD-Warnungen nicht verfügbar:', err.message);
+      console.warn('[hints] DWD warnings unavailable:', err.message);
     }
   }
 
   const order = { severe: 0, warn: 1, info: 2 };
   hints.sort((a, b) => order[a.level] - order[b.level]);
   if (!hints.length && settings.showWhenNone) {
-    hints.push({ kind: 'ok', level: 'ok', title: 'Kein Regenschirm nötig', detail: 'Das Wetter spielt mit.' });
+    hints.push({ kind: 'ok', level: 'ok', title: t('No umbrella needed'), detail: t('The weather is playing along.') });
   }
   return { hints };
 }

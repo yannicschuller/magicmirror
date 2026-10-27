@@ -5,3 +5,5 @@ adsb
 .git
 *.md
 docker-compose*.yml
+admin/node_modules
+public/admin

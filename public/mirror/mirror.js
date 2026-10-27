@@ -1,5 +1,6 @@
 import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
+import { translator, langOf } from '/shared/i18n.js';
 
 const params = new URLSearchParams(location.search);
 const pinnedPage = params.get('page');
@@ -34,6 +35,7 @@ function applyTheme(g) {
   document.body.dataset.transition = g.transition;
   stage.dataset.rotation = g.rotation;
   document.title = g.name;
+  document.documentElement.lang = langOf(g.locale);
 }
 
 // ---- modules ------------------------------------------------------------------
@@ -56,7 +58,7 @@ function build() {
     const wrap = document.createElement('section');
     wrap.className = `module mod-${mod.type} off`;
     wrap.dataset.id = mod.id;
-    wrap.innerHTML = `${mod.title ? `<header class="mod-title">${esc(mod.title)}</header>` : ''}<div class="mod-body"><div class="dim small loading">Lädt …</div></div>`;
+    wrap.innerHTML = `${mod.title ? `<header class="mod-title">${esc(mod.title)}</header>` : ''}<div class="mod-body"><div class="dim small loading">${ctx.fmt.t('Loading …')}</div></div>`;
     region.append(wrap);
     const body = wrap.querySelector('.mod-body');
     let api;
@@ -78,7 +80,7 @@ function build() {
 }
 
 function refreshSeconds(inst) {
-  if (inst.mod.type === 'flights') return inst.mod.settings.refreshSeconds;
+  if (inst.mod.type === 'flights' || inst.mod.type === 'fuel') return inst.mod.settings.refreshSeconds;
   return inst.type.refresh;
 }
 
@@ -99,7 +101,7 @@ async function loadData(inst) {
     inst.failures = (inst.failures || 0) + 1;
     console.warn(`[${inst.mod.type}]`, err.message);
     // Keep the last good render; show the error only if there never was data.
-    if (inst.wrap.querySelector('.loading')) inst.wrap.querySelector('.mod-body').innerHTML = `<div class="err small">${esc(err.message)}</div>`;
+    if (inst.wrap.querySelector('.loading')) inst.wrap.querySelector('.mod-body').innerHTML = `<div class="err small">${esc(makeFmt(config.general).t(err.message))}</div>`;
     inst.wrap.classList.add('has-error');
   }
   if (!instances.includes(inst)) return;
@@ -194,7 +196,7 @@ async function init() {
     statusEl.hidden = true;
   } catch (err) {
     statusEl.hidden = false;
-    statusEl.textContent = `Server nicht erreichbar – neuer Versuch …`;
+    statusEl.textContent = translator(langOf(navigator.language))('Server unreachable – retrying …');
     setTimeout(init, 10000);
     return;
   }
@@ -225,6 +227,12 @@ function connectEvents() {
     } catch (err) {
       console.warn(err);
     }
+  });
+  let serverVersion = null;
+  es.addEventListener('hello', (e) => {
+    const { version } = JSON.parse(e.data);
+    if (serverVersion && version !== serverVersion) location.reload();
+    serverVersion = version;
   });
   es.addEventListener('reload', () => location.reload());
   es.addEventListener('page', (e) => {

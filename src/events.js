@@ -1,4 +1,6 @@
 // Server-Sent Events: pushes config changes and remote commands to all mirrors.
+import { VERSION } from './version.js';
+
 const clients = new Set();
 
 export function sseHandler(req, res) {
@@ -9,6 +11,8 @@ export function sseHandler(req, res) {
     'X-Accel-Buffering': 'no',
   });
   res.write('retry: 5000\n\n');
+  // Mirrors reload themselves when they reconnect to a newer server (auto-update).
+  res.write(`event: hello\ndata: ${JSON.stringify({ version: VERSION })}\n\n`);
   clients.add(res);
   req.on('close', () => clients.delete(res));
 }

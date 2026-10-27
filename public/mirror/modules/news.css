@@ -1,0 +1,16 @@
+/* ---- news / rss ---- */
+.mod-news .news-list { display: flex; flex-direction: column; gap: .55em; max-width: 46em; }
+.mod-news .news-title { font-weight: 300; line-height: 1.25; }
+.mod-news .news-meta { margin-top: .1em; font-variant-numeric: tabular-nums; }
+.mod-news .news-desc { margin-top: .15em; line-height: 1.3; font-weight: 300; }
+.mod-news .news-src { color: var(--accent); }
+.mod-news .news-sep { opacity: .6; }
+.region[data-region$='right'] .mod-news .news-list { margin-left: auto; }
+.region[data-region$='center'] .mod-news .news-list, .region[data-region$='bar'] .mod-news .news-list { margin: 0 auto; }
+
+.mod-news .news-ticker { font-size: 1.35em; transition: opacity .6s ease; max-width: 60em; line-height: 1.3; }
+.mod-news .news-ticker.fading { opacity: 0; }
+.mod-news .news-ticker .news-meta { margin-right: .7em; font-variant-numeric: tabular-nums; }
+.mod-news .news-ticker .news-meta .news-src { color: inherit; }
+.mod-news .news-ticker .news-desc { font-size: .6em; margin-top: .25em; }
+.region[data-region$='center'] .mod-news .news-ticker, .region[data-region$='bar'] .mod-news .news-ticker { margin: 0 auto; }

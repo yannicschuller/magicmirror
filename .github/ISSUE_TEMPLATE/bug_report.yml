@@ -1,0 +1,32 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in the admin panel under Import / Export → Account, or at /api/health
+  - type: dropdown
+    id: hardware
+    attributes:
+      label: Hardware
+      options: [Raspberry Pi 3, Raspberry Pi 4, Raspberry Pi 5, Other ARM board, x86 / amd64]
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Raspberry Pi OS Lite (64-bit), Debian 13 "trixie"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `docker compose logs --tail 100` (remove URLs and tokens first!)
+      render: text

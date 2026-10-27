@@ -1,0 +1,23 @@
+/* ---- fuel prices ---- */
+.mod-fuel .fuel {
+  display: inline-grid;
+  grid-template-columns: minmax(0, auto) repeat(var(--n, 3), auto);
+  column-gap: 1.1em;
+  row-gap: .35em;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+.mod-fuel .fuel-row { display: contents; }
+.mod-fuel .fuel-head > span { font-size: .72em; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); text-align: right; }
+.mod-fuel .fuel-st { min-width: 0; text-align: left; }
+.mod-fuel .fuel-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14em; }
+.mod-fuel .fuel-sub { font-size: .72em; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 19em; }
+.mod-fuel .fuel-closed { color: var(--warn); }
+.mod-fuel .fuel-p { text-align: right; font-size: 1.25em; font-weight: 300; white-space: nowrap; }
+.mod-fuel .fuel-p sup { font-size: .55em; vertical-align: top; position: relative; top: .1em; margin-left: .03em; }
+.mod-fuel .fuel-none { color: var(--dim); }
+.mod-fuel .lvl-best { color: var(--ok); font-weight: 400; }
+.mod-fuel .lvl-mid { color: color-mix(in srgb, var(--warn) 75%, var(--fg)); }
+.mod-fuel .lvl-high { color: color-mix(in srgb, var(--severe) 70%, var(--fg)); }
+.mod-fuel .closed .fuel-name, .mod-fuel .closed .fuel-p { color: var(--dim); }
+.mod-fuel .fuel-attr { margin-top: .8em; font-size: .62em; color: var(--dim); }

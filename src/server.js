@@ -2,13 +2,20 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import { loadConfig, getConfig, saveConfig, onConfigChange } from './config.js';
-import { setupAuth, requireAdmin, oidcEnabled } from './auth.js';
+import { VERSION } from './version.js';
+import { systemInfo } from './system.js';
+import { loadConfig, getConfig, saveConfig, onConfigChange, DEFAULT_LOCALE_ENV } from './config.js';
+import { setupAuth, requireAdmin, changePassword, oidcEnabled, localEnabled } from './auth.js';
 import { sseHandler, broadcast, clientCount } from './events.js';
 import { mountGo2rtc, syncStreams, streamName, go2rtcStatus } from './go2rtc.js';
 import { cached, fetchJson } from './util.js';
 import { MODULE_TYPES, publicConfig, defaultConfig } from '../public/shared/modules.js';
 import { weather, weatherHints } from './providers/weather.js';
+import { provider as news } from './providers/news.js';
+import { provider as homeassistant } from './providers/homeassistant.js';
+import { provider as tasks } from './providers/tasks.js';
+import { provider as fuel } from './providers/fuel.js';
+import { provider as football } from './providers/football.js';
 import { calendar } from './providers/calendar.js';
 import { waste } from './providers/waste.js';
 import { f1 } from './providers/f1.js';
@@ -21,6 +28,11 @@ const PORT = Number(process.env.PORT || 8080);
 const providers = {
   weather,
   weather_hints: weatherHints,
+  news,
+  homeassistant,
+  tasks,
+  fuel,
+  football,
   calendar,
   waste,
   f1,
@@ -40,7 +52,7 @@ const server = http.createServer(app);
 app.disable('x-powered-by');
 if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? true : process.env.TRUST_PROXY);
 
-app.get('/api/health', (req, res) => res.json({ ok: true, clients: clientCount(), oidc: oidcEnabled, go2rtc: go2rtcStatus() }));
+app.get('/api/health', (req, res) => res.json({ ok: true, version: VERSION, clients: clientCount(), oidc: oidcEnabled, localLogin: localEnabled, go2rtc: go2rtcStatus() }));
 
 setupAuth(app);
 
@@ -48,6 +60,8 @@ setupAuth(app);
 app.use('/vendor/leaflet', express.static(path.join(root, 'node_modules/leaflet/dist'), { maxAge: '7d' }));
 app.use('/vendor/inter', express.static(path.join(root, 'node_modules/@fontsource/inter'), { maxAge: '7d' }));
 app.use('/shared', express.static(path.join(root, 'public/shared')));
+app.use('/brand', express.static(path.join(root, 'public/brand'), { maxAge: '7d' }));
+app.get('/favicon.ico', (req, res) => res.redirect(301, '/brand/favicon.svg'));
 app.use('/', express.static(path.join(root, 'public/mirror'), { index: 'index.html' }));
 
 app.get('/api/config', (req, res) => res.set('Cache-Control', 'no-store').json(publicConfig(getConfig())));
@@ -56,7 +70,7 @@ app.get('/api/events', sseHandler);
 app.get('/api/module/:id/data', async (req, res) => {
   const cfg = getConfig();
   const mod = cfg.modules.find((m) => m.id === req.params.id);
-  if (!mod) return res.status(404).json({ error: 'Modul nicht gefunden' });
+  if (!mod) return res.status(404).json({ error: 'Module not found' });
   const provider = providers[mod.type];
   if (!provider) return res.json({});
   try {
@@ -70,21 +84,19 @@ app.get('/api/module/:id/data', async (req, res) => {
 
 mountGo2rtc(app, server, getConfig);
 
-// ---- Admin (OIDC protected) -------------------------------------------------
+// ---- Admin (local login or OIDC) --------------------------------------------
 const admin = express.Router();
 admin.use(express.json({ limit: '5mb' }));
 
-admin.get('/me', (req, res) => {
-  const u = req.oidc.user;
-  res.json({ name: u.name || u.preferred_username || u.email || u.sub, email: u.email || '' });
-});
+admin.get('/me', (req, res) => res.json({ ...req.adminUser, version: VERSION }));
+admin.post('/password', changePassword);
 admin.get('/config', (req, res) => res.set('Cache-Control', 'no-store').json(getConfig()));
 admin.put('/config', async (req, res) => {
-  if (!req.body || !Array.isArray(req.body.modules)) return res.status(400).json({ error: 'Ungültige Konfiguration' });
+  if (!req.body || !Array.isArray(req.body.modules)) return res.status(400).json({ error: 'Invalid configuration' });
   try {
     res.json(await saveConfig(req.body));
   } catch (err) {
-    res.status(500).json({ error: `Speichern fehlgeschlagen: ${err.message}` });
+    res.status(500).json({ error: `Saving failed: ${err.message}` });
   }
 });
 
@@ -98,18 +110,18 @@ admin.post('/import', async (req, res) => {
   const body = req.body || {};
   const cfg = body.app === 'magicmirror' && body.config ? body.config : body;
   if (!cfg || typeof cfg !== 'object' || !Array.isArray(cfg.modules) || !Array.isArray(cfg.pages)) {
-    return res.status(400).json({ error: 'Datei enthält keine gültige Magic-Mirror-Konfiguration' });
+    return res.status(400).json({ error: 'File does not contain a valid Magic Mirror configuration' });
   }
   try {
     res.json(await saveConfig(cfg));
   } catch (err) {
-    res.status(500).json({ error: `Import fehlgeschlagen: ${err.message}` });
+    res.status(500).json({ error: `Import failed: ${err.message}` });
   }
 });
 
 admin.post('/reset', async (req, res) => {
   try {
-    res.json(await saveConfig(defaultConfig()));
+    res.json(await saveConfig(defaultConfig(getConfig()?.general.locale || DEFAULT_LOCALE_ENV)));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -142,19 +154,21 @@ admin.post('/command', (req, res) => {
   const { type, page } = req.body || {};
   if (type === 'reload') broadcast('reload');
   else if (type === 'page') broadcast('page', { page });
-  else return res.status(400).json({ error: 'Unbekannter Befehl' });
+  else return res.status(400).json({ error: 'Unknown command' });
   res.json({ ok: true, clients: clientCount() });
 });
 
+admin.get('/system', async (req, res) => res.json(await systemInfo(getConfig())));
 admin.get('/status', (req, res) => res.json({ clients: clientCount(), go2rtc: go2rtcStatus(), moduleTypes: Object.keys(MODULE_TYPES) }));
 
 app.use('/api/admin', requireAdmin({ api: true }), admin);
+app.use('/login', express.static(path.join(root, 'public/login'), { index: 'index.html' }));
 app.use('/admin', requireAdmin(), express.static(path.join(root, 'public/admin'), { index: 'index.html' }));
 
 app.use((err, req, res, next) => {
   console.error('[http]', err);
   if (res.headersSent) return next(err);
-  res.status(err.status || 500).json({ error: err.message || 'Serverfehler' });
+  res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
 
 // ---- Live updates -------------------------------------------------------------
@@ -165,7 +179,7 @@ onConfigChange((cfg) => {
 syncStreams(getConfig());
 setInterval(() => syncStreams(getConfig()), 60000).unref();
 
-server.listen(PORT, () => console.log(`[server] Magic Mirror läuft auf Port ${PORT} – Spiegel: /  Admin: /admin`));
+server.listen(PORT, () => console.log(`[server] Magic Mirror listening on port ${PORT} – mirror: /  admin: /admin`));
 
 for (const sig of ['SIGTERM', 'SIGINT']) {
   process.on(sig, () => {

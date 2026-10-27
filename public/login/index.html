@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Magic Mirror – Sign in</title>
+  <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/vendor/inter/400.css">
+  <link rel="stylesheet" href="/vendor/inter/600.css">
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="/brand/logo.svg" alt="">
+    <h1>Magic Mirror</h1>
+    <p id="subtitle" class="muted"></p>
+
+    <form id="login" hidden>
+      <label><span data-i18n="Username"></span><input name="username" autocomplete="username" required autofocus></label>
+      <label><span data-i18n="Password"></span><input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="btn primary" type="submit" data-i18n="Sign in"></button>
+    </form>
+
+    <form id="setup" hidden>
+      <p class="hint" data-i18n="Create the admin account. The setup code is printed in the server log (docker compose logs magicmirror)."></p>
+      <label><span data-i18n="Setup code"></span><input name="code" autocomplete="off" required></label>
+      <label><span data-i18n="Username"></span><input name="username" value="admin" autocomplete="username" required></label>
+      <label><span data-i18n="Password"></span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <button class="btn primary" type="submit" data-i18n="Create account"></button>
+    </form>
+
+    <div id="divider" class="divider" hidden><span data-i18n="or"></span></div>
+    <a id="sso" class="btn" href="/auth/login" hidden data-i18n="Sign in with SSO"></a>
+    <p id="error" class="error" role="alert" hidden></p>
+    <p id="disabled" class="muted" hidden data-i18n="No sign-in method is enabled. Set LOCAL_LOGIN=true or configure OIDC in .env."></p>
+  </main>
+  <a class="mirror-link muted" href="/" data-i18n="Open mirror"></a>
+  <script type="module" src="login.js"></script>
+</body>
+</html>

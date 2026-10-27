@@ -1,0 +1,75 @@
+// Typed facade over the plain-ESM modules shared with the server and the mirror.
+// They are imported by relative path so Vite bundles them into the admin build.
+import * as modules from '../../../public/shared/modules.js';
+import * as i18n from '../../../public/shared/i18n.js';
+
+export type Values = Record<string, any>;
+export type Translate = (id: string, params?: Record<string, string | number>) => string;
+
+export type Option = { value: string; label: string };
+
+export type Field = {
+  key: string;
+  label: string;
+  type: string;
+  default?: unknown;
+  options?: Option[];
+  min?: number;
+  max?: number;
+  step?: number;
+  help?: string;
+  placeholder?: string;
+  secret?: boolean;
+  showIf?: Record<string, unknown>;
+  fields?: Field[];
+  itemLabel?: string;
+};
+
+export type ModuleType = {
+  label: string;
+  description: string;
+  defaultTitle: string;
+  defaultRegion: string;
+  fields: Field[];
+};
+
+export type Region = { id: string; label: string };
+
+export type Page = { id: string; name: string; duration: number; enabled: boolean };
+
+export type Module = {
+  id: string;
+  type: string;
+  enabled: boolean;
+  title: string;
+  pages: string[];
+  region: string;
+  order: number;
+  settings: Values;
+};
+
+export type Config = {
+  version: number;
+  general: Values;
+  pages: Page[];
+  modules: Module[];
+  updatedAt?: string | null;
+};
+
+export type Me = { name: string; email?: string; method: 'local' | 'oidc'; version: string };
+
+export const MODULE_TYPES = modules.MODULE_TYPES as unknown as Record<string, ModuleType>;
+export const GENERAL_FIELDS = modules.GENERAL_FIELDS as unknown as Field[];
+export const REGIONS = modules.REGIONS as unknown as Region[];
+
+export const defaultModule = modules.defaultModule as unknown as (
+  type: string,
+  extra?: Partial<Module>,
+  locale?: string,
+) => Module;
+export const applyDefaults = modules.applyDefaults as unknown as (fields: Field[], values?: Values, t?: Translate) => Values;
+export const uid = modules.uid as unknown as (prefix?: string) => string;
+
+export const LANGUAGES = i18n.LANGUAGES as unknown as Option[];
+export const langOf = i18n.langOf as unknown as (locale?: string | null) => string;
+export const translator = i18n.translator as unknown as (lang: string) => Translate;

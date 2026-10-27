@@ -1,7 +1,8 @@
-# Lokale Entwicklung inkl. Test-OIDC-Server (navikt/mock-oauth2-server):
+# Local development incl. a mock OIDC server (navikt/mock-oauth2-server):
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-# Spiegel: http://localhost:8080   Admin: http://localhost:8080/admin
-# Login-Seite des Mock-Servers: beliebigen Benutzernamen eingeben.
+# Mirror: http://localhost:8080   Admin: http://localhost:8080/admin
+# "Sign in with SSO" → mock login page: enter any username.
+# Local account: use the setup code from `docker compose logs magicmirror`.
 services:
   mock-oidc:
     image: ghcr.io/navikt/mock-oauth2-server:2.1.10
@@ -9,12 +10,12 @@ services:
       SERVER_PORT: "9000"
       JSON_CONFIG: '{"interactiveLogin": true}'
     ports:
-      - "8080:8080"   # Port des Mirrors (geteilter Netzwerk-Namespace)
-      - "9000:9000"   # OIDC-Issuer
+      - "8080:8080"   # mirror port (shared network namespace)
+      - "9000:9000"   # OIDC issuer
 
   magicmirror:
-    # Teilt den Netzwerk-Namespace mit mock-oidc, damit "localhost:9000"
-    # sowohl im Browser als auch im Container derselbe Issuer ist.
+    # Shares the network namespace with mock-oidc so that "localhost:9000"
+    # is the same issuer for the browser and the container.
     network_mode: service:mock-oidc
     ports: !reset []
     environment:

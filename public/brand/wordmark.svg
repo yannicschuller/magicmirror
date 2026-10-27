@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 72" role="img" aria-label="Magic Mirror">
+  <defs>
+    <linearGradient id="w-frame" x1="16" y1="8" x2="56" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset=".55" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#f0abfc"/>
+    </linearGradient>
+    <linearGradient id="w-text" x1="84" y1="0" x2="350" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(4 4)">
+    <path d="M14 58V27a18 18 0 0 1 36 0v31z" fill="#7dd3fc" fill-opacity=".12" stroke="url(#w-frame)" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M21 34l10-10M21 43l17-17" stroke="#7dd3fc" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M41 33c.7 4.3 2.2 5.8 6.5 6.5-4.3.7-5.8 2.2-6.5 6.5-.7-4.3-2.2-5.8-6.5-6.5 4.3-.7 5.8-2.2 6.5-6.5z" fill="#a78bfa"/>
+  </g>
+  <text x="80" y="47" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="34" font-weight="300" letter-spacing="1" fill="url(#w-text)">magic<tspan font-weight="600">mirror</tspan></text>
+</svg>

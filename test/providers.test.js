@@ -4,7 +4,9 @@ import http from 'node:http';
 import { expandIcs } from '../src/providers/ical.js';
 import { waste } from '../src/providers/waste.js';
 import { calendar } from '../src/providers/calendar.js';
-import { normalizeConfig, publicConfig, defaultConfig, MODULE_TYPES, applyDefaults } from '../public/shared/modules.js';
+import { normalizeConfig, publicConfig, defaultConfig, MODULE_TYPES, GENERAL_FIELDS, REGIONS, applyDefaults } from '../public/shared/modules.js';
+import { translator } from '../public/shared/i18n.js';
+import de from '../public/shared/locales/de/index.js';
 
 const day = (offset) => {
   const d = new Date(Date.now() + offset * 86400000);
@@ -105,7 +107,7 @@ test('waste classifies by keywords and merges manual intervals', async () => {
     manual: [{ type: 'Papier', startDate: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10), intervalWeeks: 4 }],
     daysAhead: 10,
     showUnknown: false,
-  });
+  }, translator('de'));
   const res = await waste(s, cfg);
   const first = res.days[0];
   assert.deepEqual(first.items.map((i) => i.name).sort(), ['Biomüll', 'Gelber Sack', 'Papier']);
@@ -140,4 +142,41 @@ test('publicConfig strips secret URLs', () => {
   assert.ok(!pub.includes('https://secret'));
   assert.ok(!pub.includes('rtsp://'));
   assert.ok(pub.includes('Privat'));
+});
+
+test('defaults follow the configured language', () => {
+  const en = defaultConfig('en-GB');
+  const deCfg = defaultConfig('de-DE');
+  assert.deepEqual(en.pages.map((p) => p.name), ['Home', 'On the go']);
+  assert.deepEqual(deCfg.pages.map((p) => p.name), ['Start', 'Unterwegs']);
+  assert.equal(deCfg.modules.find((m) => m.type === 'waste').title, 'Müllabfuhr');
+  // An existing German config keeps German defaults for newly added settings.
+  const migrated = normalizeConfig({ general: { locale: 'de-AT' }, modules: [{ type: 'greeting' }] });
+  assert.match(migrated.modules[0].settings.morning, /^Guten Morgen/);
+});
+
+test('every schema string has a German translation', () => {
+  const missing = new Set();
+  // Strings that read the same in both languages.
+  const same = new Set(['0°', '180°', 'Bus', 'Countdown', 'Icon', 'Name', 'Person', 'S-Bahn', 'Sport', 'Stream', 'Streams', 'Text', 'Radius (km)',
+    'VVS Stuttgart', 'VRR / NRW', 'Baden-Württemberg (bwegt / NVBW)', '°C, km/h, mm', '°F, mph, inch',
+    'Deutsch (Deutschland)', 'Deutsch (Österreich)', 'Deutsch (Schweiz)', 'English (UK)', 'English (US)']);
+  const check = (s) => s && /[a-z]/i.test(s) && !same.has(s) && !(s in de) && missing.add(s);
+  const walk = (fields) => {
+    for (const f of fields) {
+      check(f.label);
+      check(f.itemLabel);
+      (f.options || []).forEach((o) => check(o.label));
+      if (f.fields) walk(f.fields);
+    }
+  };
+  for (const t of Object.values(MODULE_TYPES)) {
+    check(t.label);
+    check(t.description);
+    check(t.defaultTitle);
+    walk(t.fields);
+  }
+  walk(GENERAL_FIELDS);
+  REGIONS.forEach((r) => check(r.label));
+  assert.deepEqual([...missing], []);
 });

@@ -1,13 +1,28 @@
-import { icons, calIcons, bin, plane, weatherInfo, hintIcons } from './icons.js';
+import { icons, calIcons, bin, plane, weatherInfo as wmo, hintIcons } from './icons.js';
+import { translator, langOf } from '/shared/i18n.js';
+import pluginRenderers from './modules/index.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const num = (n, d = 0) => (n === null || n === undefined || Number.isNaN(n) ? '–' : Number(n).toFixed(d).replace('.', ','));
+// Set by makeFmt() – the mirror renders one configuration at a time.
+let t = (s) => s;
+let decimalComma = false;
+export const num = (n, d = 0) => {
+  if (n === null || n === undefined || Number.isNaN(n)) return '–';
+  const s = Number(n).toFixed(d);
+  return decimalComma ? s.replace('.', ',') : s;
+};
+const weatherInfo = (code, isDay) => {
+  const w = wmo(code, isDay);
+  return { ...w, text: t(w.text) };
+};
 const DAY = 86400000;
 
 // ---- time helpers (always in the mirror's configured time zone) -------------
 export function makeFmt(general) {
   const tz = general.timezone || 'Europe/Berlin';
-  const locale = general.locale || 'de-DE';
+  const locale = general.locale || 'en-GB';
+  t = translator(langOf(locale));
+  decimalComma = new Intl.NumberFormat(locale).format(1.5).includes(',');
   const cache = new Map();
   const f = (opts) => {
     const key = JSON.stringify(opts);
@@ -26,6 +41,7 @@ export function makeFmt(general) {
   return {
     tz,
     locale,
+    t,
     f,
     dayKey,
     keyDiff,
@@ -34,10 +50,10 @@ export function makeFmt(general) {
     // Label for a YYYY-MM-DD key relative to today.
     dayLabel(key, { long = false } = {}) {
       const diff = keyDiff(dayKey(new Date()), key);
-      if (diff === 0) return 'Heute';
-      if (diff === 1) return 'Morgen';
+      if (diff === 0) return t('Today');
+      if (diff === 1) return t('Tomorrow');
       if (diff === 2 && locale.startsWith('de')) return 'Übermorgen';
-      if (diff === -1) return 'Gestern';
+      if (diff === -1) return t('Yesterday');
       return fu(long ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' }).format(utc(key));
     },
     weekdayShort: (key) => fu({ weekday: 'short' }).format(utc(key)).replace('.', ''),
@@ -48,14 +64,14 @@ export function makeFmt(general) {
 }
 
 function countdown(ms) {
-  if (ms <= 0) return 'läuft';
+  if (ms <= 0) return t('running');
   const m = Math.floor(ms / 60000);
   const d = Math.floor(m / 1440);
   const h = Math.floor((m % 1440) / 60);
   const min = m % 60;
-  if (d > 0) return `${d} T ${h} Std`;
-  if (h > 0) return `${h} Std ${min} Min`;
-  return `${min} Min`;
+  if (d > 0) return t('{d} d {h} h', { d, h });
+  if (h > 0) return t('{h} h {m} min', { h, m: min });
+  return t('{m} min', { m: min });
 }
 
 // ---- renderers ---------------------------------------------------------------
@@ -86,7 +102,7 @@ const clock = (el, mod, ctx) => {
     hm.textContent = timeFmt.format(now);
     if (sec) sec.textContent = secFmt.format(now).padStart(2, '0');
     if (date) date.textContent = dateFmt.format(now);
-    if (week) week.textContent = `Kalenderwoche ${isoWeek(now)}`;
+    if (week) week.textContent = t('Week {n}', { n: isoWeek(now) });
   };
   tick();
   return { tick, tickEvery: 1000 };
@@ -106,7 +122,7 @@ const weather = (el, mod, ctx) => {
         html += `<div class="w-now"><span class="w-icon">${info.icon}</span><span class="w-temp">${num(c.temp)}<sup>${deg}</sup></span></div>
           <div class="w-desc">${esc(info.text)}${d.location ? ` <span class="dim">· ${esc(d.location)}</span>` : ''}</div>`;
         if (s.showDetails) {
-          html += `<div class="w-details dim">Gefühlt ${num(c.feels)}${deg} · ${icons.wind} ${num(c.wind)} ${speed} · ${icons.drop} ${num(c.humidity)} %</div>`;
+          html += `<div class="w-details dim">${t('Feels like')} ${num(c.feels)}${deg} · ${icons.wind} ${num(c.wind)} ${speed} · ${icons.drop} ${num(c.humidity)} %</div>`;
         }
         if (s.showSun && today) {
           html += `<div class="w-sun dim">${icons.sunrise} ${ctx.fmt.localHour(today.sunrise)} &nbsp; ${icons.sunset} ${ctx.fmt.localHour(today.sunset)} &nbsp; ↑${num(today.max)}${deg} ↓${num(today.min)}${deg}</div>`;
@@ -121,7 +137,7 @@ const weather = (el, mod, ctx) => {
       if (s.forecastDays > 0) {
         const days = d.daily.slice(0, s.forecastDays);
         html += `<table class="w-days">${days
-          .map((x, i) => `<tr><td class="w-dn">${i === 0 ? 'Heute' : ctx.fmt.weekdayShort(x.date)}</td><td class="w-di">${weatherInfo(x.code).icon}</td><td class="w-max">${num(x.max)}${deg}</td><td class="w-min dim">${num(x.min)}${deg}</td><td class="w-pp small ${x.pop >= 50 ? 'wet' : 'dim'}">${x.pop >= 10 ? `${icons.drop}${x.pop}%` : ''}</td></tr>`)
+          .map((x, i) => `<tr><td class="w-dn">${i === 0 ? t('Today') : ctx.fmt.weekdayShort(x.date)}</td><td class="w-di">${weatherInfo(x.code).icon}</td><td class="w-max">${num(x.max)}${deg}</td><td class="w-min dim">${num(x.min)}${deg}</td><td class="w-pp small ${x.pop >= 50 ? 'wet' : 'dim'}">${x.pop >= 10 ? `${icons.drop}${x.pop}%` : ''}</td></tr>`)
           .join('')}</table>`;
       }
       el.innerHTML = html + '</div>';
@@ -143,11 +159,11 @@ const calendar = (el, mod, ctx) => {
   const rules = s.iconRules
     .map((r) => ({ icon: r.icon, keys: r.keywords.split(',').map((k) => k.trim().toLowerCase()).filter(Boolean) }))
     .filter((r) => r.keys.length);
-  const evTime = (e) => (e.allDay ? 'ganztägig' : ctx.fmt.time(new Date(e.start)));
+  const evTime = (e) => (e.allDay ? t('all day') : ctx.fmt.time(new Date(e.start)));
   const evDay = (e) => (e.allDay ? e.start : ctx.fmt.dayKey(new Date(e.start)));
   const iconFor = (e) => {
-    const t = e.title.toLowerCase();
-    return rules.find((r) => r.keys.some((k) => t.includes(k)))?.icon || e.icon || 'calendar';
+    const title = e.title.toLowerCase();
+    return rules.find((r) => r.keys.some((k) => title.includes(k)))?.icon || e.icon || 'calendar';
   };
   const marker = (e) => {
     const color = esc(e.color);
@@ -160,7 +176,7 @@ const calendar = (el, mod, ctx) => {
     const today = ctx.fmt.dayKey(new Date());
     const running = !e.allDay && new Date(e.start) <= new Date() && evDay(e) <= today;
     const bar = s.style === 'bar' ? ` style="--c:${esc(e.color)}"` : '';
-    return `<div class="cal-ev style-${s.style}${running ? ' running' : ''}"${bar}>${marker(e)}<span class="cal-time ${e.allDay ? 'dim' : ''}">${withDay ? `${esc(ctx.fmt.dayLabel(evDay(e)))} ` : ''}${running ? 'jetzt' : evTime(e)}</span><span class="cal-title"${s.colorTitle ? ` style="color:${esc(e.color)}"` : ''}>${esc(e.title)}${s.showLocation && e.location ? `<span class="dim small"> · ${esc(e.location)}</span>` : ''}${s.showCalendarName ? `<span class="dim small"> · ${esc(e.calendar)}</span>` : ''}</span></div>`;
+    return `<div class="cal-ev style-${s.style}${running ? ' running' : ''}"${bar}>${marker(e)}<span class="cal-time ${e.allDay ? 'dim' : ''}">${withDay ? `${esc(ctx.fmt.dayLabel(evDay(e)))} ` : ''}${running ? t('now') : evTime(e)}</span><span class="cal-title"${s.colorTitle ? ` style="color:${esc(e.color)}"` : ''}>${esc(e.title)}${s.showLocation && e.location ? `<span class="dim small"> · ${esc(e.location)}</span>` : ''}${s.showCalendarName ? `<span class="dim small"> · ${esc(e.calendar)}</span>` : ''}</span></div>`;
   };
   const legend = () => {
     if (!s.showLegend) return '';
@@ -173,7 +189,7 @@ const calendar = (el, mod, ctx) => {
   return {
     update(d) {
       if (!d.events.length) {
-        el.innerHTML = `<div class="dim">${s.calendars.length ? 'Keine Termine' : 'Kein Kalender eingerichtet'}</div>${d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('')}`;
+        el.innerHTML = `<div class="dim">${s.calendars.length ? t('No events') : t('No calendar set up')}</div>${d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('')}`;
         return;
       }
       let html = `<div class="cal">${legend()}`;
@@ -203,7 +219,7 @@ const waste = (el, mod, ctx) => {
     const d = last;
     if (!d) return;
     if (!d.days.length) {
-      el.innerHTML = `<div class="dim">${s.sources.length || s.manual.length ? 'Keine Abholung in Sicht' : 'Kein Müllkalender eingerichtet'}</div>${d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('')}`;
+      el.innerHTML = `<div class="dim">${s.sources.length || s.manual.length ? t('No collection coming up') : t('No waste calendar set up')}</div>${d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('')}`;
       return;
     }
     const now = new Date();
@@ -213,8 +229,8 @@ const waste = (el, mod, ctx) => {
       .map((day) => {
         const diff = ctx.fmt.keyDiff(today, day.date);
         const remind = (diff === 1 && hour >= s.reminderHour) || (diff === 0 && hour < 10);
-        const note = diff === 1 && hour >= s.reminderHour ? 'Heute Abend rausstellen!' : diff === 0 && hour < 10 ? 'Heute ist Abholung!' : '';
-        const when = diff > 2 ? `${ctx.fmt.weekdayShort(day.date)}, ${ctx.fmt.dateShort(day.date)} <span class="dim small">in ${diff} Tagen</span>` : esc(ctx.fmt.dayLabel(day.date));
+        const note = diff === 1 && hour >= s.reminderHour ? t('Put it out tonight!') : diff === 0 && hour < 10 ? t('Collection today!') : '';
+        const when = diff > 2 ? `${ctx.fmt.weekdayShort(day.date)}, ${ctx.fmt.dateShort(day.date)} <span class="dim small">${t('in {n} days', { n: diff })}</span>` : esc(ctx.fmt.dayLabel(day.date));
         return `<div class="waste-day${remind ? ' remind' : ''}${diff <= 1 ? ' soon' : ''}"><div class="waste-when">${when}</div><div class="waste-items">${day.items
           .map((i) => `<span class="waste-item">${bin(esc(i.color))}<span>${esc(i.name)}</span></span>`)
           .join('')}</div>${note ? `<div class="waste-note">${note}</div>` : ''}</div>`;
@@ -239,7 +255,7 @@ const f1 = (el, mod, ctx) => {
     const d = last;
     if (!d) return;
     if (d.offseason) {
-      el.innerHTML = '<div class="dim">Saisonpause – der Rennkalender ist noch nicht veröffentlicht.</div>';
+      el.innerHTML = `<div class="dim">${t('Off-season – the race calendar has not been published yet.')}</div>`;
       return;
     }
     const now = Date.now();
@@ -248,41 +264,41 @@ const f1 = (el, mod, ctx) => {
     const live = ms <= 0 && ms > -2 * 3600 * 1000;
     const wd = ctx.fmt.f({ weekday: 'short' });
     let html = `<div class="f1">
-      <div class="f1-meta dim small">Runde ${d.round}${d.totalRounds ? ` / ${d.totalRounds}` : ''} · Saison ${d.season}${d.isSprint ? ' · <span class="accent">Sprint-Wochenende</span>' : ''}</div>
+      <div class="f1-meta dim small">${t('Round {n}', { n: d.round })}${d.totalRounds ? ` / ${d.totalRounds}` : ''} · ${t('Season {n}', { n: d.season })}${d.isSprint ? ` · <span class="accent">${t('Sprint weekend')}</span>` : ''}</div>
       <div class="f1-name">${esc(d.raceName)}</div>
       <div class="f1-circuit dim">${icons.pin} ${esc(d.circuit)} · ${esc(d.locality)}, ${esc(d.country)}</div>`;
     if (s.showCountdown) {
-      html += `<div class="f1-countdown${live ? ' live' : ''}"><span class="f1-cd-label">${esc(next.label)}</span><span class="f1-cd-value">${live ? '● LIVE' : `in ${countdown(ms)}`}</span></div>`;
+      html += `<div class="f1-countdown${live ? ' live' : ''}"><span class="f1-cd-label">${esc(next.label)}</span><span class="f1-cd-value">${live ? '● LIVE' : t('in {time}', { time: countdown(ms) })}</span></div>`;
     }
     if (s.showSessions) {
       html += `<table class="f1-sessions">${d.sessions
         .map((x) => {
-          const t = new Date(x.start);
-          const past = t.getTime() + 2 * 3600 * 1000 < now;
+          const start = new Date(x.start);
+          const past = start.getTime() + 2 * 3600 * 1000 < now;
           const cls = x.key === next.key ? 'next' : past ? 'past' : '';
-          return `<tr class="${cls}"><td>${esc(x.label)}</td><td class="r">${wd.format(t).replace('.', '')}</td><td class="r">${ctx.fmt.time(t)}</td></tr>`;
+          return `<tr class="${cls}"><td>${esc(x.label)}</td><td class="r">${wd.format(start).replace('.', '')}</td><td class="r">${ctx.fmt.time(start)}</td></tr>`;
         })
         .join('')}</table>`;
     }
     const facts = [];
     if (d.trackWeather) {
       const w = d.trackWeather;
-      facts.push(`<span>${weatherInfo(w.code).icon} Renntag ${num(w.max)}° · ${icons.drop}${num(w.pop)} %</span>`);
+      facts.push(`<span>${weatherInfo(w.code).icon} ${t('Race day')} ${num(w.max)}° · ${icons.drop}${num(w.pop)} %</span>`);
     }
     if (d.previousWinner) facts.push(`<span>${icons.trophy} ${d.previousWinner.season}: ${esc(d.previousWinner.name)}</span>`);
     if (facts.length) html += `<div class="f1-facts small">${facts.join('')}</div>`;
     if (d.lastRace) {
-      html += `<div class="f1-sub dim small">Letztes Rennen · ${esc(d.lastRace.name)}</div><div class="f1-podium">${d.lastRace.podium
+      html += `<div class="f1-sub dim small">${t('Last race')} · ${esc(d.lastRace.name)}</div><div class="f1-podium">${d.lastRace.podium
         .map((p) => `<span class="p${p.pos}"><b>P${p.pos}</b> ${esc(p.code || p.name)}</span>`)
         .join('')}</div>`;
     }
     if (d.driverStandings?.length) {
-      html += `<div class="f1-sub dim small">Fahrer-WM</div><table class="f1-standings">${d.driverStandings
+      html += `<div class="f1-sub dim small">${t('Driver standings')}</div><table class="f1-standings">${d.driverStandings
         .map((x) => `<tr class="${fav.includes(x.code) ? 'fav' : ''}"><td class="r dim">${x.pos}</td><td><span class="team" style="background:${teamColor(x.team)}"></span>${esc(x.name)}</td><td class="r">${x.points}</td></tr>`)
         .join('')}</table>`;
     }
     if (d.constructorStandings?.length) {
-      html += `<div class="f1-sub dim small">Konstrukteurs-WM</div><table class="f1-standings">${d.constructorStandings
+      html += `<div class="f1-sub dim small">${t('Constructor standings')}</div><table class="f1-standings">${d.constructorStandings
         .map((x) => `<tr><td class="r dim">${x.pos}</td><td><span class="team" style="background:${teamColor(x.name)}"></span>${esc(x.name)}</td><td class="r">${x.points}</td></tr>`)
         .join('')}</table>`;
     }
@@ -298,7 +314,7 @@ const transit = (el, mod, ctx) => {
     const d = last;
     if (!d) return;
     if (d.needsSetup) {
-      el.innerHTML = '<div class="dim">Bitte im Admin-Panel eine Haltestelle wählen.</div>';
+      el.innerHTML = `<div class="dim">${t('Please choose a stop in the admin panel.')}</div>`;
       return;
     }
     const now = Date.now();
@@ -309,13 +325,13 @@ const transit = (el, mod, ctx) => {
         const when = new Date(x.realtime || x.planned);
         const mins = Math.round((when - now) / 60000);
         const delay = x.realtime ? Math.round((when - planned) / 60000) : null;
-        const rel = mins <= 0 ? 'jetzt' : `${mins} Min`;
+        const rel = mins <= 0 ? t('now') : t('{m} min', { m: mins });
         const abs = ctx.fmt.time(planned);
         const time = s.timeMode === 'absolute' ? abs : s.timeMode === 'both' ? `${rel} <span class="dim small">${abs}</span>` : rel;
         const delayHtml = s.showDelay && delay !== null ? `<span class="delay ${delay > 0 ? 'late' : 'ontime'}">${delay > 0 ? `+${delay}` : '±0'}</span>` : '';
-        return `<tr class="${x.cancelled ? 'cancelled' : ''}${mins <= 1 ? ' imminent' : ''}"><td><span class="line cat-${x.category}">${esc(x.line)}</span></td><td class="dest">${esc(x.destination)}</td>${s.showPlatform ? `<td class="plat dim small">${esc(x.platform.replace(/^(Gleis|Bstg\.?|Steig|Bussteig)\s*/i, ''))}</td>` : ''}<td class="r tm">${x.cancelled ? '<span class="late">fällt aus</span>' : `${time}${delayHtml}`}</td></tr>`;
+        return `<tr class="${x.cancelled ? 'cancelled' : ''}${mins <= 1 ? ' imminent' : ''}"><td><span class="line cat-${x.category}">${esc(x.line)}</span></td><td class="dest">${esc(x.destination)}</td>${s.showPlatform ? `<td class="plat dim small">${esc(x.platform.replace(/^(Gleis|Bstg\.?|Steig|Bussteig)\s*/i, ''))}</td>` : ''}<td class="r tm">${x.cancelled ? `<span class="late">${t('cancelled')}</span>` : `${time}${delayHtml}`}</td></tr>`;
       });
-    el.innerHTML = `<div class="transit">${d.stop ? `<div class="dim small tr-stop">${esc(d.stop)}</div>` : ''}${rows.length ? `<table>${rows.join('')}</table>` : '<div class="dim">Keine Abfahrten</div>'}</div>`;
+    el.innerHTML = `<div class="transit">${d.stop ? `<div class="dim small tr-stop">${esc(d.stop)}</div>` : ''}${rows.length ? `<table>${rows.join('')}</table>` : `<div class="dim">${t('No departures')}</div>`}</div>`;
   };
   return { update(d) { last = d; render(); }, tick: render, tickEvery: 15000 };
 };
@@ -345,7 +361,7 @@ function altColor(a) {
   if (a.alt < 35000) return '#38bdf8';
   return '#c084fc';
 }
-const fmtAlt = (a) => (a.ground ? 'am Boden' : a.alt === null ? '–' : `${Math.round(a.alt).toLocaleString('de-DE')} ft`);
+const fmtAlt = (a, locale) => (a.ground ? t('on ground') : a.alt === null ? '–' : `${Math.round(a.alt).toLocaleString(locale)} ft`);
 
 const TILES = {
   esri_dark: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', attribution: '© Esri, HERE, Garmin, © OpenStreetMap', className: 'tiles-dim' },
@@ -404,10 +420,10 @@ const flights = (el, mod, ctx, region) => {
         const list = d.aircraft.filter((a) => !a.ground).slice(0, s.listCount);
         listEl.innerHTML = list.length
           ? `<table>${list
-              .map((a) => `<tr><td><span class="ac-dot" style="background:${altColor(a)}"></span>${esc(a.flight)}</td><td class="dim small">${esc(a.type)}</td><td class="r">${fmtAlt(a)}</td><td class="r dim small">${a.speed ?? '–'} km/h</td><td class="r dim small">${num(a.dist, 1)} km</td></tr>`)
+              .map((a) => `<tr><td><span class="ac-dot" style="background:${altColor(a)}"></span>${esc(a.flight)}</td><td class="dim small">${esc(a.type)}</td><td class="r">${fmtAlt(a, ctx.fmt.locale)}</td><td class="r dim small">${a.speed ?? '–'} km/h</td><td class="r dim small">${num(a.dist, 1)} km</td></tr>`)
               .join('')}</table>`
-          : '<div class="dim small">Gerade keine Flugzeuge in der Luft</div>';
-        listEl.insertAdjacentHTML('afterbegin', `<div class="dim small fl-count">${d.aircraft.length} Flugzeuge im Umkreis von ${s.radiusKm} km · Quelle: ${d.source === 'local' ? 'eigener Empfänger' : d.source === 'airplaneslive' ? 'airplanes.live' : 'adsb.lol'}</div>`);
+          : `<div class="dim small">${t('No aircraft in the air right now')}</div>`;
+        listEl.insertAdjacentHTML('afterbegin', `<div class="dim small fl-count">${t('{n} aircraft within {r} km', { n: d.aircraft.length, r: s.radiusKm })} · ${t('Source')}: ${d.source === 'local' ? t('own receiver') : d.source === 'airplaneslive' ? 'airplanes.live' : 'adsb.lol'}</div>`);
       }
     },
     show() {
@@ -440,11 +456,11 @@ const camera = (el, mod) => {
   const build = () => {
     clearInterval(timer);
     if (!streams.length) {
-      el.innerHTML = '<div class="dim">Keine Kamera eingerichtet</div>';
+      el.innerHTML = `<div class="dim">${t('No camera set up')}</div>`;
       return;
     }
     el.innerHTML = `<div class="cams" style="grid-template-columns:repeat(${s.columns},1fr);width:${s.width}%">${streams
-      .map((c) => `<div class="cam"><div class="cam-off dim small">${icons.camera} Kamera nicht erreichbar</div>${s.mode === 'snapshot' ? `<img class="cam-img" data-src="${esc(c.src)}" alt="">` : `<div class="cam-live" data-src="${esc(c.src)}"></div>`}${s.showName ? `<div class="cam-name">${esc(c.name)}</div>` : ''}</div>`)
+      .map((c) => `<div class="cam"><div class="cam-off dim small">${icons.camera} ${t('Camera unreachable')}</div>${s.mode === 'snapshot' ? `<img class="cam-img" data-src="${esc(c.src)}" alt="">` : `<div class="cam-live" data-src="${esc(c.src)}"></div>`}${s.showName ? `<div class="cam-name">${esc(c.name)}</div>` : ''}</div>`)
       .join('')}</div>`;
     if (s.mode === 'snapshot') {
       refreshSnapshots();
@@ -509,4 +525,4 @@ const text = (el, mod) => {
   return {};
 };
 
-export const renderers = { clock, weather, weather_hints, calendar, waste, f1, transit, flights, camera, greeting, text };
+export const renderers = { clock, weather, weather_hints, calendar, waste, f1, transit, flights, camera, greeting, text, ...pluginRenderers };

@@ -3,3 +3,4 @@ data/
 adsb/
 .env
 .DS_Store
+/public/admin/

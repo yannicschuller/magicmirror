@@ -50,11 +50,11 @@ export async function syncStreams(cfg) {
       await go2rtc('PUT', { name, src });
       synced.set(name, src);
     }
-    if (lastError) console.log('[go2rtc] wieder erreichbar');
+    if (lastError) console.log('[go2rtc] reachable again');
     lastError = null;
     return { ok: true, streams: wanted.size };
   } catch (err) {
-    if (wanted.size && lastError !== err.message) console.warn(`[go2rtc] Sync fehlgeschlagen (${GO2RTC_URL}): ${err.message}`);
+    if (wanted.size && lastError !== err.message) console.warn(`[go2rtc] sync failed (${GO2RTC_URL}): ${err.message}`);
     lastError = wanted.size ? err.message : null;
     return { ok: !wanted.size, error: err.message };
   }

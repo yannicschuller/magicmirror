@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Magic Mirror">
+  <defs>
+    <linearGradient id="mm-frame" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset=".55" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#f0abfc"/>
+    </linearGradient>
+    <linearGradient id="mm-glass" x1="16" y1="10" x2="48" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7dd3fc" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity=".04"/>
+    </linearGradient>
+  </defs>
+  <!-- arched mirror -->
+  <path d="M14 58V27a18 18 0 0 1 36 0v31z" fill="url(#mm-glass)" stroke="url(#mm-frame)" stroke-width="4" stroke-linejoin="round"/>
+  <!-- reflection -->
+  <path d="M21 34l10-10M21 43l17-17" stroke="#ffffff" stroke-opacity=".35" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- sparkle -->
+  <path d="M41 33c.7 4.3 2.2 5.8 6.5 6.5-4.3.7-5.8 2.2-6.5 6.5-.7-4.3-2.2-5.8-6.5-6.5 4.3-.7 5.8-2.2 6.5-6.5z" fill="#ffffff"/>
+  <circle cx="34" cy="49" r="1.6" fill="#ffffff" fill-opacity=".8"/>
+</svg>
