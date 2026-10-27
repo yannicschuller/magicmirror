@@ -1,5 +1,5 @@
-import { ExternalLink, Loader2, LogOut, Save, Undo2, UserRound } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { ExternalLink, FileDiff, Loader2, LogOut, Save, Undo2, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -18,6 +18,7 @@ import { ConfirmProvider } from '@/components/confirm';
 import { LANGUAGES, type Build } from '@/lib/shared';
 import { StoreProvider, useStore, useT, VIEWS, type View } from '@/lib/store';
 import { VersionBadge } from '@/components/version-badge';
+import { ChangesDialog } from '@/components/changes-dialog';
 import { BackupView } from '@/views/backup-view';
 import { GeneralView } from '@/views/general-view';
 import { LayoutView } from '@/views/layout-view';
@@ -77,6 +78,7 @@ function LanguageSwitch() {
 
 function Shell() {
   const { t, view, setView, dirty, save, saving, discard, me } = useStore();
+  const [showChanges, setShowChanges] = useState(false);
   return (
     <Tabs value={view} onValueChange={(v) => setView(v as View)} className="min-h-screen gap-0">
       <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
@@ -94,15 +96,17 @@ function Shell() {
           <div className="ml-auto flex items-center gap-2">
             {dirty && (
               <>
-                <Badge variant="outline" className="hidden border-warning/40 text-warning md:inline-flex">
-                  {t('Unsaved changes')}
-                </Badge>
+                <Button variant="outline" size="sm" className="border-warning/40 text-warning hover:text-warning" onClick={() => setShowChanges(true)} title={t('Show changes')}>
+                  <FileDiff />
+                  <span className="max-md:sr-only">{t('Unsaved changes')}</span>
+                </Button>
                 <Button variant="ghost" size="sm" onClick={discard}>
                   <Undo2 />
                   <span className="max-sm:sr-only">{t('Discard')}</span>
                 </Button>
               </>
             )}
+            <ChangesDialog open={showChanges && dirty} onOpenChange={setShowChanges} />
             <Button size="sm" onClick={save} disabled={!dirty || saving} title={dirty ? t('Unsaved changes') : undefined}>
               {saving ? <Loader2 className="animate-spin" /> : <Save />}
               {t('Save')}
