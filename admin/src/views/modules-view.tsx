@@ -11,6 +11,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConfirm } from '@/components/confirm';
 import { ScheduleEditor } from '@/components/schedule-editor';
+import { CONDITIONS as CONDITIONS_JS } from '../../../public/shared/conditions.js';
+
+const CONDITIONS = CONDITIONS_JS as Record<string, { label: string } | undefined>;
 import { CheckChip, FieldsForm, NumberInput, OptionSelect, noPlus } from '@/components/fields';
 import { clone, errorMessage } from '@/lib/api';
 import { duplicateGroups, mergeDuplicates, moduleName, pagesSummary, regionLabel, typeLabel } from '@/lib/helpers';
@@ -276,8 +279,20 @@ function ModuleEditor({ m }: { m: Module }) {
             />
             <p className="text-xs text-muted-foreground">{t('"As much space as possible" also extends into empty areas above and below.')}</p>
           </div>
-          <div className="col-span-full">
+          <div className="col-span-full flex flex-col gap-3">
             <ScheduleEditor m={m} />
+            {CONDITIONS[m.type] && (
+              <label className="flex cursor-pointer items-center gap-3 text-sm">
+                <Switch
+                  checked={!!m.onlyWithContent}
+                  onCheckedChange={(c) => {
+                    m.onlyWithContent = c;
+                    touch();
+                  }}
+                />
+                <span>{t(CONDITIONS[m.type]!.label)}</span>
+              </label>
+            )}
           </div>
           <div className="col-span-full flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-muted-foreground">{t('Pages')}</Label>

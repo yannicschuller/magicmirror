@@ -496,6 +496,7 @@ export function defaultModule(type, extra = {}, locale = DEFAULT_LOCALE) {
     region: t.defaultRegion,
     order: 0,
     height: 'auto',
+    onlyWithContent: false,
     schedule: normalizeSchedule(null),
     settings: applyDefaults(t.fields, {}, tr),
     ...extra,
@@ -579,6 +580,8 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
         order: Number.isFinite(Number(m.order)) ? Number(m.order) : i,
         // "fill" = take all free space in its column (extends into empty areas below/above)
         height: m.height === 'fill' ? 'fill' : 'auto',
+        // "only show when …" (see ./conditions.js)
+        onlyWithContent: m.onlyWithContent === true,
         schedule: normalizeSchedule(m.schedule),
         settings: applyDefaults(t.fields, migrateSettings(m.settings), tr),
       };

@@ -2,6 +2,7 @@ import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
 import { translator, langOf } from '/shared/i18n.js';
 import { scheduleActive, activePages } from '/shared/schedule.js';
+import { moduleHasContent } from '/shared/conditions.js';
 import { setAmbient } from './ambient.js';
 
 const params = new URLSearchParams(location.search);
@@ -99,6 +100,8 @@ async function loadData(inst) {
     if (!json.ok) throw new Error(json.error || `HTTP ${res.status}`);
     if (!instances.includes(inst)) return;
     // Unchanged data → no re-render (no flicker); the first data fades in.
+    inst.lastData = json.data;
+    applyContent(inst);
     const sig = JSON.stringify(json.data);
     if (sig !== inst.lastSig) {
       const first = !inst.lastSig;
@@ -133,12 +136,22 @@ function onPage(mod, page) {
   return (mod.pages.includes('*') || mod.pages.includes(page.id)) && scheduleActive(mod.schedule, new Date(), config.general.timezone);
 }
 
+// "Only show when …": hide a module while its data has nothing to show. Returns true if changed.
+function applyContent(inst) {
+  const hide = inst.mod.onlyWithContent && !moduleHasContent(inst.mod.type, inst.lastData, new Date(), config.general.timezone);
+  if (hide === inst.wrap.classList.contains('no-content')) return false;
+  inst.wrap.classList.toggle('no-content', hide);
+  clearTimeout(layoutTimer);
+  layoutTimer = setTimeout(layoutFill, 50);
+  return true;
+}
+
 // Modules with height "fill" take over empty areas above/below them in their column.
 const COLUMNS = { left: 1, center: 2, right: 3 };
 const ROWS = ['top', 'middle', 'bottom'];
 function layoutFill() {
   // modules that currently show nothing (e.g. no weather hints → class "empty") don't occupy their area
-  const visible = (region) => instances.some((i) => i.visible && i.mod.region === region && !i.wrap.classList.contains('empty'));
+  const visible = (region) => instances.some((i) => i.visible && i.mod.region === region && !i.wrap.classList.contains('empty') && !i.wrap.classList.contains('no-content'));
   for (const [col, colIndex] of Object.entries(COLUMNS)) {
     const regions = ROWS.map((row) => grid.querySelector(`.region[data-region="${row}_${col}"]`));
     regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = ''));
@@ -383,6 +396,7 @@ init().then(connectEvents);
 setInterval(() => {
   updateDim();
   if (!config) return;
+  instances.forEach(applyContent); // time-based conditions (race weekend, match day …)
   // Page schedules / date ranges: keep the current page if it is still active.
   const next = pinnedPage ? pages : activePages(config);
   if (next.map((p) => p.id).join() !== pages.map((p) => p.id).join()) {

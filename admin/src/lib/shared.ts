@@ -62,6 +62,8 @@ export type Module = {
   order: number;
   /** "fill" = use all free space in its column */
   height?: 'auto' | 'fill';
+  /** hide while the module has nothing to show (see public/shared/conditions.js) */
+  onlyWithContent?: boolean;
   schedule?: Schedule;
   settings: Values;
 };

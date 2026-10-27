@@ -1,5 +1,15 @@
 // Admin: module height and schedule.
 export default {
+  "Only show on match days (a match today or live)": "Nur an Spieltagen anzeigen (heute ein Spiel oder gerade live)",
+  "Only show on race weekends (from 2 days before the first session)": "Nur an Rennwochenenden anzeigen (ab 2 Tage vor der ersten Session)",
+  "Only show when there is a hint": "Nur anzeigen, wenn es einen Hinweis gibt",
+  "Only show when at least one entity is shown": "Nur anzeigen, wenn mindestens ein Eintrag sichtbar ist",
+  "Only show when there are headlines": "Nur anzeigen, wenn es Schlagzeilen gibt",
+  "Only show when an aircraft is nearby": "Nur anzeigen, wenn ein Flugzeug in der Nähe ist",
+  "Only show when departures are listed": "Nur anzeigen, wenn Abfahrten anstehen",
+  "Only show when a collection is coming up (within \"days ahead\")": "Nur anzeigen, wenn eine Abholung ansteht (innerhalb von „Tage im Voraus“)",
+  "Only show when events are coming up": "Nur anzeigen, wenn Termine anstehen",
+  "Only show when there are open tasks": "Nur anzeigen, wenn Aufgaben offen sind",
   "Enter both in the action \"Get Contents of URL\" (method POST). Which blocks you need is shown in the guide:": "Beides in der Aktion „Inhalte von URL abrufen“ eintragen (Methode POST). Welche Blöcke du brauchst, zeigt die Anleitung:",
   "You opened the admin panel via localhost – your phone needs the mirror's IP address or name instead.": "Du hast das Admin-Panel über localhost geöffnet – das Handy braucht stattdessen die IP-Adresse oder den Namen des Spiegels.",
   "Header \"Authorization\"": "Header „Authorization“",

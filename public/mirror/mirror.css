@@ -80,7 +80,7 @@ body.hide-cursor, body.hide-cursor * { cursor: none !important; }
 .mod-body.fade-in { animation: mm-fade-in .5s ease; }
 @keyframes mm-fade-in { from { opacity: 0; } to { opacity: 1; } }
 /* !important: module styles (e.g. .mod-flights.fl-flex) must never override hiding */
-.module.off { display: none !important; }
+.module.off, .module.no-content { display: none !important; }
 .module.entering, .module.leaving { opacity: 0; }
 body[data-transition='slide'] .module.entering { transform: translateX(4vmin); }
 body[data-transition='slide'] .module.leaving { transform: translateX(-4vmin); }

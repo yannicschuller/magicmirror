@@ -279,3 +279,21 @@ test('waste: past collections stay visible for the configured days', async () =>
   const res = await waste(s, { general: { timezone: tz } });
   assert.deepEqual(res.days.map((d) => [d.date, d.past]), [[day(-1), true], [day(5), false]]);
 });
+
+test('"only show when …" conditions per module type', async () => {
+  const { moduleHasContent } = await import('../public/shared/conditions.js');
+  const now = new Date('2026-10-30T12:00:00Z'); // Friday
+  assert.equal(moduleHasContent('tasks', { items: [] }, now), false);
+  assert.equal(moduleHasContent('tasks', { items: [{ title: 'x' }] }, now), true);
+  assert.equal(moduleHasContent('flights', { aircraft: [{ ground: true }] }, now), false);
+  assert.equal(moduleHasContent('flights', { aircraft: [{ ground: false }] }, now), true);
+  assert.equal(moduleHasContent('waste', { days: [{ date: '2026-10-29', past: true }] }, now), false);
+  assert.equal(moduleHasContent('transit', { needsSetup: true, departures: [] }, now), false);
+  const sessions = [{ start: '2026-10-30T18:30:00Z' }, { start: '2026-11-01T20:00:00Z' }];
+  assert.equal(moduleHasContent('f1', { sessions }, now), true); // race weekend
+  assert.equal(moduleHasContent('f1', { sessions }, new Date('2026-10-26T12:00:00Z')), false); // Monday before
+  assert.equal(moduleHasContent('football', { matchday: { matches: [{ start: '2026-10-30T18:30:00Z', state: 'scheduled' }] } }, now), true);
+  assert.equal(moduleHasContent('football', { matchday: { matches: [{ start: '2026-10-31T14:30:00Z', state: 'scheduled' }] } }, now), false);
+  assert.equal(moduleHasContent('clock', {}, now), true); // no condition → always shown
+  assert.equal(moduleHasContent('tasks', null, now), true); // no data yet → shown
+});
