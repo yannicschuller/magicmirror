@@ -17,6 +17,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { ConfirmProvider } from '@/components/confirm';
 import { LANGUAGES } from '@/lib/shared';
 import { StoreProvider, useStore, useT, VIEWS, type View } from '@/lib/store';
+import { VersionBadge } from '@/components/version-badge';
 import { BackupView } from '@/views/backup-view';
 import { GeneralView } from '@/views/general-view';
 import { LayoutView } from '@/views/layout-view';
@@ -43,10 +44,12 @@ export default function App() {
 }
 
 function Brand() {
+  const { me } = useStore();
   return (
     <div className="flex shrink-0 items-center gap-2.5 text-[15px] font-semibold">
       <img src="/brand/logo.svg" alt="" className="size-7 drop-shadow-[0_0_8px_rgb(167_139_250/0.35)]" />
       <span>Magic Mirror</span>
+      <VersionBadge build={me.build} className="max-sm:hidden" />
     </div>
   );
 }
@@ -120,6 +123,12 @@ function Shell() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-48">
                 <DropdownMenuLabel className="truncate">{me.name}</DropdownMenuLabel>
+                {me.build && (
+                  <DropdownMenuLabel className="py-0 text-xs font-normal text-muted-foreground sm:hidden">
+                    v{me.build.version}
+                    {me.build.shortCommit && ` · ${me.build.shortCommit}`}
+                  </DropdownMenuLabel>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild className="sm:hidden">
                   <a href="/" target="_blank" rel="noopener">

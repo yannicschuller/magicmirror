@@ -104,9 +104,51 @@ const WMO = {
 
 export function weatherInfo(code, isDay = true) {
   const [text, day, night] = WMO[code] || ['–', 'cloud'];
-  return { text, icon: icons[!isDay && night ? night : day] };
+  const key = !isDay && night ? night : day;
+  return { text, icon: icons[key], key };
 }
 
 export const hintIcons = {
   rain: 'umbrella', thunder: 'thunder', snow: 'snow', uv: 'sunscreen', frost: 'frost', heat: 'heat', wind: 'wind', dwd: 'warning', ok: 'check',
 };
+
+// ---- weather details & animated weather icons ---------------------------------
+export const weatherIcons = {
+  gauge: svg('<path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l3.5-4M12 13h.01" /><path d="M7 17h10"/>'),
+  eye: svg('<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>'),
+  dew: svg('<path d="M8 13V5a2 2 0 0 1 4 0v8a4 4 0 1 1-4 0z"/><path d="M18 9s2.5 2.7 2.5 4.5a2.5 2.5 0 0 1-5 0C15.5 11.7 18 9 18 9z"/>'),
+  cloud: icons.cloud,
+  sun: icons.sun,
+  gust: svg('<path d="M3 9h9a2.5 2.5 0 1 0-2.5-2.5M3 13h14a3 3 0 1 1-3 3M3 17h6"/><path d="M17 5.5l2.5-1M19 9l2.5.5"/>'),
+  leaf: svg('<path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15"/><path d="M5 19l7-7"/>'),
+  flower: svg('<circle cx="12" cy="10" r="2"/><path d="M12 8a2.5 2.5 0 1 1 2.2-3.7A2.5 2.5 0 1 1 15.6 9a2.5 2.5 0 1 1-1.3 4.2 2.5 2.5 0 1 1-4.6 0A2.5 2.5 0 1 1 8.4 9a2.5 2.5 0 1 1 1.4-4.7A2.5 2.5 0 0 1 12 8z"/><path d="M12 14v8M12 19c-1.5-1.5-3-2-5-2M12 20c1.5-1.5 3-2 5-2"/>'),
+  // points north; rotate by (wind direction + 180)° so it shows where the wind blows to
+  arrow: (deg) => `<svg class="ico w-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${Math.round(deg + 180)}deg)"><path d="M12 20V4M6.5 9.5L12 4l5.5 5.5"/></svg>`,
+};
+
+// Animated variants: the same drawings split into stacked layers (one <svg>
+// per moving part) so the browser can animate them with transform/opacity
+// only (compositor-friendly, no repaint of the SVG content per frame).
+const layer = (cls, body, extra = '') => `<svg class="wl ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" ${extra}>${body}</svg>`;
+const sunRays = '<path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+const smallRays = '<path d="M8 2.5v1M2.5 8h1M4.1 4.1l.7.7M11.9 4.1l-.7.7M8 12.5v1M12.5 8h1M4.1 11.9l.7-.7"/>';
+const partlyCloud = '<path d="M9 19h8a3.5 3.5 0 0 0 .4-6.98A5 5 0 0 0 8.1 12.5 3 3 0 0 0 9 19z"/>';
+const stars = '<path d="M18 3.5v2M17 4.5h2M21 8.5v1.4M20.3 9.2h1.4" stroke-width="1.1"/>';
+const rainDrops = '<path d="M8 18l-1.5 4M12 18l-1.5 4M16 18l-1.5 4"/>';
+const ANIM_LAYERS = {
+  sun: () => layer('wl-rays', sunRays) + layer('wl-core', '<circle cx="12" cy="12" r="4"/>'),
+  moon: () => layer('wl-stars', stars) + layer('wl-moon', moonBody),
+  cloud: () => layer('wl-drift', `<path d="${cloudPath}"/>`),
+  partly: () => layer('wl-srays', smallRays) + layer('wl-core', '<circle cx="8" cy="8" r="3"/>') + layer('wl-drift', partlyCloud),
+  partlyNight: () => layer('wl-stars', stars) + layer('wl-core', smallMoon) + layer('wl-drift', partlyCloud),
+  fog: () => layer('wl-fog1', '<path d="M4 9h16M5 17h14"/>') + layer('wl-fog2', '<path d="M3 13h18M8 21h8"/>'),
+  drizzle: () => layer('wl-fall', drops(3)) + layer('wl-fall wl-fall2', drops(3)) + layer('wl-drift', `<path d="${cloudLow}"/>`),
+  rain: () => layer('wl-fall', rainDrops) + layer('wl-fall wl-fall2', rainDrops) + layer('wl-drift', `<path d="${cloudLow}"/>`),
+  sleet: () => layer('wl-fall', '<path d="M8 18l-1.5 4M16 18l-1.5 4"/><path d="M12 20h.01" stroke-width="2.5"/>') + layer('wl-fall wl-fall2', '<path d="M8 18l-1.5 4M16 18l-1.5 4"/><path d="M12 20h.01" stroke-width="2.5"/>') + layer('wl-drift', `<path d="${cloudLow}"/>`),
+  snow: () => layer('wl-snow', flakes) + layer('wl-snow wl-snow2', flakes) + layer('wl-drift', `<path d="${cloudLow}"/>`),
+  thunder: () => layer('wl-bolt', '<path d="M12.5 15l-2.5 4h3l-2 4"/>') + layer('wl-drift', `<path d="${cloudLow}"/>`),
+};
+export function animatedIcon(key) {
+  const f = ANIM_LAYERS[key];
+  return f ? `<span class="wa wa-${key}">${f()}</span>` : icons[key] || icons.cloud;
+}

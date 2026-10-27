@@ -2,7 +2,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
-import { VERSION } from './version.js';
+import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
 import { pushRouter } from './push.js';
 import { loadConfig, getConfig, saveConfig, onConfigChange, DEFAULT_LOCALE_ENV } from './config.js';
@@ -53,7 +53,7 @@ const server = http.createServer(app);
 app.disable('x-powered-by');
 if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? true : process.env.TRUST_PROXY);
 
-app.get('/api/health', (req, res) => res.json({ ok: true, version: VERSION, clients: clientCount(), oidc: oidcEnabled, localLogin: localEnabled, go2rtc: go2rtcStatus() }));
+app.get('/api/health', (req, res) => res.json({ ok: true, version: VERSION, commit: BUILD.shortCommit, clients: clientCount(), oidc: oidcEnabled, localLogin: localEnabled, go2rtc: go2rtcStatus() }));
 
 setupAuth(app);
 
@@ -89,7 +89,7 @@ mountGo2rtc(app, server, getConfig);
 const admin = express.Router();
 admin.use(express.json({ limit: '5mb' }));
 
-admin.get('/me', (req, res) => res.json({ ...req.adminUser, version: VERSION }));
+admin.get('/me', (req, res) => res.json({ ...req.adminUser, version: VERSION, build: BUILD }));
 admin.post('/password', changePassword);
 admin.get('/config', (req, res) => res.set('Cache-Control', 'no-store').json(getConfig()));
 admin.put('/config', async (req, res) => {
@@ -159,6 +159,29 @@ admin.post('/command', (req, res) => {
   res.json({ ok: true, clients: clientCount() });
 });
 
+// Updates: proxied to the updater container (compose profile "autoupdate").
+const UPDATER_URL = (process.env.UPDATER_URL || 'http://updater:8099').replace(/\/+$/, '');
+async function updater(cmd, timeout = 10000) {
+  const res = await fetch(`${UPDATER_URL}/cgi-bin/${cmd}`, { signal: AbortSignal.timeout(timeout) });
+  if (!res.ok) throw new Error(`Updater: HTTP ${res.status}`);
+  return res.json();
+}
+admin.get('/update', async (req, res) => {
+  try {
+    res.json({ available: true, version: VERSION, build: BUILD, ...(await updater('status')) });
+  } catch {
+    res.json({ available: false, version: VERSION, build: BUILD });
+  }
+});
+for (const cmd of ['check', 'run']) {
+  admin.post(`/update/${cmd}`, async (req, res) => {
+    try {
+      res.json(await updater(cmd, cmd === 'check' ? 90000 : 10000));
+    } catch {
+      res.status(502).json({ error: 'The updater is not reachable' });
+    }
+  });
+}
 admin.get('/system', async (req, res) => res.json(await systemInfo(getConfig())));
 admin.get('/status', (req, res) => res.json({ clients: clientCount(), go2rtc: go2rtcStatus(), moduleTypes: Object.keys(MODULE_TYPES) }));
 

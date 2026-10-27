@@ -28,3 +28,4 @@ services:
       - ./data:/data
       - ./src:/app/src:ro
       - ./public:/app/public:ro
+      - ./.git:/app/.git:ro   # shows the current commit in the admin panel

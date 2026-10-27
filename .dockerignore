@@ -3,6 +3,10 @@ data
 adsb
 .env
 .git
+# …except what is needed to know the commit of a local build
+!.git/HEAD
+!.git/refs/heads
+!.git/packed-refs
 *.md
 docker-compose*.yml
 admin/node_modules

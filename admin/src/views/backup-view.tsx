@@ -13,6 +13,7 @@ import { moduleName } from '@/lib/helpers';
 import type { Config, Module, Page } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 import { SystemCard } from './system-card';
+import { UpdateCard } from './update-card';
 
 /** Renders the only markup our messages use (<b>…</b>) without innerHTML. */
 function Rich({ text }: { text: string }) {
@@ -28,6 +29,7 @@ export function BackupView() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <BackupCard />
+      <UpdateCard />
       <AccountCard />
       <SystemCard />
     </div>

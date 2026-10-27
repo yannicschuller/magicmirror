@@ -62,7 +62,7 @@ export default function render(el, mod, ctx) {
   const s = mod.settings;
   const { t, f, dayKey } = ctx.fmt;
   const tz = ctx.fmt.tz;
-  const loc = (s.useGlobalLocation === false && s.location) || ctx.general.location || { lat: 52.52, lon: 13.405 };
+  const loc = s.location || ctx.general.location || { lat: 52.52, lon: 13.405 };
   const { lat, lon } = loc;
   const time = (d) => ctx.fmt.time(d);
   const dateFmt = f({ weekday: 'short', day: 'numeric', month: 'short' });

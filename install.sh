@@ -188,9 +188,17 @@ if [ "$P_KIOSK" = y ]; then
   ask KIOSK_BROWSER_V "$(m "Kiosk browser (cog/chromium)" "Kiosk-Browser (cog/chromium)")" "${KIOSK_BROWSER_V:-cog}"
   case "$KIOSK_BROWSER_V" in chromium) ;; *) KIOSK_BROWSER_V=cog ;; esac
 fi
-ask_yes P_UPDATE "$(m "Install updates automatically every night?" "Updates jede Nacht automatisch installieren?")" "$(has_profile autoupdate y)"
+# The updater always runs, so updates can be started from the admin panel;
+# the nightly schedule is optional.
 UPDATE_TIME_VALUE="$(env_get UPDATE_TIME)"
-[ "$P_UPDATE" = y ] && ask UPDATE_TIME_VALUE "$(m "Update time" "Uhrzeit für Updates")" "${UPDATE_TIME_VALUE:-04:00}"
+update_default=y; [ "$UPDATE_TIME_VALUE" = off ] && update_default=n
+ask_yes P_UPDATE "$(m "Install updates automatically every night? (Manual updates via the admin panel are always possible.)" "Updates jede Nacht automatisch installieren? (Manuell über das Admin-Panel geht immer.)")" "$update_default"
+if [ "$P_UPDATE" = y ]; then
+  [ "$UPDATE_TIME_VALUE" = off ] && UPDATE_TIME_VALUE=""
+  ask UPDATE_TIME_VALUE "$(m "Update time" "Uhrzeit für Updates")" "${UPDATE_TIME_VALUE:-04:00}"
+else
+  UPDATE_TIME_VALUE=off
+fi
 ask_yes P_CAMERA "$(m "Show RTSP cameras (go2rtc)?" "RTSP-Kameras anzeigen (go2rtc)?")" "$(has_profile camera n)"
 adsb_default="$(has_profile adsb n)"; [ "$(has_profile fr24 n)" = y ] && adsb_default=y
 ask_yes P_ADSB "$(m "Use your own ADS-B USB stick for the aircraft map (optional)?" "Eigenen ADS-B-USB-Stick für die Flugzeugkarte nutzen (optional)?")" "$adsb_default"
@@ -207,7 +215,7 @@ fi
 
 profiles=()
 [ "$P_KIOSK" = y ] && profiles+=(kiosk)
-[ "$P_UPDATE" = y ] && profiles+=(autoupdate)
+profiles+=(autoupdate)
 [ "$P_CAMERA" = y ] && profiles+=(camera)
 [ "$P_ADSB" = y ] && profiles+=(adsb)
 [ "$P_FR24" = y ] && profiles+=(fr24)
@@ -326,7 +334,7 @@ echo "  Admin:       $BASE_URL/admin"
 echo "  $(m "Directory" "Verzeichnis"): $INSTALL_DIR"
 echo "  Logs:        cd $INSTALL_DIR && docker compose logs -f"
 [ "$P_UPDATE" = y ] && echo "  Updates:     $(m "daily at" "täglich um") ${UPDATE_TIME_VALUE:-04:00}"
-[ "$P_UPDATE" = n ] && echo "  Update:      cd $INSTALL_DIR && git pull && docker compose pull && docker compose up -d"
+[ "$P_UPDATE" = n ] && echo "  Updates:     $(m "admin panel → Import / Export → Check for updates" "Admin-Panel → Import / Export → Nach Updates suchen")"
 echo
 if [ "$REBOOT_NEEDED" = 1 ]; then
   ask_yes DO_REBOOT "$(m "A reboot is needed to activate the display settings. Reboot now?" "Für die Display-Einstellungen ist ein Neustart nötig. Jetzt neu starten?")" y

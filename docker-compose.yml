@@ -25,6 +25,7 @@ services:
         required: false
     environment:
       GO2RTC_URL: http://go2rtc:1984
+      UPDATER_URL: http://updater:8099
     volumes:
       - ./data:/data
 
@@ -109,12 +110,20 @@ services:
       # ULTRAFEEDER_CONFIG=adsb,feed.adsb.lol,30004,beast_reduce_plus_out;mlat,feed.adsb.lol,31090,39001
       - ULTRAFEEDER_CONFIG=${ULTRAFEEDER_CONFIG:-}
       - MLAT_USER=${ADSB_MLAT_USER:-}
+      # Spare the SD card: keep state and graph data in RAM and write it to disk
+      # only on shutdown / once a day (a power cut loses at most that data).
+      - READSB_WRITE_STATE_ONLY_ON_EXIT=${ADSB_SAVE_STATE_ON_EXIT_ONLY:-true}
+      - GRAPHS1090_REDUCE_IO=${ADSB_REDUCE_IO:-true}
+      - GRAPHS1090_REDUCE_IO_FLUSH_IVAL=${ADSB_FLUSH_INTERVAL:-1d}
     volumes:
       - /dev/bus/usb:/dev/bus/usb
       - ./adsb/globe_history:/var/globe_history
+      - ./adsb/collectd:/var/lib/collectd
     tmpfs:
-      - /run:exec,size=64M
+      - /run:exec,size=256M
       - /var/log:size=32M
+    # Time to write the state to disk when stopping.
+    stop_grace_period: 1m
 
   # Share data with Flightradar24 (profile "fr24", needs FR24_SHARING_KEY)
   fr24:

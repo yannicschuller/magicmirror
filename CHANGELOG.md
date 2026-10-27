@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Admin panel: check for updates, list of changes and one-click update with a progress screen (`UPDATE_TIME=off` = manual only)
+- Location of weather & co. can be searched directly in each module (empty = location from "General")
 - Tasks module: Apple Reminders via an Apple Shortcuts automation (push endpoint `POST /api/push/tasks`)
 
 ## 1.1.0

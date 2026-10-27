@@ -149,7 +149,7 @@ Enabled via `COMPOSE_PROFILES` in `.env` (comma-separated). The installer sets t
 | Profile | Service | Purpose |
 |---|---|---|
 | `kiosk` | `magicmirror-kiosk-cog` / `-chromium` | Full-screen browser on HDMI (WPE WebKit by default). No desktop needed. |
-| `autoupdate` | `magicmirror-updater` | Pulls new images (and the git checkout) daily at `UPDATE_TIME` and recreates changed containers. |
+| `autoupdate` | `magicmirror-updater` | Updates from the admin panel (check + one click) and, optionally, daily at `UPDATE_TIME`. |
 | `camera` | [go2rtc](https://github.com/AlexxIT/go2rtc) | RTSP cameras → browser. Streams are created automatically from the admin panel. |
 | `adsb` | [ultrafeeder](https://github.com/sdr-enthusiasts/docker-adsb-ultrafeeder) | Your own ADS-B receiver with an RTL-SDR stick, plus tar1090 on port 8090. |
 | `fr24` | [fr24feed](https://github.com/sdr-enthusiasts/docker-flightradar24) + ultrafeeder | Also share your data with **Flightradar24**. |
@@ -168,9 +168,11 @@ The `kiosk` container runs privileged so it can drive the display (DRM/KMS), key
 - Extra Chromium flags: `KIOSK_FLAGS=--force-device-scale-factor=1.25`.
 - Night dimming: *General → Night mode*.
 
-### Auto-update
+### Updates
 
-With the `autoupdate` profile, the updater does the following every day at `UPDATE_TIME` (default `04:00`):
+The `autoupdate` profile runs a small updater container. In the admin panel (*Import / Export → Updates*) you can **check for updates**, see the list of changes and **start the update** – a progress screen follows it through download and restart and reloads the page afterwards. Set `UPDATE_TIME=off` for manual updates only.
+
+Unless switched off, the updater does the following every day at `UPDATE_TIME` (default `04:00`):
 
 1. `git pull --ff-only` the checkout (skipped if you have local changes),
 2. `docker compose pull` (or `build` with `UPDATE_MODE=build`),

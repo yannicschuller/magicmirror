@@ -180,3 +180,13 @@ test('every schema string has a German translation', () => {
   REGIONS.forEach((r) => check(r.label));
   assert.deepEqual([...missing], []);
 });
+
+test('old "use global location" switch is migrated', () => {
+  const cfg = normalizeConfig({ modules: [
+    { id: 'a', type: 'weather', settings: { useGlobalLocation: true, location: { name: 'Alt', lat: 1, lon: 2 } } },
+    { id: 'b', type: 'weather', settings: { useGlobalLocation: false, location: { name: 'Hamburg', lat: 53.55, lon: 10 } } },
+  ] });
+  assert.equal(cfg.modules[0].settings.location, null);
+  assert.equal(cfg.modules[1].settings.location.name, 'Hamburg');
+  assert.ok(!('useGlobalLocation' in cfg.modules[1].settings));
+});

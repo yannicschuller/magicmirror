@@ -56,7 +56,16 @@ export type Config = {
   updatedAt?: string | null;
 };
 
-export type Me = { name: string; email?: string; method: 'local' | 'oidc'; version: string };
+export type Build = {
+  version: string;
+  commit: string | null;
+  shortCommit: string | null;
+  branch: string | null;
+  builtAt: string | null;
+  source: 'release' | 'local' | 'dev';
+  commitUrl: string | null;
+};
+export type Me = { name: string; email?: string; method: 'local' | 'oidc'; version: string; build?: Build };
 
 export const MODULE_TYPES = modules.MODULE_TYPES as unknown as Record<string, ModuleType>;
 export const GENERAL_FIELDS = modules.GENERAL_FIELDS as unknown as Field[];

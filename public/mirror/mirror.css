@@ -138,6 +138,146 @@ td:last-child { padding-right: 0; }
 .w-days tr:nth-child(n+4) { opacity: .75; }
 .w-days tr:nth-child(n+6) { opacity: .5; }
 
+/* weather: details, UV/AQI/pollen scales */
+.weather { position: relative; isolation: isolate; }
+.weather .w-line { margin-top: .25em; }
+.weather .w-x { display: inline-block; white-space: nowrap; }
+.weather .w-extras, .weather.layout-compact .w-line { display: flex; flex-wrap: wrap; gap: .1em .9em; }
+.weather .w-extras .w-sep, .weather.layout-compact .w-line .w-sep { display: none; }
+.region[data-region$='right'] .weather .w-extras, .region[data-region$='right'] .weather.layout-compact .w-line { justify-content: flex-end; }
+.region[data-region$='center'] .weather .w-extras, .region[data-region$='center'] .weather.layout-compact .w-line,
+.region[data-region$='bar'] .weather .w-extras, .region[data-region$='bar'] .weather.layout-compact .w-line { justify-content: center; }
+.weather .w-arrow { width: .95em; height: .95em; margin-right: .15em; vertical-align: -.12em; }
+.weather .w-dot { display: inline-block; width: .55em; height: .55em; border-radius: 50%; margin-right: .3em; background: currentColor; vertical-align: .05em; }
+.weather .w-uv, .weather .w-aqi { color: var(--fg); }
+.weather .uv-low { --lvl: #4ade80; } .weather .uv-moderate { --lvl: #fde047; } .weather .uv-high { --lvl: #fb923c; }
+.weather .uv-very-high { --lvl: #f87171; } .weather .uv-extreme { --lvl: #c084fc; }
+.weather .aqi-good { --lvl: #5eead4; } .weather .aqi-fair { --lvl: #4ade80; } .weather .aqi-moderate { --lvl: #fde047; }
+.weather .aqi-poor { --lvl: #fb923c; } .weather .aqi-very-poor { --lvl: #f87171; } .weather .aqi-extremely-poor { --lvl: #c084fc; }
+.weather .pol-low { --lvl: #4ade80; } .weather .pol-moderate { --lvl: #fde047; } .weather .pol-high { --lvl: #fb923c; } .weather .pol-very-high { --lvl: #f87171; }
+.weather [class*='uv-'] > .w-dot, .weather [class*='aqi-'] .w-dot, .weather [class*='pol-'] > .w-dot { background: var(--lvl); }
+.weather .w-uvmax { color: var(--lvl); }
+.weather .w-uvb { color: var(--lvl); border: 1px solid color-mix(in srgb, var(--lvl) 55%, transparent); border-radius: .5em; padding: 0 .35em; }
+
+/* weather: compact layout */
+.weather.layout-compact .w-icon .ico, .weather.layout-compact .w-icon .wa { width: 2.6em; height: 2.6em; }
+.weather.layout-compact .w-temp { font-size: 3.2em; }
+.weather.layout-compact .w-side { display: flex; flex-direction: column; text-align: left; margin-left: .25em; line-height: 1.25; }
+.weather.layout-compact .w-side .w-desc { margin: 0; font-size: 1.05em; }
+.weather.layout-compact .w-line { font-size: .9em; max-width: 26em; }
+.region[data-region$='right'] .weather.layout-compact .w-line { margin-left: auto; }
+.region[data-region$='center'] .weather.layout-compact .w-line, .region[data-region$='bar'] .weather.layout-compact .w-line { margin-left: auto; margin-right: auto; }
+.weather.layout-compact .w-hourly { gap: .8em; margin-top: .6em; }
+.weather.layout-compact .w-days { margin-top: .5em; }
+.weather.layout-compact .w-days td { padding-top: .08em; padding-bottom: .08em; }
+
+/* weather: hourly chart (inline SVG, 1 viewBox unit = .1em) */
+.weather .w-chart { position: relative; max-width: 100%; margin-top: .9em; }
+.region[data-region$='right'] .weather .w-chart { margin-left: auto; }
+.region[data-region$='center'] .weather .w-chart, .region[data-region$='bar'] .weather .w-chart { margin-left: auto; margin-right: auto; }
+.weather .w-chart-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.weather .w-cicons { position: absolute; left: 0; right: 0; top: 0; height: 0; }
+.weather .w-cicons > span { position: absolute; top: 0; width: 1.6em; height: 1.6em; margin-left: -.8em; }
+.weather .w-cicons .ico, .weather .w-cicons .wa { width: 100%; height: 100%; display: block; }
+.weather .w-chart-svg text { font-size: 7.6px; fill: var(--dim); font-family: inherit; }
+.weather .w-chart-svg .wc-max, .weather .w-chart-svg .wc-min { fill: var(--fg); font-size: 8.4px; font-weight: 400; }
+.weather .w-chart-svg .wc-min { fill: var(--dim); }
+.weather .w-chart-svg .wc-bartxt { fill: var(--accent); font-size: 6.6px; }
+.weather .wc-line { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.weather .wc-dot { fill: currentColor; }
+.weather .wc-grid { stroke: var(--faint); stroke-width: .6; }
+.weather .wc-base { stroke: var(--faint); stroke-width: .6; }
+.weather .wc-bar { fill: var(--accent); opacity: .7; }
+.weather .wc-now { stroke: var(--accent); stroke-width: .8; stroke-dasharray: 2 2; }
+.weather .wc-nowdot { fill: var(--accent); stroke: var(--bg); stroke-width: 1; }
+
+/* weather: daily temperature range bars */
+/* the module spans its region so narrow (portrait) columns can drop secondary columns via container queries */
+.mod-weather { width: 100%; container-type: inline-size; }
+.weather .w-dgrid { display: grid; grid-template-columns: auto auto auto auto minmax(2.5em, 7em) auto; align-items: center; gap: .36em .5em; margin-top: .8em; width: max-content; max-width: 100%; }
+.weather .w-dgrid.has-uv { grid-template-columns: auto auto auto auto auto minmax(2.5em, 7em) auto; }
+@container (max-width: 21em) {
+  .weather .w-dgrid { grid-template-columns: auto auto auto minmax(2.5em, 7em) auto; }
+  .weather .w-dgrid.has-uv { grid-template-columns: auto auto auto auto minmax(2.5em, 7em) auto; }
+  .weather .w-dgrid .w-pp { display: none; }
+}
+@container (max-width: 16em) {
+  .weather .w-dgrid.has-uv { grid-template-columns: auto auto auto minmax(2em, 7em) auto; }
+  .weather .w-dgrid .w-du { display: none; }
+}
+.region[data-region$='right'] .weather .w-dgrid { margin-left: auto; }
+.region[data-region$='center'] .weather .w-dgrid, .region[data-region$='bar'] .weather .w-dgrid { margin-left: auto; margin-right: auto; }
+.weather .w-dgrid > span { white-space: nowrap; }
+.weather .w-dgrid .w-dn { text-align: left; }
+.weather .w-dgrid .w-min { text-align: right; }
+.weather .w-dgrid .w-r4, .weather .w-dgrid .w-r5 { opacity: .75; }
+.weather .w-dgrid .w-r6, .weather .w-dgrid .w-r7 { opacity: .5; }
+.weather.layout-compact .w-dgrid { margin-top: .5em; row-gap: .2em; }
+.weather .w-dgrid .w-rng { min-width: 0; }
+.weather .w-track { position: relative; display: block; width: 100%; height: .32em; border-radius: .2em; background: var(--faint); }
+.weather .w-fill { position: absolute; top: 0; bottom: 0; border-radius: .2em; }
+.weather .w-cur { position: absolute; top: 50%; width: .5em; height: .5em; margin: -.25em 0 0 -.25em; border-radius: 50%; background: var(--fg); box-shadow: 0 0 0 .12em var(--bg); }
+
+/* weather: animated icons – stacked layers, transform/opacity only */
+.weather .wa { position: relative; display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.2em; }
+.weather .wa > .wl { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+.weather .w-icon .wa { width: 3.6em; height: 3.6em; vertical-align: middle; }
+.weather .w-icon .wl { stroke-width: 1.1; }
+.weather .w-h .wa { width: 1.6em; height: 1.6em; }
+.weather .w-di .wa { width: 1.4em; height: 1.4em; }
+.weather .w-dgrid .w-di .ico { width: 1.4em; height: 1.4em; display: block; }
+.weather .w-dgrid .w-di .wa { display: block; }
+.weather .w-dgrid .w-pp .ico { width: 1em; height: 1em; }
+.weather .wl-rays { animation: w-spin 60s linear infinite; }
+.weather .wl-srays { transform-origin: 33.33% 33.33%; animation: w-spin 60s linear infinite; }
+.weather .wl-drift { animation: w-drift 9s ease-in-out infinite alternate; }
+.weather .wl-moon { transform-origin: 40% 50%; animation: w-rock 8s ease-in-out infinite alternate; }
+.weather .wl-stars { animation: w-twinkle 4s ease-in-out infinite; }
+.weather .wl-fog1 { animation: w-fog 7s ease-in-out infinite alternate; }
+.weather .wl-fog2 { animation: w-fog 7s ease-in-out infinite alternate-reverse; }
+.weather .wl-fall { animation: w-fall 1.4s linear infinite; }
+.weather .wl-fall2 { animation-delay: -.7s; }
+.weather .wl-snow { animation: w-snow 3.6s linear infinite; }
+.weather .wl-snow2 { animation-delay: -1.8s; }
+.weather .wl-bolt { animation: w-flash 5s linear infinite; }
+@keyframes w-spin { to { transform: rotate(360deg); } }
+@keyframes w-drift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
+@keyframes w-rock { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+@keyframes w-twinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@keyframes w-fog { from { transform: translateX(-6%); opacity: .6; } to { transform: translateX(6%); opacity: 1; } }
+@keyframes w-fall { 0% { transform: translateY(-14%); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(10%); opacity: 0; } }
+@keyframes w-snow { 0% { transform: translate(0, -12%); opacity: 0; } 25% { opacity: 1; } 50% { transform: translate(3%, 0); } 100% { transform: translate(-2%, 10%); opacity: 0; } }
+@keyframes w-flash { 0%, 6%, 12%, 100% { opacity: .35; } 3%, 9% { opacity: 1; } }
+.weather.anim-off .wl { animation: none; }
+/* small icons ("full"): only the characteristic motion – static clouds/stars keep the layer count low */
+.weather .w-h .wl-drift, .weather .w-di .wl-drift, .weather .w-cicons .wl-drift,
+.weather .w-h .wl-stars, .weather .w-di .wl-stars, .weather .w-cicons .wl-stars { animation: none; }
+
+/* weather: optional background effect ("full" animations) */
+.weather .w-bg { position: absolute; inset: -.5em; z-index: -1; overflow: hidden; pointer-events: none; opacity: .5; }
+.weather .w-bg > i { position: absolute; left: 0; right: 0; top: -6em; bottom: 0; will-change: transform; }
+.weather .w-bg-rain > i, .weather .w-bg-thunder > i {
+  background-image: radial-gradient(1px .55em at 50% 50%, color-mix(in srgb, var(--fg) 22%, transparent), transparent),
+    radial-gradient(1px .4em at 50% 50%, color-mix(in srgb, var(--fg) 14%, transparent), transparent);
+  background-size: 2.3em 3em, 1.7em 2em;
+  background-position: 0 0, .9em 1em;
+  animation: w-bgfall .9s linear infinite;
+}
+.weather .w-bg-snow > i {
+  background-image: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--fg) 30%, transparent) .09em, transparent .14em),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--fg) 18%, transparent) .07em, transparent .11em);
+  background-size: 2.6em 3em, 1.9em 2em;
+  background-position: 0 0, 1em 1em;
+  animation: w-bgfall 9s linear infinite;
+}
+.weather .w-bg-thunder::after { content: ''; position: absolute; inset: 0; background: var(--fg); opacity: 0; animation: w-bgflash 9s linear infinite; }
+@keyframes w-bgfall { from { transform: translateY(0); } to { transform: translateY(6em); } }
+@keyframes w-bgflash { 0%, 2%, 4%, 100% { opacity: 0; } 1%, 3% { opacity: .05; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .weather .wl, .weather .w-bg > i, .weather .w-bg::after { animation: none !important; }
+}
+
 /* ---- weather hints ---- */
 .hints { display: flex; flex-direction: column; gap: .55em; align-items: stretch; }
 .hint {

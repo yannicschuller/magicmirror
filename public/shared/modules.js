@@ -129,6 +129,43 @@ export const MODULE_TYPES = {
       { key: 'units', label: 'Units', type: 'select', default: 'metric', options: [
         { value: 'metric', label: '°C, km/h, mm' }, { value: 'imperial', label: '°F, mph, inch' },
       ] },
+      { key: 'layout', label: 'Layout', type: 'select', default: 'detailed', options: [
+        { value: 'detailed', label: 'Detailed' }, { value: 'compact', label: 'Compact' },
+      ] },
+      { key: 'extras', label: 'Additional values', type: 'multiselect', default: ['uv', 'windDirection'], options: [
+        { value: 'uv', label: 'UV index (now and today\'s maximum)' },
+        { value: 'precipitation', label: 'Precipitation today (amount & probability)' },
+        { value: 'windDirection', label: 'Wind direction' },
+        { value: 'gusts', label: 'Wind gusts' },
+        { value: 'pressure', label: 'Air pressure' },
+        { value: 'visibility', label: 'Visibility' },
+        { value: 'dewPoint', label: 'Dew point' },
+        { value: 'cloudCover', label: 'Cloud cover' },
+        { value: 'sunshine', label: 'Sunshine duration today' },
+      ] },
+      { key: 'airQuality', label: 'Air quality (European AQI)', type: 'bool', default: false },
+      { key: 'pollen', label: 'Pollen (Europe only)', type: 'multiselect', default: [], options: [
+        { value: 'alder', label: 'Alder' }, { value: 'birch', label: 'Birch' }, { value: 'grass', label: 'Grass' },
+        { value: 'mugwort', label: 'Mugwort' }, { value: 'ragweed', label: 'Ragweed' },
+      ] },
+      { key: 'chartStyle', label: 'Hourly forecast display', type: 'select', default: 'icons', options: [
+        { value: 'icons', label: 'Icons' },
+        { value: 'line', label: 'Temperature curve' },
+        { value: 'lineBars', label: 'Temperature curve + precipitation bars' },
+      ] },
+      { key: 'chartBars', label: 'Bars show', type: 'select', default: 'probability', showIf: { chartStyle: 'lineBars' }, options: [
+        { value: 'probability', label: 'Precipitation probability' }, { value: 'amount', label: 'Precipitation amount' },
+      ] },
+      { key: 'dailyStyle', label: 'Daily forecast display', type: 'select', default: 'table', options: [
+        { value: 'table', label: 'Table' }, { value: 'bars', label: 'Temperature range bars' },
+      ] },
+      { key: 'dailyUv', label: 'UV index per forecast day', type: 'bool', default: false },
+      { key: 'animation', label: 'Animated weather icons', type: 'select', default: 'subtle', options: [
+        { value: 'off', label: 'Off' },
+        { value: 'subtle', label: 'Subtle (current weather only)' },
+        { value: 'full', label: 'Full (all icons)' },
+      ] },
+      { key: 'animatedBackground', label: 'Background effect for rain & snow', type: 'bool', default: false, showIf: { animation: 'full' } },
     ],
   },
 
@@ -480,6 +517,13 @@ export function defaultConfig(locale = DEFAULT_LOCALE) {
 }
 
 // fallbackLocale decides the language of defaults when the input has none.
+// Older configs had a "use global location" switch next to the location.
+function migrateSettings(settings) {
+  if (!settings || typeof settings !== 'object' || !('useGlobalLocation' in settings)) return settings || {};
+  const { useGlobalLocation, ...rest } = settings;
+  return useGlobalLocation === false ? rest : { ...rest, location: null };
+}
+
 export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
   const c = input && typeof input === 'object' ? input : {};
   const d = defaultConfig(c.general?.locale || fallbackLocale);
@@ -518,7 +562,7 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
         pages: mp,
         region: REGION_IDS.has(m.region) ? m.region : t.defaultRegion,
         order: Number.isFinite(Number(m.order)) ? Number(m.order) : i,
-        settings: applyDefaults(t.fields, m.settings || {}, tr),
+        settings: applyDefaults(t.fields, migrateSettings(m.settings), tr),
       };
     });
 
@@ -540,6 +584,6 @@ export function publicConfig(cfg) {
 }
 
 export function resolveLocation(settings, general) {
-  if (settings && settings.useGlobalLocation === false && settings.location) return settings.location;
+  if (settings?.location) return settings.location;
   return general.location || { name: '', lat: 52.52, lon: 13.405 };
 }

@@ -37,6 +37,16 @@ COPY src ./src
 COPY public ./public
 COPY --from=admin /build/public/admin ./public/admin
 
+# Build info shown in the admin panel. CI passes MM_COMMIT/MM_BUILD_DATE; for local
+# builds the commit is read from the checkout (.git/HEAD + refs, see .dockerignore).
+# ".gi[t]" may match nothing (e.g. a tarball without .git) – package.json keeps COPY happy.
+ARG MM_COMMIT=
+ARG MM_BUILD_DATE=
+COPY package.json .gi[t] /app/.buildinfo/
+RUN rm /app/.buildinfo/package.json && date -u +%Y-%m-%dT%H:%M:%SZ > /app/.buildinfo/built
+ENV MM_COMMIT=${MM_COMMIT} \
+    MM_BUILD_DATE=${MM_BUILD_DATE}
+
 COPY docker-entrypoint.sh /usr/local/bin/mm-entrypoint
 RUN mkdir -p /data && chown node:node /data
 # No USER here: the entrypoint fixes /data ownership as root, then drops to "node".

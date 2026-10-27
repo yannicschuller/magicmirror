@@ -40,11 +40,11 @@ function ModuleList({ selected }: { selected?: string }) {
   const types = Object.entries(MODULE_TYPES).map(([value, type]) => ({ value, label: type.label }));
   const [addType, setAddType] = useState(types[0].value);
   return (
-    <Card className="gap-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)]">
+    <Card className="gap-3 overflow-hidden lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)]">
       <CardHeader>
         <CardTitle className="text-base font-semibold">{t('Modules')}</CardTitle>
       </CardHeader>
-      <ScrollArea className="min-h-0 flex-1 px-2">
+      <ScrollArea className="min-h-0 flex-1 overflow-hidden px-2">
         <div className="flex flex-col gap-0.5">
           {cfg.modules.map((m) => (
             <div
@@ -88,7 +88,7 @@ function ModuleList({ selected }: { selected?: string }) {
           ))}
         </div>
       </ScrollArea>
-      <CardContent className="flex gap-2 border-t pt-3">
+      <CardContent className="relative z-10 flex shrink-0 gap-2 border-t bg-card pt-3">
         <OptionSelect value={addType} options={types} onValue={setAddType} className="min-w-0 flex-1" />
         <Button
           onClick={() => {

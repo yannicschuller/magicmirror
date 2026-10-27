@@ -81,5 +81,7 @@ jobs:
           build-args: |
             MM_VERSION=${{ github.ref_type == 'tag' && github.ref_name || format('sha-{0}', github.sha) }}
             BROWSER=${{ matrix.browser || 'cog' }}
+            MM_COMMIT=${{ github.sha }}
+            MM_BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}

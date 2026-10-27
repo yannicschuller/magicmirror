@@ -1,4 +1,5 @@
-import { icons, calIcons, bin, plane, weatherInfo as wmo, hintIcons } from './icons.js';
+import { icons, calIcons, bin, plane, weatherInfo as wmo, hintIcons, weatherIcons, animatedIcon } from './icons.js';
+import { hourlyChart, uvLevel, aqiLevel, pollenLevel, tempColor, compass } from './weather-chart.js';
 import { translator, langOf } from '/shared/i18n.js';
 import pluginRenderers from './modules/index.js';
 
@@ -16,6 +17,7 @@ const weatherInfo = (code, isDay) => {
   return { ...w, text: t(w.text) };
 };
 const DAY = 86400000;
+const POLLEN_NAMES = { alder: 'Alder', birch: 'Birch', grass: 'Grass', mugwort: 'Mugwort', ragweed: 'Ragweed' };
 
 // ---- time helpers (always in the mirror's configured time zone) -------------
 export function makeFmt(general) {
@@ -108,38 +110,162 @@ const clock = (el, mod, ctx) => {
   return { tick, tickEvery: 1000 };
 };
 
+// Weather codes for the optional background effect.
+const bgKind = (code) => (code >= 95 ? 'thunder' : [71, 73, 75, 77, 85, 86].includes(code) ? 'snow' : (code >= 51 && code <= 67) || (code >= 80 && code <= 82) ? 'rain' : null);
+const SEP = '<span class="w-sep"> · </span>';
+const lvlClass = (l) => String(l).replace(/ /g, '-');
+
 const weather = (el, mod, ctx) => {
   const s = mod.settings;
   const deg = '°';
-  const speed = s.units === 'imperial' ? 'mph' : 'km/h';
+  const imperial = s.units === 'imperial';
+  const speed = imperial ? 'mph' : 'km/h';
+  const extras = new Set(s.extras || ['uv', 'windDirection']);
+  const anim = s.animation || 'subtle';
+  const compact = s.layout === 'compact';
+  const wi = weatherIcons;
+  const bigIcon = (info) => (anim !== 'off' ? animatedIcon(info.key) : info.icon);
+  const smallIcon = (code, isDay = true) => {
+    const info = weatherInfo(code, isDay);
+    return anim === 'full' ? animatedIcon(info.key) : info.icon;
+  };
+  const toC = (v) => (imperial ? ((v - 32) * 5) / 9 : v);
+  const x = (cls, body) => `<span class="w-x ${cls}">${body}</span>`;
+
+  const uvItem = (now, max) => {
+    if (now == null && max == null) return '';
+    const lNow = uvLevel(now ?? 0), lMax = uvLevel(max ?? now);
+    return x(`w-uv uv-${lvlClass(lNow)}`, `<i class="w-dot"></i>UV ${num(now)}${max != null ? ` <span class="uv-${lvlClass(lMax)} w-uvmax">↑${num(max)}</span>` : ''}${compact ? '' : ` <span class="dim">${esc(t(lMax))}</span>`}`);
+  };
+  const windItem = (c, withText) => {
+    let w = `${icons.wind} ${num(c.wind)} ${speed}`;
+    if (extras.has('windDirection') && c.windDir != null) w += ` ${wi.arrow(c.windDir)}${compact ? '' : `<span class="dim">${esc(t(compass(c.windDir)))}</span>`}`;
+    return withText ? x('w-wind', w) : w;
+  };
+
+  function extraItems(d) {
+    const c = d.current;
+    const today = d.daily[0] || {};
+    const out = [];
+    if (extras.has('uv')) out.push(uvItem(c.uv, today.uv));
+    if (extras.has('precipitation') && today.precip != null) out.push(x('w-pr', `${icons.umbrella} ${num(today.precip, 1)} ${imperial ? 'in' : 'mm'}${today.pop != null ? ` · ${num(today.pop)} %` : ''}`));
+    if (!s.showDetails && extras.has('windDirection')) out.push(windItem(c, true));
+    if (extras.has('gusts') && c.gust != null) out.push(x('w-gust', `${wi.gust} ${esc(t('Gusts {v}', { v: `${num(c.gust)} ${speed}` }))}`));
+    if (extras.has('pressure') && c.pressure != null) out.push(x('w-press', `${wi.gauge} ${imperial ? `${num(c.pressure, 2)} inHg` : `${num(c.pressure)} hPa`}`));
+    if (extras.has('visibility') && c.visibility != null) out.push(x('w-vis', `${wi.eye} ${num(c.visibility, c.visibility < 10 ? 1 : 0)} ${imperial ? 'mi' : 'km'}`));
+    if (extras.has('dewPoint') && c.dewPoint != null) out.push(x('w-dew', `${wi.dew} ${esc(t('Dew point'))} ${num(c.dewPoint)}${deg}`));
+    if (extras.has('cloudCover') && c.cloudCover != null) out.push(x('w-cc', `${wi.cloud} ${num(c.cloudCover)} %`));
+    if (extras.has('sunshine') && today.sunshine != null) out.push(x('w-ss', `${wi.sun} ${esc(t('{h} h sun', { h: num(today.sunshine / 3600, 1) }))}`));
+    const air = d.air;
+    if (air && s.airQuality && air.aqi != null) {
+      const l = aqiLevel(air.aqi);
+      out.push(x(`w-aqi aqi-${lvlClass(l)}`, `${wi.leaf} <i class="w-dot"></i>${esc(t('Air {n}', { n: num(air.aqi) }))}${compact ? '' : ` <span class="dim">${esc(t(l))}</span>`}`));
+    }
+    if (air && (s.pollen || []).length) {
+      const known = s.pollen.filter((p) => air.pollen?.[p] != null);
+      const active = known.map((p) => ({ p, l: pollenLevel(p, air.pollen[p]) })).filter((v) => v.l);
+      if (active.length) {
+        out.push(x('w-pol', `${wi.flower} ${active.map((v) => `<span class="pol-${lvlClass(v.l)}"><i class="w-dot"></i>${esc(t(POLLEN_NAMES[v.p]))}${compact ? '' : ` <span class="dim">${esc(t(v.l))}</span>`}</span>`).join(' ')}`));
+      } else if (known.length) {
+        out.push(x('w-pol dim', `${wi.flower} ${esc(t('No pollen'))}`));
+      }
+    }
+    return out.filter(Boolean);
+  }
+
+  function current(d) {
+    const c = d.current;
+    const info = weatherInfo(c.code, c.isDay);
+    const today = d.daily[0];
+    let html = '';
+    const details = s.showDetails ? [x('w-feels', `${t('Feels like')} ${num(c.feels)}${deg}`), windItem(c, true), x('w-hum', `${icons.drop} ${num(c.humidity)} %`)] : [];
+    const sun = s.showSun && today ? x('w-sunx', `${icons.sunrise} ${ctx.fmt.localHour(today.sunrise)} &nbsp; ${icons.sunset} ${ctx.fmt.localHour(today.sunset)}`) : '';
+    const more = extraItems(d);
+    if (compact) {
+      html += `<div class="w-now"><span class="w-icon">${bigIcon(info)}</span><span class="w-temp">${num(c.temp)}<sup>${deg}</sup></span><span class="w-side"><span class="w-desc">${esc(info.text)}</span>${today ? `<span class="dim">↑${num(today.max)}${deg} ↓${num(today.min)}${deg}</span>` : ''}</span></div>`;
+      const line = [...details, ...more, sun].filter(Boolean);
+      if (line.length) html += `<div class="w-line dim">${line.join(SEP)}</div>`;
+      return html;
+    }
+    html += `<div class="w-now"><span class="w-icon">${bigIcon(info)}</span><span class="w-temp">${num(c.temp)}<sup>${deg}</sup></span></div>
+      <div class="w-desc">${esc(info.text)}${d.location ? ` <span class="dim">· ${esc(d.location)}</span>` : ''}</div>`;
+    if (details.length) html += `<div class="w-details w-line dim">${details.join(SEP)}</div>`;
+    if (more.length) html += `<div class="w-extras w-line dim">${more.join(SEP)}</div>`;
+    if (s.showSun && today) {
+      html += `<div class="w-sun dim">${icons.sunrise} ${ctx.fmt.localHour(today.sunrise)} &nbsp; ${icons.sunset} ${ctx.fmt.localHour(today.sunset)} &nbsp; ↑${num(today.max)}${deg} ↓${num(today.min)}${deg}</div>`;
+    }
+    return html;
+  }
+
+  function hourly(d) {
+    const style = s.chartStyle || 'icons';
+    if (style === 'icons') {
+      const hours = d.hourly.filter((_, i) => i > 0 && i % s.hourlyStep === 0).slice(0, s.hourlyCount);
+      return `<div class="w-hourly">${hours
+        .map((h) => `<div class="w-h"><div class="dim small">${h.time.slice(11, 13)}</div>${smallIcon(h.code, h.isDay)}<div>${num(h.temp)}${deg}</div><div class="w-pop small ${h.pop >= 50 ? 'wet' : 'dim'}">${h.pop >= 10 ? `${h.pop}%` : '&nbsp;'}</div></div>`)
+        .join('')}</div>`;
+    }
+    const bars = style === 'lineBars' ? s.chartBars || 'probability' : 'none';
+    // 1 viewBox unit = 0.1em, so text in the SVG matches the module's font size
+    const widthEm = Math.min(34, Math.max(compact ? 16 : 19, s.hourlyCount * s.hourlyStep * (compact ? 1.4 : 1.6)));
+    const nowMin = Number(String(d.current.time).slice(14, 16)) || 0;
+    const { svg, labels } = hourlyChart(d.hourly, {
+      count: s.hourlyCount,
+      step: s.hourlyStep,
+      bars,
+      width: widthEm * 10,
+      maxLabels: Math.max(3, Math.floor(widthEm / 3)),
+      nowFrac: nowMin / 60,
+      amountMin: imperial ? 0.08 : 2,
+      fmtTemp: (n) => `${num(n)}${deg}`,
+      fmtBar: (h) => (bars === 'amount' ? num(h.precip, 1) : `${h.pop}%`),
+      hourLabel: (h) => h.time.slice(11, 13),
+      uid: mod.id,
+    });
+    if (!svg) return '';
+    return `<div class="w-chart" style="width:${widthEm}em"><div class="w-cicons">${labels
+      .map((l) => `<span style="left:${l.xPct}%">${smallIcon(l.hour.code, l.hour.isDay)}</span>`)
+      .join('')}</div>${svg}</div>`;
+  }
+
+  function daily(d) {
+    const days = d.daily.slice(0, s.forecastDays);
+    const label = (x, i) => (i === 0 ? t('Today') : ctx.fmt.weekdayShort(x.date));
+    const pop = (x) => `<td class="w-pp small ${x.pop >= 50 ? 'wet' : 'dim'}">${x.pop >= 10 ? `${icons.drop}${x.pop}%` : ''}</td>`;
+    const uv = (x) => (s.dailyUv ? `<td class="w-du small">${x.uv != null ? `<span class="w-uvb uv-${lvlClass(uvLevel(x.uv))}">UV ${num(x.uv)}</span>` : ''}</td>` : '');
+    if (s.dailyStyle === 'bars') {
+      // CSS grid instead of a table: the range bar column can shrink (minmax) in narrow regions
+      const lo = Math.min(...days.map((x) => x.min)), hi = Math.max(...days.map((x) => x.max));
+      const span = hi - lo || 1;
+      const pct = (v) => Math.round(((v - lo) / span) * 1000) / 10;
+      const cur = d.current.temp;
+      return `<div class="w-dgrid${s.dailyUv ? ' has-uv' : ''}">${days
+        .map((x, i) => {
+          const r = `w-r${i + 1}`;
+          const cell = (cls, body) => `<span class="${cls} ${r}">${body}</span>`;
+          const dot = i === 0 && cur != null && cur >= lo && cur <= hi ? `<i class="w-cur" style="left:${pct(cur)}%"></i>` : '';
+          return cell('w-dn', label(x, i)) + cell('w-di', smallIcon(x.code))
+            + cell(`w-pp small ${x.pop >= 50 ? 'wet' : 'dim'}`, x.pop >= 10 ? `${icons.drop}${x.pop}%` : '')
+            + (s.dailyUv ? cell('w-du small', x.uv != null ? `<span class="w-uvb uv-${lvlClass(uvLevel(x.uv))}">UV ${num(x.uv)}</span>` : '') : '')
+            + cell('w-min dim', `${num(x.min)}${deg}`)
+            + cell('w-rng', `<span class="w-track"><span class="w-fill" style="left:${pct(x.min)}%;width:${Math.max(2, pct(x.max) - pct(x.min))}%;background:linear-gradient(90deg,${tempColor(toC(x.min))},${tempColor(toC(x.max))})"></span>${dot}</span>`)
+            + cell('w-max', `${num(x.max)}${deg}`);
+        })
+        .join('')}</div>`;
+    }
+    return `<table class="w-days">${days
+      .map((x, i) => `<tr><td class="w-dn">${label(x, i)}</td><td class="w-di">${smallIcon(x.code)}</td><td class="w-max">${num(x.max)}${deg}</td><td class="w-min dim">${num(x.min)}${deg}</td>${pop(x)}${uv(x)}</tr>`)
+      .join('')}</table>`;
+  }
+
   return {
     update(d) {
-      const c = d.current;
-      const info = weatherInfo(c.code, c.isDay);
-      const today = d.daily[0];
-      let html = '<div class="weather">';
-      if (s.showCurrent) {
-        html += `<div class="w-now"><span class="w-icon">${info.icon}</span><span class="w-temp">${num(c.temp)}<sup>${deg}</sup></span></div>
-          <div class="w-desc">${esc(info.text)}${d.location ? ` <span class="dim">· ${esc(d.location)}</span>` : ''}</div>`;
-        if (s.showDetails) {
-          html += `<div class="w-details dim">${t('Feels like')} ${num(c.feels)}${deg} · ${icons.wind} ${num(c.wind)} ${speed} · ${icons.drop} ${num(c.humidity)} %</div>`;
-        }
-        if (s.showSun && today) {
-          html += `<div class="w-sun dim">${icons.sunrise} ${ctx.fmt.localHour(today.sunrise)} &nbsp; ${icons.sunset} ${ctx.fmt.localHour(today.sunset)} &nbsp; ↑${num(today.max)}${deg} ↓${num(today.min)}${deg}</div>`;
-        }
-      }
-      if (s.showHourly) {
-        const hours = d.hourly.filter((_, i) => i > 0 && i % s.hourlyStep === 0).slice(0, s.hourlyCount);
-        html += `<div class="w-hourly">${hours
-          .map((h) => `<div class="w-h"><div class="dim small">${h.time.slice(11, 13)}</div>${weatherInfo(h.code, h.isDay).icon}<div>${num(h.temp)}${deg}</div><div class="w-pop small ${h.pop >= 50 ? 'wet' : 'dim'}">${h.pop >= 10 ? `${h.pop}%` : '&nbsp;'}</div></div>`)
-          .join('')}</div>`;
-      }
-      if (s.forecastDays > 0) {
-        const days = d.daily.slice(0, s.forecastDays);
-        html += `<table class="w-days">${days
-          .map((x, i) => `<tr><td class="w-dn">${i === 0 ? t('Today') : ctx.fmt.weekdayShort(x.date)}</td><td class="w-di">${weatherInfo(x.code).icon}</td><td class="w-max">${num(x.max)}${deg}</td><td class="w-min dim">${num(x.min)}${deg}</td><td class="w-pp small ${x.pop >= 50 ? 'wet' : 'dim'}">${x.pop >= 10 ? `${icons.drop}${x.pop}%` : ''}</td></tr>`)
-          .join('')}</table>`;
-      }
+      const kind = anim === 'full' && s.animatedBackground ? bgKind(d.current.code) : null;
+      let html = `<div class="weather layout-${compact ? 'compact' : 'detailed'} anim-${anim}">`;
+      if (kind) html += `<div class="w-bg w-bg-${kind}"><i></i></div>`;
+      if (s.showCurrent) html += current(d);
+      if (s.showHourly) html += hourly(d);
+      if (s.forecastDays > 0) html += daily(d);
       el.innerHTML = html + '</div>';
     },
   };

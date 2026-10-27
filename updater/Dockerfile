@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.source=https://github.com/yannicschuller/magicmir
       org.opencontainers.image.description="Magic Mirror auto-updater" \
       org.opencontainers.image.licenses=MIT
 
-RUN apk add --no-cache git su-exec tzdata
+RUN apk add --no-cache git su-exec tzdata jq busybox-extras util-linux-misc
 
 COPY update.sh /usr/local/bin/mm-update
 RUN chmod 755 /usr/local/bin/mm-update

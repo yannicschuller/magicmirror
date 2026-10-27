@@ -99,7 +99,7 @@ test('schema and German strings', () => {
     ids.push(f.label);
     for (const o of f.options || []) ids.push(o.label);
   }
-  for (const id of ids.filter((x) => !x.startsWith('Use location') && x !== 'Custom location')) assert.ok(de[id], `missing German: ${id}`);
+  for (const id of ids.filter((x) => x !== 'Location')) assert.ok(de[id], `missing German: ${id}`);
   const keys = Object.keys(de);
   assert.deepEqual(keys, [...keys].sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1)));
 });
