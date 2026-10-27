@@ -21,33 +21,34 @@ You'll need three values:
 
 ## 2. Let AI build the Shortcut
 
-Shortcuts can now be created from a plain description, for example with Apple Intelligence in the Shortcuts app or with an AI assistant that walks you through the actions. Replace the three placeholders and use this prompt:
+The Shortcuts app can build a shortcut from a short description. It prefers **short, simple sentences** – long descriptions get "Try a different description". Replace the three placeholders and try the simple version first:
+
+**Simple (titles only):**
 
 ```text
-Create a shortcut named "Reminders → Mirror":
+Find all incomplete reminders in the list LIST, combine their titles with new lines and send the text via POST to MIRROR_URL with the header Authorization: Bearer TOKEN.
+```
 
-1. Find all reminders that are NOT completed from the list "LIST"
-   (if "all": from all lists), sorted by due date.
-2. Repeat with each reminder found: create a text in the format
-   Title | Due Date | Priority
-   – due date formatted as ISO 8601 (empty if none is set),
-   – priority as None/Low/Medium/High.
-3. Combine the repeat results into one text, separated by new lines.
-4. Send this text with "Get Contents of URL" to MIRROR_URL:
-   method POST, header "Authorization" with the value "Bearer TOKEN",
-   request body: File = the combined text.
+**With due dates** (if the simple version works and you want dates):
 
-Also create two personal automations that run this shortcut immediately,
-without asking and without a notification:
-a) when the "Reminders" app is closed,
-b) every day at 6:00.
+```text
+Find all incomplete reminders in the list LIST. For each, make a line with Title | due date in ISO 8601 format. Combine the lines with new lines and send the text via POST to MIRROR_URL with the header Authorization: Bearer TOKEN.
 ```
 
 Then run the shortcut once with ▶. The response should be `{"ok":true,"received":…}` and the module on the mirror updates immediately.
 
-> **Tip:** take a quick look at the generated actions – AI assistants sometimes swap header name and value or forget the date format. The correct setup is described below.
+> **If it doesn't work:** if you keep getting "Try a different description", or the generated actions are wrong (typically: header name and value swapped, body not sent as text/file), build it with the four actions in section 4 – it takes about two minutes.
 
-## 3. Manually (if the AI doesn't help)
+## 3. Set up the automation (always manual)
+
+The AI can't create automations. Do it by hand:
+
+Shortcuts → **Automation** → **+**:
+
+1. **App** → *Reminders* → *Is Closed* → **Run Immediately**, *Notify When Run* off → pick your shortcut. The list is now sent every time you leave the Reminders app.
+2. Optionally also **Time of Day** → daily 6:00 → same settings, so the mirror is up to date in the morning.
+
+## 4. Build the shortcut manually
 
 In the **Shortcuts** app, create a shortcut with these actions:
 
@@ -59,8 +60,6 @@ In the **Shortcuts** app, create a shortcut with these actions:
    Tap the due-date variable and set **Date Format → ISO 8601**.
 3. After *End Repeat*: **Combine Text** – *Repeat Results*, separator *New Lines*.
 4. **Get Contents of URL**: URL `MIRROR_URL`, method **POST**, header `Authorization` = `Bearer TOKEN`, request body **File** → *Combined Text*.
-
-**Automation:** Shortcuts → **Automation** → **+** → *App* → *Reminders* → *Is Closed* (optionally also *Time of Day* 6:00) → **Run Immediately**, *Notify When Run* off → pick your shortcut.
 
 > **Simplest variant:** if titles are enough, skip the repeat and use **Combine Text** directly on the found reminders.
 

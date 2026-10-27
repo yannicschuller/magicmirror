@@ -21,33 +21,34 @@ Du brauchst gleich drei Angaben:
 
 ## 2. Kurzbefehl per KI erstellen lassen
 
-Kurzbefehle lassen sich inzwischen aus einer Beschreibung erstellen, zum Beispiel mit Apple Intelligence in der Kurzbefehle-App oder mit einem KI-Assistenten, der dir die Aktionen Schritt für Schritt baut. Ersetze die drei Platzhalter und gib diesen Text ein:
+Die Kurzbefehle-App kann aus einer kurzen Beschreibung einen Kurzbefehl bauen. Sie mag **kurze, einfache Sätze**; bei langen Beschreibungen kommt „Versuche eine andere Beschreibung“. Ersetze die drei Platzhalter und probiere zuerst die einfache Variante:
+
+**Einfach (nur Titel):**
 
 ```text
-Erstelle einen Kurzbefehl namens "Erinnerungen → Spiegel":
+Finde alle nicht erledigten Erinnerungen in der Liste LISTE, kombiniere ihre Titel mit Zeilenumbrüchen und sende den Text per POST an SPIEGEL_URL mit dem Header Authorization: Bearer TOKEN.
+```
 
-1. Suche alle Erinnerungen, die NICHT erledigt sind, aus der Liste "LISTE"
-   (bei "alle": aus allen Listen), sortiert nach Fälligkeitsdatum.
-2. Wiederhole für jede gefundene Erinnerung: Erzeuge einen Text im Format
-   Titel | Fälligkeitsdatum | Priorität
-   – Fälligkeitsdatum im Format ISO 8601 (leer lassen, wenn keins gesetzt ist),
-   – Priorität als Keine/Niedrig/Mittel/Hoch.
-3. Kombiniere die Ergebnisse der Wiederholung zu einem Text, getrennt durch neue Zeilen.
-4. Sende diesen Text mit "Inhalte von URL abrufen" an SPIEGEL_URL:
-   Methode POST, Header "Authorization" mit dem Wert "Bearer TOKEN",
-   Hauptteil der Anfrage: Datei = der kombinierte Text.
+**Mit Fälligkeit** (falls die einfache Variante klappt und du Termine sehen möchtest):
 
-Lege außerdem zwei persönliche Automationen an, die diesen Kurzbefehl
-sofort ausführen, ohne nachzufragen und ohne Benachrichtigung:
-a) wenn die App "Erinnerungen" geschlossen wird,
-b) täglich um 6:00 Uhr.
+```text
+Finde alle nicht erledigten Erinnerungen in der Liste LISTE. Erstelle für jede eine Zeile mit Titel | Fälligkeitsdatum im ISO-8601-Format. Kombiniere die Zeilen mit Zeilenumbrüchen und sende den Text per POST an SPIEGEL_URL mit dem Header Authorization: Bearer TOKEN.
 ```
 
 Danach den Kurzbefehl einmal mit ▶ starten. Als Antwort kommt `{"ok":true,"received":…}`, und das Modul auf dem Spiegel aktualisiert sich sofort.
 
-> **Tipp:** Kontrolliere die erzeugten Aktionen kurz. KI-Assistenten vertauschen gelegentlich Header-Name und -Wert oder lassen das Datumsformat weg. Wie es richtig aussieht, steht unten.
+> **Wenn es nicht klappt:** Kommt weiter „Versuche eine andere Beschreibung“, oder sind die erzeugten Aktionen falsch (häufig: Header-Name und -Wert vertauscht, Hauptteil nicht als Text/Datei), baue den Kurzbefehl mit den vier Aktionen aus Abschnitt 3 – das dauert etwa zwei Minuten.
 
-## 3. Manuell (falls die KI nicht hilft)
+## 3. Automation einrichten (immer manuell)
+
+Automationen kann die KI nicht anlegen. So geht es von Hand:
+
+Kurzbefehle → **Automation** → **+**:
+
+1. **App** → *Erinnerungen* → *Wird geschlossen* → **Sofort ausführen**, *Bei Ausführung benachrichtigen* aus → deinen Kurzbefehl wählen. Damit wird die Liste jedes Mal gesendet, wenn du die Erinnerungen-App verlässt.
+2. Optional zusätzlich **Tageszeit** → täglich 6:00 → gleich einstellen, damit der Spiegel morgens aktuell ist.
+
+## 4. Kurzbefehl manuell bauen
 
 In der App **Kurzbefehle** einen neuen Kurzbefehl mit diesen Aktionen anlegen:
 
@@ -59,8 +60,6 @@ In der App **Kurzbefehle** einen neuen Kurzbefehl mit diesen Aktionen anlegen:
    Beim Fälligkeitsdatum die Variable antippen und **Datumsformat → ISO 8601** wählen.
 3. Nach *Wiederholung beenden*: **Text kombinieren** – *Wiederholungsergebnisse*, Trennzeichen *Neue Zeilen*.
 4. **Inhalte von URL abrufen**: URL `SPIEGEL_URL`, Methode **POST**, Header `Authorization` = `Bearer TOKEN`, Hauptteil **Datei** → *Kombinierter Text*.
-
-**Automation:** Kurzbefehle → **Automation** → **+** → *App* → *Erinnerungen* → *Wird geschlossen* (und optional *Tageszeit* 6:00) → **Sofort ausführen**, *Bei Ausführung benachrichtigen* aus → deinen Kurzbefehl wählen.
 
 > **Ganz einfache Variante:** Wenn dir die Titel reichen, lass die Wiederholung weg und kombiniere direkt die gefundenen Erinnerungen per **Text kombinieren**.
 
