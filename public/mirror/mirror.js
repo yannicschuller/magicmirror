@@ -146,6 +146,13 @@ function applyContent(inst) {
   return true;
 }
 
+// Height of what a region actually shows (its row may be taller because of other columns).
+function contentHeight(region) {
+  const kids = [...region.children].filter((c) => c.offsetHeight > 0);
+  if (!kids.length) return 0;
+  return kids.at(-1).getBoundingClientRect().bottom - kids[0].getBoundingClientRect().top;
+}
+
 // Modules with height "fill" take over empty areas above/below them in their column.
 const COLUMNS = { left: 1, center: 2, right: 3 };
 const ROWS = ['top', 'middle', 'bottom'];
@@ -154,7 +161,7 @@ function layoutFill() {
   const visible = (region) => instances.some((i) => i.visible && i.mod.region === region && !i.wrap.classList.contains('empty') && !i.wrap.classList.contains('no-content'));
   for (const [col, colIndex] of Object.entries(COLUMNS)) {
     const regions = ROWS.map((row) => grid.querySelector(`.region[data-region="${row}_${col}"]`));
-    regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = ''));
+    regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = el.style.paddingTop = el.style.paddingBottom = ''));
     ROWS.forEach((row, r) => {
       const fills = instances.some((i) => i.visible && i.mod.region === `${row}_${col}` && i.mod.height === 'fill');
       if (!fills) return;
@@ -162,6 +169,18 @@ function layoutFill() {
       let end = r;
       while (start > 0 && !visible(`${ROWS[start - 1]}_${col}`)) start--;
       while (end < ROWS.length - 1 && !visible(`${ROWS[end + 1]}_${col}`)) end++;
+      // The top and bottom rows are as tall as their tallest region in any column. A shorter
+      // top / bottom neighbour in this column leaves a gap – the fill region also spans that
+      // row and keeps clear of the neighbour's content (top: aligned up, bottom: aligned down).
+      const gap = parseFloat(getComputedStyle(regions[r]).rowGap) || 0;
+      if (start === 1) {
+        start = 0;
+        regions[r].style.paddingTop = `${contentHeight(regions[0]) + gap}px`;
+      }
+      if (end === 1) {
+        end = 2;
+        regions[r].style.paddingBottom = `${contentHeight(regions[2]) + gap}px`;
+      }
       if (start === end) return;
       // grid rows: 1 = top bar, 2 = top, 3 = middle, 4 = bottom, 5 = bottom bar
       regions[r].style.gridRow = `${start + 2} / ${end + 3}`;

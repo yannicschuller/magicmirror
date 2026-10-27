@@ -376,6 +376,17 @@ export default function render(el, mod, ctx) {
     }
   };
 
+  // Height "fill": the area changes with the layout → fit the events again.
+  let lastH = 0;
+  let resizeTimer = null;
+  const resizeObs = window.ResizeObserver && new ResizeObserver(() => {
+    if (!el.clientHeight || el.clientHeight === lastH || !el.closest('.module.fill')) return;
+    lastH = el.clientHeight;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(draw, 100);
+  });
+  resizeObs?.observe(el);
+
   return {
     update(data) {
       last = data;
@@ -393,6 +404,9 @@ export default function render(el, mod, ctx) {
         else drawRoute();
       }, 50);
     },
-    destroy: closeTravel,
+    destroy() {
+      resizeObs?.disconnect();
+      closeTravel();
+    },
   };
 }
