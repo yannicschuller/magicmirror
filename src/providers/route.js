@@ -222,3 +222,28 @@ export async function computeTravel(events, s, from, { now = new Date(deps.now()
   }
   return null;
 }
+
+// Address search for the admin's location fields (streets incl. house numbers).
+// Same throttle/User-Agent as above; cached like geocoding.
+export async function searchPlaces(query, { near, lang = 'de', limit = 6 } = {}) {
+  const q = normQuery(query);
+  if (q.length < 3) return [];
+  const key = `list:${q.toLowerCase()}|${near ? `${near.lat.toFixed(1)},${near.lon.toFixed(1)}` : ''}`;
+  const hit = recall(geoCache, key);
+  if (hit !== undefined) return hit;
+  const params = new URLSearchParams({ format: 'jsonv2', limit: String(limit), q, 'accept-language': lang, addressdetails: '1' });
+  if (near) params.set('viewbox', [near.lon - 1, near.lat + 0.7, near.lon + 1, near.lat - 0.7].map((n) => n.toFixed(3)).join(','));
+  const json = await throttled(() => deps.fetchJson(`${NOMINATIM}?${params}`, { timeout: 10000 }));
+  const list = (Array.isArray(json) ? json : []).map((r) => {
+    const a = r.address || {};
+    const street = [a.road || a.pedestrian || a.footway, a.house_number].filter(Boolean).join(' ');
+    const town = a.city || a.town || a.village || a.municipality || '';
+    return {
+      name: street || r.name || String(r.display_name || '').split(',')[0],
+      region: [a.postcode, town, a.country].filter(Boolean).join(', '),
+      lat: Number(r.lat),
+      lon: Number(r.lon),
+    };
+  }).filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lon));
+  return remember(geoCache, key, list, GEO_TTL);
+}

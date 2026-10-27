@@ -5,6 +5,8 @@ import express from 'express';
 import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
 import { pushRouter } from './push.js';
+import { searchPlaces } from './providers/route.js';
+import { langOf } from '../public/shared/i18n.js';
 import { loadConfig, getConfig, saveConfig, onConfigChange, DEFAULT_LOCALE_ENV } from './config.js';
 import { setupAuth, requireAdmin, changePassword, oidcEnabled, localEnabled } from './auth.js';
 import { sseHandler, broadcast, clientCount } from './events.js';
@@ -139,10 +141,16 @@ admin.get('/geocode', async (req, res) => {
   const q = String(req.query.q || '').trim();
   if (q.length < 2) return res.json([]);
   try {
+    // Towns: Open-Meteo. Addresses (contain a digit) or no town found: OpenStreetMap (Nominatim).
     const data = await cached(`geo:${q}`, 86400, () =>
       fetchJson(`https://geocoding-api.open-meteo.com/v1/search?${new URLSearchParams({ name: q, count: '10', language: 'de' })}`),
-    );
-    res.json((data.results || []).map((r) => ({ name: r.name, region: [r.admin1, r.country].filter(Boolean).join(', '), lat: r.latitude, lon: r.longitude, timezone: r.timezone })));
+    ).catch(() => ({}));
+    const towns = (data.results || []).map((r) => ({ name: r.name, region: [r.admin1, r.country].filter(Boolean).join(', '), lat: r.latitude, lon: r.longitude, timezone: r.timezone }));
+    let places = [];
+    if (/\d/.test(q) || !towns.length) {
+      places = await searchPlaces(q, { near: getConfig().general.location, lang: langOf(getConfig().general.locale) }).catch(() => []);
+    }
+    res.json(/\d/.test(q) ? [...places, ...towns] : [...towns, ...places]);
   } catch (err) {
     res.status(502).json({ error: err.message });
   }
