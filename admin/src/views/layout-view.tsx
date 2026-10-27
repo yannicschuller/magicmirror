@@ -79,16 +79,16 @@ function PageRow({ p, i, active }: { p: Page; i: number; active: boolean }) {
   const { cfg, t, mt, touch, page, setPage } = useStore();
   const confirm = useConfirm();
   const [options, setOptions] = useState(false);
-  // Copies the page and the modules placed on it (as independent copies);
-  // modules shown on all pages appear on the copy automatically.
+  // Copies the page; its modules are shared (they simply appear on the copy too) –
+  // no duplicated modules. Modules shown on all pages appear there anyway.
   const duplicate = () => {
-    const copy: Page = { ...p, id: uid('p'), name: mt('{name} (copy)', { name: p.name }) };
+    const copy: Page = { ...clone(p), id: uid('p'), name: mt('{name} (copy)', { name: p.name }) };
     cfg.pages.splice(cfg.pages.indexOf(p) + 1, 0, copy);
     const mods = cfg.modules.filter((m) => !m.pages.includes('*') && m.pages.includes(p.id));
-    for (const m of mods) cfg.modules.push({ ...clone(m), id: uid('m'), pages: [copy.id] });
+    for (const m of mods) m.pages.push(copy.id);
     setPage(copy.id);
     touch();
-    toast.success(t('Page duplicated with {n} module(s)', { n: mods.length }));
+    toast.success(t('Page duplicated – {n} module(s) shared', { n: mods.length }));
   };
   const swap = (j: number) => {
     if (j < 0 || j >= cfg.pages.length) return;

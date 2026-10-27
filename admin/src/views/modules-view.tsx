@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Copy, FlaskConical, Loader2, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import { useConfirm } from '@/components/confirm';
 import { ScheduleEditor } from '@/components/schedule-editor';
 import { CheckChip, FieldsForm, NumberInput, OptionSelect, noPlus } from '@/components/fields';
 import { clone, errorMessage } from '@/lib/api';
-import { moduleName, pagesSummary, regionLabel, typeLabel } from '@/lib/helpers';
+import { duplicateGroups, mergeDuplicates, moduleName, pagesSummary, regionLabel, typeLabel } from '@/lib/helpers';
 import { MODULE_TYPES, REGIONS, defaultModule, uid, type Module } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 
@@ -55,6 +56,26 @@ function ModuleList({ selected }: { selected?: string }) {
       <CardHeader>
         <CardTitle className="text-base font-semibold">{t('Modules')}</CardTitle>
       </CardHeader>
+      {(() => {
+        const dupes = duplicateGroups(cfg.modules).reduce((n, g) => n + g.length - 1, 0);
+        return dupes > 0 ? (
+          <div className="mx-2 flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
+            <span className="flex-1">{t('{n} duplicate module(s) found (same settings, only on different pages).', { n: dupes })}</span>
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={() => {
+                mergeDuplicates(cfg.modules);
+                if (selected && !cfg.modules.some((m) => m.id === selected)) setModule(null);
+                touch();
+                toast.success(t('Duplicates merged – modules are now shared between the pages.'));
+              }}
+            >
+              {t('Merge')}
+            </Button>
+          </div>
+        ) : null;
+      })()}
       <div ref={listRef} className="mm-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2">
         <div className="flex flex-col gap-0.5">
           {cfg.modules.map((m) => (

@@ -1,5 +1,8 @@
 // Admin: module height and schedule.
 export default {
+  "Duplicates merged – modules are now shared between the pages.": "Doppelte Module zusammengeführt – sie werden jetzt von den Seiten gemeinsam genutzt.",
+  "Merge": "Zusammenführen",
+  "{n} duplicate module(s) found (same settings, only on different pages).": "{n} doppelte(s) Modul(e) gefunden (gleiche Einstellungen, nur auf anderen Seiten).",
   "Delete module": "Modul löschen",
   "{n} days ago": "vor {n} Tagen",
   "Keep showing past collections for (days, 0 = off)": "Vergangene Abholungen noch anzeigen (Tage, 0 = aus)",
@@ -29,7 +32,7 @@ export default {
   "Only in this period": "Nur in diesem Zeitraum",
   "Page options": "Seiten-Optionen",
   "Duplicate page": "Seite duplizieren",
-  "Page duplicated with {n} module(s)": "Seite mit {n} Modul(en) dupliziert",
+  "Page duplicated – {n} module(s) shared": "Seite dupliziert – {n} Modul(e) werden gemeinsam genutzt",
   "\"As much space as possible\" also extends into empty areas above and below.": "„So viel Platz wie möglich“ nutzt auch leere Flächen darüber und darunter.",
   "All day on the selected days.": "Ganztägig an den gewählten Tagen.",
   "Automatic (as much as the content needs)": "Automatisch (so viel wie der Inhalt braucht)",
