@@ -274,6 +274,14 @@ export function sortItems(items, mode) {
   return list.map(({ idx, ...i }) => i);
 }
 
+// "Due within the next n days" (n = 0: no filter). Overdue tasks always pass; tasks without
+// a due date only with includeNoDue.
+export function filterDue(items, days, includeNoDue, now, timeZone) {
+  if (!(days > 0)) return items;
+  const lastDay = dateKey(new Date(now.getTime() + days * 86400000), timeZone);
+  return items.filter((i) => (i.due ? (i.allDay ? i.due : dateKey(new Date(i.due), timeZone)) <= lastDay : includeNoDue !== false));
+}
+
 export async function provider(settings, cfg, mod) {
   const tz = cfg.general.timezone || 'Europe/Berlin';
   let key;
@@ -306,6 +314,7 @@ export async function provider(settings, cfg, mod) {
     throw err;
   }
   const now = new Date();
+  all = filterDue(all, settings.dueWithinDays, settings.includeNoDue, now, tz);
   const items = sortItems(all, settings.sort)
     .slice(0, settings.maxItems)
     .map((i) => ({ ...i, overdue: isOverdue(i, now, tz) }));

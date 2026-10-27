@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { provider, todoistTasks, haTasks, caldavTasks, parseVtodos, extractCalendarData, normalizeDue, sortItems, isOverdue, zonedToIso } from '../src/providers/tasks.js';
+import { provider, todoistTasks, haTasks, caldavTasks, parseVtodos, extractCalendarData, normalizeDue, sortItems, isOverdue, zonedToIso, filterDue } from '../src/providers/tasks.js';
 import schema from '../public/shared/modules/tasks.js';
 import de from '../public/shared/locales/de/modules/tasks.js';
 import { applyDefaults } from '../public/shared/modules.js';
@@ -273,4 +273,20 @@ test('provider: sorted, limited, overdue flag, translated errors', async () => {
   await provider(s, cfg);
   assert.equal(seen.length, before);
   await assert.rejects(provider(settings({ source: 'caldav' }), { general: { locale: 'en-GB', timezone: TZ } }), /No CalDAV URL configured/);
+});
+
+test('filterDue: due within n days, overdue kept, no-due optional', () => {
+  const now = new Date('2026-10-27T10:00:00Z');
+  const items = [
+    { title: 'over', due: '2026-10-20', allDay: true },
+    { title: 'today', due: '2026-10-27T16:00:00.000Z', allDay: false },
+    { title: 'in3', due: '2026-10-30', allDay: true },
+    { title: 'in10', due: '2026-11-06', allDay: true },
+    { title: 'none', due: null, allDay: false },
+  ];
+  const t = (days, noDue) => filterDue(items, days, noDue, now, 'Europe/Berlin').map((i) => i.title);
+  assert.deepEqual(t(0, false), ['over', 'today', 'in3', 'in10', 'none']);
+  assert.deepEqual(t(3, true), ['over', 'today', 'in3', 'none']);
+  assert.deepEqual(t(3, false), ['over', 'today', 'in3']);
+  assert.deepEqual(t(1, false), ['over', 'today']);
 });

@@ -1,5 +1,7 @@
 export default {
   "+ {n} more": "+ {n} weitere",
+  "1 = today and tomorrow. Overdue tasks are always included.": "1 = heute und morgen. Überfällige Aufgaben werden immer angezeigt.",
+  "Also show tasks without a due date": "Auch Aufgaben ohne Fälligkeit anzeigen",
   "Apple Reminders (Shortcuts)": "Apple Erinnerungen (Kurzbefehle)",
   "As in the source": "Wie in der Quelle",
   "Bullets": "Aufzählungspunkte",
@@ -25,6 +27,8 @@ export default {
   "No to-do items for {entity} in the Home Assistant response": "Keine Aufgaben für {entity} in der Antwort von Home Assistant",
   "No Todoist API token configured": "Kein Todoist-API-Token eingetragen",
   "Nothing to do": "Nichts zu erledigen",
+  "Only matters when the due filter above is on – e.g. turn off to hide shopping list items.": "Wirkt nur, wenn der Fälligkeitsfilter oben aktiv ist – z. B. ausschalten, um Einkaufsartikel auszublenden.",
+  "Only tasks due within the next … days (0 = all)": "Nur Aufgaben, die in den nächsten … Tagen fällig sind (0 = alle)",
   "Only this project (name or ID, empty = all)": "Nur dieses Projekt (Name oder ID, leer = alle)",
   "Open to-dos from Todoist, Home Assistant, CalDAV (Nextcloud, …) or Apple Reminders": "Offene Aufgaben aus Todoist, Home Assistant, CalDAV (Nextcloud, …) oder Apple Erinnerungen",
   "Password (app password)": "Passwort (App-Passwort)",

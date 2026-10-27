@@ -37,6 +37,10 @@ export default {
     { key: 'caldavUser', label: 'Username', type: 'text', default: '', secret: true, showIf: { source: 'caldav' } },
     { key: 'caldavPassword', label: 'Password (app password)', type: 'text', default: '', secret: true, showIf: { source: 'caldav' } },
 
+    { key: 'dueWithinDays', label: 'Only tasks due within the next … days (0 = all)', type: 'number', default: 0, min: 0, max: 365,
+      help: '1 = today and tomorrow. Overdue tasks are always included.' },
+    { key: 'includeNoDue', label: 'Also show tasks without a due date', type: 'bool', default: true,
+      help: 'Only matters when the due filter above is on – e.g. turn off to hide shopping list items.' },
     { key: 'maxItems', label: 'Max. entries', type: 'number', default: 10, min: 1, max: 50 },
     { key: 'sort', label: 'Sort order', type: 'select', default: 'due', options: [
       { value: 'due', label: 'By due date' },
