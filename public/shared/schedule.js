@@ -59,7 +59,8 @@ export function dateRangeActive(from, to, date = new Date(), tz = 'Europe/Berlin
 const isDateKey = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
 
 // Page options: schedule, date range, exclusive (while active only these pages
-// rotate) and skipEmpty (skip when all of its own modules are hidden by their schedules).
+// rotate) and skipEmpty (skip when all of its own modules are hidden – by their schedules or,
+// on the mirror, by their "only show when …" condition).
 export function normalizePageOptions(p) {
   return {
     schedule: normalizeSchedule(p.schedule),
@@ -67,20 +68,24 @@ export function normalizePageOptions(p) {
     dateTo: isDateKey(p.dateTo) ? p.dateTo : '',
     exclusive: p.exclusive === true,
     skipEmpty: p.skipEmpty !== false,
+    // only rotate while this module has something to show (its "only show when …" condition)
+    showWhen: typeof p.showWhen === 'string' ? p.showWhen : '',
     // animated background with the current weather: off / subtle / full
     ambient: ['subtle', 'full'].includes(p.ambient) ? p.ambient : 'off',
   };
 }
 
 // Pages that should rotate right now.
-export function activePages(config, date = new Date()) {
+// hiddenByContent(module) → true while the module's "only show when …" condition is not met;
+// hasContent(moduleId) → whether that module currently has something to show (page "showWhen").
+export function activePages(config, date = new Date(), hiddenByContent = () => false, hasContent = () => true) {
   const tz = config.general.timezone;
   const enabled = config.pages.filter((p) => p.enabled);
   const emptyPage = (p) => {
     const own = config.modules.filter((m) => m.enabled && !m.pages.includes('*') && m.pages.includes(p.id));
-    return own.length > 0 && !own.some((m) => scheduleActive(m.schedule, date, tz));
+    return own.length > 0 && !own.some((m) => scheduleActive(m.schedule, date, tz) && !hiddenByContent(m));
   };
-  let list = enabled.filter((p) => scheduleActive(p.schedule, date, tz) && dateRangeActive(p.dateFrom, p.dateTo, date, tz) && !(p.skipEmpty && emptyPage(p)));
+  let list = enabled.filter((p) => scheduleActive(p.schedule, date, tz) && dateRangeActive(p.dateFrom, p.dateTo, date, tz) && !(p.skipEmpty && emptyPage(p)) && (!p.showWhen || hasContent(p.showWhen)));
   const exclusive = list.filter((p) => p.exclusive);
   if (exclusive.length) list = exclusive;
   if (!list.length) list = (enabled.length ? enabled : config.pages).slice(0, 1);

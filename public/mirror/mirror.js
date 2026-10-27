@@ -77,9 +77,10 @@ function build() {
     const inst = { mod, wrap, api, visible: false, lastFetch: 0, type: MODULE_TYPES[mod.type] };
     if (api.tick && api.tickEvery) inst.tickTimer = setInterval(() => inst.visible && api.tick(), api.tickEvery);
     instances.push(inst);
+    if (watched(inst)) loadData(inst); // needed to decide whether its page rotates
   }
   // ?page=<id> pins a page regardless of its schedule.
-  pages = pinnedPage && config.pages.some((p) => p.id === pinnedPage) ? config.pages : activePages(config);
+  pages = pinnedPage && config.pages.some((p) => p.id === pinnedPage) ? config.pages : activePages(config, new Date(), hiddenByContent, hasContent);
   const pinned = pages.findIndex((p) => p.id === pinnedPage);
   showPage(pinned >= 0 ? pinned : Math.min(pageIndex, pages.length - 1), true);
 }
@@ -102,6 +103,10 @@ async function loadData(inst) {
     // Unchanged data → no re-render (no flicker); the first data fades in.
     inst.lastData = json.data;
     applyContent(inst);
+    if (config.pages.some((p) => p.showWhen === inst.mod.id)) {
+      clearTimeout(pagesTimer);
+      pagesTimer = setTimeout(updatePages, 200);
+    }
     const sig = JSON.stringify(json.data);
     if (sig !== inst.lastSig) {
       const first = !inst.lastSig;
@@ -128,7 +133,7 @@ async function loadData(inst) {
   if (!instances.includes(inst)) return;
   // Retry faster after errors, otherwise follow the module's refresh interval.
   const delay = inst.failures ? Math.min(every || 300, 30 * inst.failures) : refreshSeconds(inst);
-  if (delay) inst.fetchTimer = setTimeout(() => (inst.visible ? loadData(inst) : (inst.stale = true)), delay * 1000);
+  if (delay) inst.fetchTimer = setTimeout(() => (inst.visible || watched(inst) ? loadData(inst) : (inst.stale = true)), delay * 1000);
 }
 
 // ---- pages ---------------------------------------------------------------------
@@ -143,6 +148,34 @@ function applyContent(inst) {
   inst.wrap.classList.toggle('no-content', hide);
   clearTimeout(layoutTimer);
   layoutTimer = setTimeout(layoutFill, 50);
+  // a page made only of such modules is skipped / comes back (e.g. F1 page on race weekends)
+  clearTimeout(pagesTimer);
+  pagesTimer = setTimeout(updatePages, 200);
+  return true;
+}
+
+function hasContent(moduleId) {
+  const inst = instances.find((i) => i.mod.id === moduleId);
+  return !inst || moduleHasContent(inst.mod.type, inst.lastData, new Date(), config.general.timezone);
+}
+
+// Modules whose result decides about visibility keep loading while hidden.
+const watched = (inst) => inst.mod.onlyWithContent || config.pages.some((p) => p.showWhen === inst.mod.id);
+
+function hiddenByContent(mod) {
+  return !!instances.find((i) => i.mod.id === mod.id)?.wrap.classList.contains('no-content');
+}
+
+// Re-evaluates which pages rotate (schedules, date ranges, empty pages); keeps the current page if possible.
+let pagesTimer = null;
+function updatePages() {
+  if (!config || pinnedPage) return false;
+  const next = activePages(config, new Date(), hiddenByContent, hasContent);
+  if (next.map((p) => p.id).join() === pages.map((p) => p.id).join()) return false;
+  const current = pages[pageIndex]?.id;
+  pages = next;
+  const keep = pages.findIndex((p) => p.id === current);
+  showPage(keep >= 0 ? keep : 0);
   return true;
 }
 
@@ -372,7 +405,7 @@ function connectEvents() {
   es.addEventListener('refresh', (e) => {
     const { module } = JSON.parse(e.data);
     for (const inst of instances.filter((i) => i.mod.id === module)) {
-      if (inst.visible) loadData(inst);
+      if (inst.visible || watched(inst)) loadData(inst);
       else inst.stale = true;
     }
   });
@@ -417,11 +450,5 @@ setInterval(() => {
   if (!config) return;
   instances.forEach(applyContent); // time-based conditions (race weekend, match day …)
   // Page schedules / date ranges: keep the current page if it is still active.
-  const next = pinnedPage ? pages : activePages(config);
-  if (next.map((p) => p.id).join() !== pages.map((p) => p.id).join()) {
-    const current = pages[pageIndex]?.id;
-    pages = next;
-    const keep = pages.findIndex((p) => p.id === current);
-    showPage(keep >= 0 ? keep : 0);
-  } else applyVisibility();
+  if (!updatePages()) applyVisibility();
 }, 60000);

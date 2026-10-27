@@ -297,3 +297,23 @@ test('"only show when …" conditions per module type', async () => {
   assert.equal(moduleHasContent('clock', {}, now), true); // no condition → always shown
   assert.equal(moduleHasContent('tasks', null, now), true); // no data yet → shown
 });
+
+test('activePages: page shown only while a module has content (showWhen / skipEmpty)', async () => {
+  const { activePages } = await import('../public/shared/schedule.js');
+  const cfg = {
+    general: { timezone: 'Europe/Berlin' },
+    pages: [
+      { id: 'home', enabled: true, skipEmpty: true },
+      { id: 'f1', enabled: true, skipEmpty: true, showWhen: 'm_f1' },
+      { id: 'todo', enabled: true, skipEmpty: true },
+    ],
+    modules: [
+      { id: 'm_f1', enabled: true, pages: ['f1'], schedule: null },
+      { id: 'm_t', enabled: true, pages: ['todo'], schedule: null },
+    ],
+  };
+  const ids = (has, hidden) => activePages(cfg, new Date(), (m) => hidden.includes(m.id), (id) => has.includes(id)).map((p) => p.id);
+  assert.deepEqual(ids(['m_f1'], []), ['home', 'f1', 'todo']);
+  assert.deepEqual(ids([], []), ['home', 'todo']);
+  assert.deepEqual(ids(['m_f1'], ['m_t']), ['home', 'f1']);
+});

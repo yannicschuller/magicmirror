@@ -5,6 +5,10 @@ import { OptionSelect } from '@/components/fields';
 import { ScheduleEditor } from '@/components/schedule-editor';
 import type { Page } from '@/lib/shared';
 import { useStore } from '@/lib/store';
+import { MODULE_TYPES } from '@/lib/shared';
+import { CONDITIONS as CONDITIONS_JS } from '../../../public/shared/conditions.js';
+
+const CONDITIONS = CONDITIONS_JS as Record<string, { label: string } | undefined>;
 
 const AMBIENT_PREVIEWS = [
   { id: 'rain', label: 'Rain' },
@@ -18,7 +22,10 @@ const AMBIENT_PREVIEWS = [
 
 /** Extra page settings: time window, date range, exclusive and skip-empty. */
 export function PageOptions({ p }: { p: Page }) {
-  const { t, touch } = useStore();
+  const { t, touch, cfg } = useStore();
+  // modules with a condition (tasks, flights, F1 …) can decide whether this page rotates
+  const candidates = cfg.modules.filter((m) => CONDITIONS[m.type]);
+  const cond = cfg.modules.find((m) => m.id === p.showWhen);
   const set = (patch: Partial<Page>) => {
     Object.assign(p, patch);
     touch();
@@ -65,6 +72,23 @@ export function PageOptions({ p }: { p: Page }) {
           </div>
         )}
       </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={`sw-${p.id}`} className="text-sm">{t('Only show when a module has something to show')}</Label>
+        <OptionSelect
+          id={`sw-${p.id}`}
+          className="max-w-96"
+          translate={false}
+          value={p.showWhen || ''}
+          options={[
+            { value: '', label: t('Always') },
+            ...candidates.map((m) => ({ value: m.id, label: `${m.title || t(MODULE_TYPES[m.type]?.label || m.type)}${m.enabled ? '' : ` (${t('disabled')})`}` })),
+          ]}
+          onValue={(v) => set({ showWhen: v })}
+        />
+        <p className="text-xs text-muted-foreground">
+          {cond ? t(CONDITIONS[cond.type]!.label) : t('e.g. an F1 page only on race weekends, a flights page only while an aircraft is nearby, a to-do page only with open tasks. The module does not have to be on this page.')}
+        </p>
+      </div>
       <label className="flex cursor-pointer items-start gap-3 text-sm">
         <Switch className="mt-0.5" checked={!!p.exclusive} onCheckedChange={(c) => set({ exclusive: c })} />
         <span>
@@ -76,7 +100,7 @@ export function PageOptions({ p }: { p: Page }) {
         <Switch className="mt-0.5" checked={p.skipEmpty !== false} onCheckedChange={(c) => set({ skipEmpty: c })} />
         <span>
           {t('Skip when empty')}
-          <span className="block text-xs text-muted-foreground">{t('Skipped while all modules placed only on this page are hidden by their schedules.')}</span>
+          <span className="block text-xs text-muted-foreground">{t('Skipped while all modules placed only on this page are hidden – by their schedules or their "only show when …" option (e.g. an F1 page only on race weekends).')}</span>
         </span>
       </label>
     </div>
