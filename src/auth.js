@@ -45,6 +45,11 @@ function writeUsers(users) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const tmp = `${USERS_FILE}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify({ users }, null, 2), { mode: 0o600 });
+  // The CLI may run as root (docker compose exec) – keep the file readable for the server.
+  if (process.getuid?.() === 0) {
+    const { uid, gid } = fs.statSync(DATA_DIR);
+    fs.chownSync(tmp, uid, gid);
+  }
   fs.renameSync(tmp, USERS_FILE);
 }
 

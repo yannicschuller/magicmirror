@@ -295,6 +295,8 @@ fi
 # ---- 7. start ------------------------------------------------------------------------------------
 info "$(m "Starting containers (the first download can take a while)" "Starte Container (der erste Download kann dauern)")"
 mkdir -p data
+# The server runs as uid 1000 inside the container (the container also fixes this itself).
+$SUDO chown 1000:1000 data 2>/dev/null || true
 if ! $DOCKER compose pull --quiet 2>/dev/null; then
   warn "$(m "Images not available – building locally (slow on a Pi 3)" "Images nicht verfügbar – baue lokal (dauert auf einem Pi 3)")"
   $DOCKER compose build
