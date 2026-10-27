@@ -84,7 +84,7 @@ function build() {
 
 function refreshSeconds(inst) {
   if (inst.mod.type === 'flights' || inst.mod.type === 'fuel') return inst.mod.settings.refreshSeconds;
-  return inst.type.refresh;
+  return inst.api.refreshSeconds?.() || inst.type.refresh; // e.g. F1: fast while a session is live
 }
 
 async function loadData(inst) {
@@ -109,7 +109,7 @@ async function loadData(inst) {
   }
   if (!instances.includes(inst)) return;
   // Retry faster after errors, otherwise follow the module's refresh interval.
-  const delay = inst.failures ? Math.min(every || 300, 30 * inst.failures) : every;
+  const delay = inst.failures ? Math.min(every || 300, 30 * inst.failures) : refreshSeconds(inst);
   if (delay) inst.fetchTimer = setTimeout(() => (inst.visible ? loadData(inst) : (inst.stale = true)), delay * 1000);
 }
 

@@ -592,3 +592,32 @@ td:last-child { padding-right: 0; }
 .region[data-region$='bar'] .f1-facts, .region[data-region$='bar'] .f1-podium { justify-content: center; }
 .region[data-region$='right'] .f1-facts, .region[data-region$='right'] .f1-podium { justify-content: flex-end; }
 .f1-standings td:nth-child(2) { text-align: left; }
+
+/* F1 extras: live positions, qualifying grid, track info, track time, compact */
+.f1 .team { display: inline-block; width: .25em; height: .95em; margin-right: .45em; vertical-align: -.12em; border-radius: 1px; }
+.f1-info { margin-top: .5em; }
+.f1-live-head.live { color: var(--fg); }
+.f1-live-dot { color: #ff4d4d; animation: pulse 2s ease-in-out infinite; }
+.f1-delayed { margin-left: .3em; padding: 0 .35em; border: 1px solid currentColor; border-radius: .3em; font-size: .85em; text-transform: none; letter-spacing: 0; }
+.f1-live-note { margin-top: .5em; }
+.f1-live td:nth-child(2) { text-align: left; }
+.f1-live td.c { text-align: center; }
+.f1-live tr.fav td { color: var(--accent); }
+.f1-tyre { display: inline-block; width: 1.25em; height: 1.25em; line-height: 1.05em; border: .14em solid #888; border-radius: 50%; font-size: .72em; font-weight: 700; text-align: center; vertical-align: .1em; }
+.f1-tyre.soft { border-color: #e10600; color: #ff5a4f; }
+.f1-tyre.medium { border-color: #ffd400; color: #ffd400; }
+.f1-tyre.hard { border-color: #f0f0f0; color: #f0f0f0; }
+.f1-tyre.inter { border-color: #43b02a; color: #5fd348; }
+.f1-tyre.wet { border-color: #0067ad; color: #3fa2ff; }
+.f1-tt-head td { padding-bottom: 0; font-size: .75em; text-transform: uppercase; letter-spacing: .08em; }
+.f1-sessions td.f1-tt { padding-left: .6em; }
+.f1-sessions tr.next td.f1-tt { color: var(--dim); }
+.f1-grid { display: grid; grid-template-columns: repeat(2, max-content); gap: .1em 1.4em; }
+.f1-slot { display: flex; align-items: baseline; gap: .4em; }
+.f1-slot > .dim:first-child { min-width: 1.3em; text-align: right; }
+.f1-slot.even { margin-top: .55em; }
+.f1-slot.fav b { color: var(--accent); }
+.f1-compact { line-height: 1.35; }
+.f1-c-name { font-size: 1.15em; }
+.f1-c2 .f1-cd-value { font-size: 1em; }
+.f1-c2 .f1-cd-value.live { color: #ff4d4d; }

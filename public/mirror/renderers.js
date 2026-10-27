@@ -3,6 +3,7 @@ import { hourlyChart, uvLevel, aqiLevel, pollenLevel, tempColor, compass } from 
 import { translator, langOf } from '/shared/i18n.js';
 import pluginRenderers from './modules/index.js';
 import { flights } from './flights.js';
+import { f1 } from './f1.js';
 import { goStatus, nextReachable } from './transit-go.js';
 import { wordClock, GRIDS, litCells } from './word-clock.js';
 
@@ -68,7 +69,7 @@ export function makeFmt(general) {
   };
 }
 
-function countdown(ms) {
+export function countdown(ms) {
   if (ms <= 0) return t('running');
   const m = Math.floor(ms / 60000);
   const d = Math.floor(m / 1440);
@@ -367,79 +368,6 @@ const waste = (el, mod, ctx) => {
       .join('')}${d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('')}</div>`;
   };
   return { update(d) { last = d; render(); }, tick: render, tickEvery: 60000 };
-};
-
-const TEAM_COLORS = [
-  ['red bull', '#3671C6'], ['ferrari', '#E8002D'], ['mercedes', '#27F4D2'], ['mclaren', '#FF8000'], ['aston', '#229971'],
-  ['alpine', '#FF87BC'], ['williams', '#64C4FF'], ['rb f1', '#6692FF'], ['racing bulls', '#6692FF'], ['sauber', '#52E252'],
-  ['audi', '#F50537'], ['haas', '#B6BABD'], ['cadillac', '#D4AF37'],
-];
-const teamColor = (name = '') => TEAM_COLORS.find(([k]) => name.toLowerCase().includes(k))?.[1] || '#888';
-
-const f1 = (el, mod, ctx) => {
-  const s = mod.settings;
-  const fav = s.favoriteDrivers.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean);
-  let last = null;
-  const render = () => {
-    const d = last;
-    if (!d) return;
-    if (d.offseason) {
-      el.innerHTML = `<div class="dim">${t('Off-season – the race calendar has not been published yet.')}</div>`;
-      return;
-    }
-    const now = Date.now();
-    const next = d.nextSession;
-    const ms = new Date(next.start) - now;
-    const live = ms <= 0 && ms > -2 * 3600 * 1000;
-    const wd = ctx.fmt.f({ weekday: 'short' });
-    let html = `<div class="f1">
-      <div class="f1-meta dim small">${t('Round {n}', { n: d.round })}${d.totalRounds ? ` / ${d.totalRounds}` : ''} · ${t('Season {n}', { n: d.season })}${d.isSprint ? ` · <span class="accent">${t('Sprint weekend')}</span>` : ''}</div>
-      <div class="f1-name">${esc(d.raceName)}</div>
-      <div class="f1-circuit dim">${icons.pin} ${esc(d.circuit)} · ${esc(d.locality)}, ${esc(d.country)}</div>`;
-    if (s.showTrackMap && d.track) {
-      const tr = d.track;
-      const pad = 6;
-      const facts = [tr.length && `${num(tr.length / 1000, 3)} km`, tr.firstGp && t('first GP {year}', { year: tr.firstGp })].filter(Boolean).join(' · ');
-      html += `<div class="f1-track size-${esc(s.trackMapSize || 'medium')}"><svg viewBox="${-pad} ${-pad} ${tr.w + 2 * pad} ${tr.h + 2 * pad}" role="img" aria-label="${esc(tr.name || d.circuit)}"><path class="f1-track-glow" d="${tr.d}"/><path class="f1-track-line" d="${tr.d}"/><circle class="f1-track-start" cx="${tr.start[0]}" cy="${tr.start[1]}" r="2.6"/></svg>${facts ? `<div class="f1-track-facts dim small">${esc(facts)}</div>` : ''}</div>`;
-    }
-    if (s.showCountdown) {
-      html += `<div class="f1-countdown${live ? ' live' : ''}"><span class="f1-cd-label">${esc(next.label)}</span><span class="f1-cd-value">${live ? '● LIVE' : t('in {time}', { time: countdown(ms) })}</span></div>`;
-    }
-    if (s.showSessions) {
-      html += `<table class="f1-sessions">${d.sessions
-        .map((x) => {
-          const start = new Date(x.start);
-          const past = start.getTime() + 2 * 3600 * 1000 < now;
-          const cls = x.key === next.key ? 'next' : past ? 'past' : '';
-          return `<tr class="${cls}"><td>${esc(x.label)}</td><td class="r">${wd.format(start).replace('.', '')}</td><td class="r">${ctx.fmt.time(start)}</td></tr>`;
-        })
-        .join('')}</table>`;
-    }
-    const facts = [];
-    if (d.trackWeather) {
-      const w = d.trackWeather;
-      facts.push(`<span>${weatherInfo(w.code).icon} ${t('Race day')} ${num(w.max)}° · ${icons.drop}${num(w.pop)} %</span>`);
-    }
-    if (d.previousWinner) facts.push(`<span>${icons.trophy} ${d.previousWinner.season}: ${esc(d.previousWinner.name)}</span>`);
-    if (facts.length) html += `<div class="f1-facts small">${facts.join('')}</div>`;
-    if (d.lastRace) {
-      html += `<div class="f1-sub dim small">${t('Last race')} · ${esc(d.lastRace.name)}</div><div class="f1-podium">${d.lastRace.podium
-        .map((p) => `<span class="p${p.pos}"><b>P${p.pos}</b> ${esc(p.code || p.name)}</span>`)
-        .join('')}</div>`;
-    }
-    if (d.driverStandings?.length) {
-      html += `<div class="f1-sub dim small">${t('Driver standings')}</div><table class="f1-standings">${d.driverStandings
-        .map((x) => `<tr class="${fav.includes(x.code) ? 'fav' : ''}"><td class="r dim">${x.pos}</td><td><span class="team" style="background:${teamColor(x.team)}"></span>${esc(x.name)}</td><td class="r">${x.points}</td></tr>`)
-        .join('')}</table>`;
-    }
-    if (d.constructorStandings?.length) {
-      html += `<div class="f1-sub dim small">${t('Constructor standings')}</div><table class="f1-standings">${d.constructorStandings
-        .map((x) => `<tr><td class="r dim">${x.pos}</td><td><span class="team" style="background:${teamColor(x.name)}"></span>${esc(x.name)}</td><td class="r">${x.points}</td></tr>`)
-        .join('')}</table>`;
-    }
-    el.innerHTML = html + '</div>';
-  };
-  return { update(d) { last = d; render(); }, tick: render, tickEvery: 30000 };
 };
 
 const transit = (el, mod, ctx) => {

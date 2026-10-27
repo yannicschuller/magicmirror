@@ -241,6 +241,17 @@ export const MODULE_TYPES = {
       { key: 'showConstructorStandings', label: 'Constructor standings', type: 'bool', default: false },
       { key: 'standingsCount', label: 'Standings entries', type: 'number', default: 5, min: 1, max: 22 },
       { key: 'favoriteDrivers', label: 'Highlight favorite drivers (codes, e.g. VER, HAM)', type: 'text', default: '' },
+      { key: 'layout', label: 'Layout', type: 'select', default: 'full', options: [
+        { value: 'full', label: 'Full' }, { value: 'compact', label: 'Compact (one or two lines)' },
+      ], help: 'Compact shows only the race, the next session with countdown and the leader while a session is live – for small areas.' },
+      { key: 'liveTiming', label: 'Live positions during a session', type: 'bool', default: true,
+        help: 'From OpenF1 (free). Real-time data during a session is reserved for OpenF1 sponsors – without it the classification appears about 30 minutes after the session ends (marked as delayed).' },
+      { key: 'liveCount', label: 'Positions shown (live / qualifying)', type: 'number', default: 10, min: 1, max: 22 },
+      { key: 'showQualifying', label: 'Qualifying / sprint result of the weekend', type: 'bool', default: true },
+      { key: 'trackTime', label: 'Session times in track time', type: 'select', default: 'off', options: [
+        { value: 'off', label: 'Off' }, { value: 'beside', label: 'Beside the local time' }, { value: 'only', label: 'Track time only' },
+      ] },
+      { key: 'showTrackInfo', label: 'Track info (laps, distance, lap record)', type: 'bool', default: true },
     ],
   },
 
