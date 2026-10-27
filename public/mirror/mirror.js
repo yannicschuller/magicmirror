@@ -9,6 +9,7 @@ const pinnedPage = params.get('page');
 const stage = document.getElementById('stage');
 const grid = document.getElementById('grid');
 const indicator = document.getElementById('indicator');
+const progress = document.getElementById('progress');
 const dimLayer = document.getElementById('dim');
 const statusEl = document.getElementById('status');
 
@@ -97,7 +98,19 @@ async function loadData(inst) {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || `HTTP ${res.status}`);
     if (!instances.includes(inst)) return;
-    inst.api.update(json.data);
+    // Unchanged data → no re-render (no flicker); the first data fades in.
+    const sig = JSON.stringify(json.data);
+    if (sig !== inst.lastSig) {
+      const first = !inst.lastSig;
+      inst.lastSig = sig;
+      inst.api.update(json.data);
+      if (first) {
+        const body = inst.wrap.querySelector('.mod-body');
+        body.classList.remove('fade-in');
+        void body.offsetWidth;
+        body.classList.add('fade-in');
+      }
+    }
     inst.wrap.classList.remove('has-error');
     inst.failures = 0;
   } catch (err) {
@@ -142,46 +155,74 @@ function layoutFill() {
 }
 
 // Re-evaluate schedules without switching the page.
+// Page changes fade out first, then swap, then fade in – both pages are never in the
+// layout at the same time, so nothing jumps. Data of the entering modules loads during
+// the fade-out (or was prefetched already).
+const FADE_OUT = 350;
+let layoutTimer = null;
 function applyVisibility(immediate = false) {
   const page = pages[pageIndex];
   if (!page) return;
-  const transition = config.general.transition;
-  for (const inst of instances) {
-    const want = onPage(inst.mod, page);
-    if (want === inst.visible) continue;
+  const animate = !immediate && config.general.transition !== 'none';
+  const changes = instances.filter((inst) => onPage(inst.mod, page) !== inst.visible);
+  const leaving = animate && changes.some((inst) => inst.visible);
+  const delay = leaving ? FADE_OUT : 0;
+  for (const inst of changes) {
+    const want = !inst.visible;
     inst.visible = want;
-    // Timers (not requestAnimationFrame – paused in hidden tabs) and always cancel the
-    // other direction, so fast page switches never leave a module half-faded.
+    // Timers (not requestAnimationFrame – paused in hidden tabs); always cancel the
+    // other direction so fast page switches never leave a module half-faded.
     clearTimeout(inst.fadeTimer);
     const cls = inst.wrap.classList;
     if (want) {
-      cls.remove('off', 'leaving');
-      if (!immediate && transition !== 'none') {
-        cls.add('entering');
-        void inst.wrap.offsetWidth; // start the transition from the "entering" state
-        inst.fadeTimer = setTimeout(() => cls.remove('entering'), 20);
-      } else cls.remove('entering');
-      inst.api.show?.();
-      inst.api.tick?.();
       const every = refreshSeconds(inst);
       if (!inst.lastFetch || inst.stale || (every && Date.now() - inst.lastFetch > every * 1000)) {
         inst.stale = false;
         loadData(inst);
       }
+      const enter = () => {
+        cls.remove('off', 'leaving');
+        if (animate) {
+          cls.add('entering');
+          void inst.wrap.offsetWidth; // start the transition from the "entering" state
+          inst.fadeTimer = setTimeout(() => cls.remove('entering'), 20);
+        } else cls.remove('entering');
+        inst.api.show?.();
+        inst.api.tick?.();
+      };
+      if (delay) {
+        cls.add('off');
+        inst.fadeTimer = setTimeout(enter, delay);
+      } else enter();
     } else {
       inst.api.hide?.();
       cls.remove('entering');
-      if (immediate || transition === 'none') cls.add('off');
+      if (!animate) cls.add('off');
       else {
         cls.add('leaving');
         inst.fadeTimer = setTimeout(() => {
           cls.remove('leaving');
           if (!inst.visible) cls.add('off');
-        }, 600);
+        }, FADE_OUT);
       }
     }
   }
-  layoutFill();
+  clearTimeout(layoutTimer);
+  if (delay) layoutTimer = setTimeout(layoutFill, delay);
+  else layoutFill();
+}
+
+// Load the data of the next page's modules in the background shortly before it shows.
+let prefetchTimer = null;
+function prefetch(page) {
+  for (const inst of instances) {
+    if (inst.visible || !inst.api.update || !onPage(inst.mod, page)) continue;
+    const every = refreshSeconds(inst);
+    if (!inst.lastFetch || inst.stale || (every && Date.now() - inst.lastFetch > every * 1000)) {
+      inst.stale = false;
+      loadData(inst);
+    }
+  }
 }
 
 function showPage(index, immediate = false) {
@@ -191,17 +232,33 @@ function showPage(index, immediate = false) {
   const page = pages[pageIndex];
   applyVisibility(immediate);
   setAmbient(page.ambient);
-  renderIndicator();
-  if (config.general.rotatePages && pages.length > 1 && !pinnedPage) {
+  clearTimeout(prefetchTimer);
+  const rotating = config.general.rotatePages && pages.length > 1 && !pinnedPage;
+  renderIndicator(rotating ? page.duration : 0);
+  if (rotating) {
     pageTimer = setTimeout(() => showPage(pageIndex + 1), page.duration * 1000);
+    const next = pages[(pageIndex + 1) % pages.length];
+    prefetchTimer = setTimeout(() => prefetch(next), Math.max(0, page.duration * 1000 - 5000));
   }
 }
 
-function renderIndicator() {
-  const show = config.general.pageIndicator && pages.length > 1;
-  indicator.hidden = !show;
-  if (!show) return;
-  indicator.innerHTML = pages.map((p, i) => `<span class="${i === pageIndex ? 'active' : ''}" title="${esc(p.name)}"></span>`).join('');
+// Page indicator: dots, a progress bar running until the next page, or both.
+function renderIndicator(seconds) {
+  const style = config.general.indicatorStyle || 'dots';
+  const dots = config.general.pageIndicator && pages.length > 1 && style !== 'bar';
+  indicator.hidden = !dots;
+  if (dots) indicator.innerHTML = pages.map((p, i) => `<span class="${i === pageIndex ? 'active' : ''}" title="${esc(p.name)}"></span>`).join('');
+  const bar = config.general.pageIndicator && pages.length > 1 && style !== 'dots';
+  progress.hidden = !bar;
+  if (!bar) return;
+  const fill = progress.firstElementChild;
+  fill.style.transition = 'none';
+  fill.style.transform = 'scaleX(0)';
+  void fill.offsetWidth;
+  if (seconds) {
+    fill.style.transition = `transform ${seconds}s linear`;
+    fill.style.transform = 'scaleX(1)';
+  } else fill.style.transform = 'scaleX(1)'; // not rotating: full bar
 }
 
 // ---- night dimming & housekeeping ----------------------------------------------------

@@ -1,5 +1,10 @@
 // Admin: module height and schedule.
 export default {
+  "Dots and progress bar": "Punkte und Fortschrittsleiste",
+  "Progress bar until the next page": "Fortschrittsleiste bis zur nächsten Seite",
+  "Dots": "Punkte",
+  "Page indicator style": "Art der Seitenanzeige",
+  "Show page indicator": "Seitenanzeige einblenden",
   "Starry sky": "Sternenhimmel",
   "Sun": "Sonne",
   "Clouds": "Wolken",

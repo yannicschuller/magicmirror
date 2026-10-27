@@ -407,7 +407,10 @@ export const GENERAL_FIELDS = [
     { value: 'de-DE', label: 'Deutsch (Deutschland)' }, { value: 'de-AT', label: 'Deutsch (Österreich)' }, { value: 'de-CH', label: 'Deutsch (Schweiz)' }, { value: 'en-GB', label: 'English (UK)' }, { value: 'en-US', label: 'English (US)' },
   ] },
   { key: 'rotatePages', label: 'Rotate pages automatically', type: 'bool', default: true },
-  { key: 'pageIndicator', label: 'Show page indicator (dots)', type: 'bool', default: true },
+  { key: 'pageIndicator', label: 'Show page indicator', type: 'bool', default: true },
+  { key: 'indicatorStyle', label: 'Page indicator style', type: 'select', default: 'dots', options: [
+    { value: 'dots', label: 'Dots' }, { value: 'bar', label: 'Progress bar until the next page' }, { value: 'both', label: 'Dots and progress bar' },
+  ], showIf: { pageIndicator: true } },
   { key: 'transition', label: 'Page transition', type: 'select', default: 'fade', options: [
     { value: 'fade', label: 'Fade' }, { value: 'slide', label: 'Slide' }, { value: 'none', label: 'None' },
   ] },

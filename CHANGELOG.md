@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Smoother pages: next page's data is loaded in the background before it shows; fade out → swap → fade in (no layout jumps); unchanged data is not re-rendered; first data fades in
+- Page indicator: dots, a progress bar running until the next page, or both
 - Formula 1: track layout (bacinger/f1-circuits, MIT) with length and first GP; facts and podium centred in centred areas
 - Fix: modules of other pages could stay visible (module CSS overrode hiding), and fast page switches could leave modules half-faded
 - "Show" in the admin now also works for pages that are switched off or outside their schedule
