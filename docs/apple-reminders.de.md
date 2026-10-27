@@ -18,8 +18,8 @@ In der App **Kurzbefehle** → **+** (neuer Kurzbefehl) und diese vier Aktionen 
 
 | # | Aktion (Suche in der Aktionsliste) | Was du einstellst |
 |---|---|---|
-| 1 | **Erinnerungen suchen** | *Filter hinzufügen* → **Ist erledigt** – *ist nicht*. Optional zweiter Filter **Liste** – *ist* – deine Liste (z. B. „Einkauf“). *Sortieren nach* **Fälligkeitsdatum**. |
-| 2 | **Wiederholen mit jedem Objekt** | Eingabe: *Erinnerungen* (wird automatisch gesetzt). Darin eine Aktion **Text** einfügen und hineintippen: Variable *Wiederholungsobjekt* → **Titel**, dann ` \| `, dann *Wiederholungsobjekt* → **Fälligkeitsdatum**. Die Datums-Variable antippen → **Datumsformat: ISO 8601**. |
+| 1 | **Erinnerungen suchen** | *Filter hinzufügen* → **Liste** – *ist* – deine Liste (z. B. „Einkaufsliste“), zweiter Filter **Ist nicht erledigt**. *Sortieren nach* **Abgabetermin** (optional). |
+| 2 | **Wiederholen mit jedem Objekt** | Eingabe: *Erinnerungen* (wird automatisch gesetzt). Darin eine Aktion **Text** einfügen und hineintippen: Variable **Wiederholungsobjekt** → **Titel**, dann ` \| `, dann **Wiederholungsobjekt** → **Abgabetermin**. Die Datums-Variable antippen → **Datumsformat: ISO 8601**. ⚠️ Nicht die Variable *Erinnerungen* nehmen – die enthält die ganze Liste, dann kommt jede Erinnerung mehrfach an. |
 | 3 | **Text kombinieren** | Eingabe: *Wiederholungsergebnisse*, Trennzeichen: **Neue Zeilen**. |
 | 4 | **Inhalte von URL abrufen** | URL: die **Adresse** aus dem Modul. *Mehr anzeigen* → Methode **POST** → *Header hinzufügen*: Schlüssel `Authorization`, Wert: der **Header-Wert** aus dem Modul (`Bearer …`). *Hauptteil der Anfrage*: **Datei** → Variable *Kombinierter Text*. |
 

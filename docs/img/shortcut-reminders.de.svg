@@ -5,15 +5,15 @@
 <rect x="54" y="83" width="24" height="24" rx="6" fill="#ff9f0a"/>
 <text x="90" y="101" fill="#fff" font-size="16" font-weight="600">Erinnerungen suchen</text>
 <circle cx="22" cy="95" r="13" fill="#7dd3fc"/><text x="22" y="100" text-anchor="middle" fill="#062234" font-size="14" font-weight="700">1</text>
-<text x="90" y="132" fill="#8e8e93">Filter</text><rect x="210" y="118" width="117" height="20" rx="6" fill="#ff9f0a" fill-opacity=".18"/><text x="217" y="132" fill="#ff9f0a" font-weight="600">Ist erledigt</text><text x="336.8" y="132" fill="#ebebf5">ist nicht</text>
-<rect x="210" y="144" width="58" height="20" rx="6" fill="#ff9f0a" fill-opacity=".18"/><text x="217" y="158" fill="#ff9f0a" font-weight="600">Liste</text><text x="278.0" y="158" fill="#ebebf5">ist  [Einkauf]</text>
-<text x="90" y="184" fill="#8e8e93">Sortieren nach</text><rect x="210" y="170" width="150" height="20" rx="6" fill="#ff9f0a" fill-opacity=".18"/><text x="217" y="184" fill="#ff9f0a" font-weight="600">Fälligkeitsdatum</text>
+<text x="90" y="132" fill="#8e8e93">Filter</text><rect x="210" y="118" width="58" height="20" rx="6" fill="#ff9f0a" fill-opacity=".18"/><text x="217" y="132" fill="#ff9f0a" font-weight="600">Liste</text><text x="278.0" y="132" fill="#ebebf5">ist  [Einkaufsliste]</text>
+<rect x="210" y="144" width="167" height="20" rx="6" fill="#ff9f0a" fill-opacity=".18"/><text x="217" y="158" fill="#ff9f0a" font-weight="600">Ist nicht erledigt</text>
+<text x="90" y="184" fill="#8e8e93">Sortieren nach</text><rect x="210" y="170" width="117" height="20" rx="6" fill="#ff9f0a" fill-opacity=".18"/><text x="217" y="184" fill="#ff9f0a" font-weight="600">Abgabetermin</text>
 <rect x="40" y="216" width="680" height="52" rx="14" fill="#2c2c2e"/><rect x="54" y="229" width="24" height="24" rx="6" fill="#8e8e93"/><circle cx="22" cy="241" r="13" fill="#7dd3fc"/><text x="22" y="246" text-anchor="middle" fill="#062234" font-size="14" font-weight="700">2</text>
 <text x="90" y="247" fill="#fff" font-size="16" font-weight="600">Wiederholen mit jedem Objekt in</text><rect x="388.3" y="233" width="117" height="20" rx="6" fill="#0a84ff" fill-opacity=".18"/><text x="395.3" y="247" fill="#0a84ff" font-weight="600">Erinnerungen</text>
 <rect x="68" y="278" width="652" height="104" rx="14" fill="#2c2c2e"/>
 <rect x="82" y="291" width="24" height="24" rx="6" fill="#ffd60a"/>
 <text x="118" y="309" fill="#fff" font-size="16" font-weight="600">Text</text>
-<rect x="118" y="326" width="243" height="20" rx="6" fill="#0a84ff" fill-opacity=".18"/><text x="125" y="340" fill="#0a84ff" font-weight="600">Wiederholungsobjekt › Titel</text><text x="368.8" y="340" fill="#ebebf5">|</text><rect x="382.8" y="326" width="335" height="20" rx="6" fill="#0a84ff" fill-opacity=".18"/><text x="389.8" y="340" fill="#0a84ff" font-weight="600">Wiederholungsobjekt › Fälligkeitsdatum</text>
+<rect x="118" y="326" width="243" height="20" rx="6" fill="#0a84ff" fill-opacity=".18"/><text x="125" y="340" fill="#0a84ff" font-weight="600">Wiederholungsobjekt › Titel</text><text x="368.8" y="340" fill="#ebebf5">|</text><rect x="382.8" y="326" width="302" height="20" rx="6" fill="#0a84ff" fill-opacity=".18"/><text x="389.8" y="340" fill="#0a84ff" font-weight="600">Wiederholungsobjekt › Abgabetermin</text>
 <text x="118" y="366" fill="#8e8e93" font-size="12">↳ Datumsformat: ISO 8601</text>
 <rect x="40" y="392" width="680" height="40" rx="14" fill="#2c2c2e"/><text x="90" y="418" fill="#8e8e93" font-size="15">Wiederholung beenden</text>
 <rect x="44" y="266" width="3" height="126" fill="#8e8e93" fill-opacity=".5"/>

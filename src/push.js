@@ -42,6 +42,8 @@ function normalize(entry) {
   if (truthy(entry.done ?? entry.completed ?? entry.isCompleted)) return null;
   const title = String(entry.title ?? entry.name ?? entry.text ?? '').replace(/\s+/g, ' ').trim().slice(0, 300);
   if (!title) return null;
+  // a line that is only a date/time is a leftover from a mis-built Shortcut, not a reminder
+  if (/^\d{4}-\d{2}-\d{2}([T ][\d:.+\-Z]*)?$/.test(title)) return null;
   return { title, ...parseDue(entry.due ?? entry.dueDate ?? entry.date), priority: parsePriority(entry.priority) };
 }
 

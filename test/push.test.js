@@ -76,3 +76,7 @@ test('duplicate reminder lines are merged', () => {
   const items = parseReminders('Milch\nBrot | 2026-10-28\nmilch\nBrot | 2026-10-28\nBrot | 2026-10-29');
   assert.deepEqual(items.map((i) => `${i.title}|${i.due || ''}`), ['Milch|', 'Brot|2026-10-28', 'Brot|2026-10-29']);
 });
+
+test('lines that are only a date are ignored', () => {
+  assert.deepEqual(parseReminders('Milch\n2026-10-28T09:00:00+01:00\n2026-10-29').map((i) => i.title), ['Milch']);
+});

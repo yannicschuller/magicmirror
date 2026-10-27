@@ -19,7 +19,7 @@ In the **Shortcuts** app → **+** (new shortcut), add these four actions in thi
 | # | Action (search the action list) | What to set |
 |---|---|---|
 | 1 | **Find Reminders** | *Add Filter* → **Is Completed** – *is not*. Optionally a second filter **List** – *is* – your list (e.g. "Groceries"). *Sort by* **Due Date**. |
-| 2 | **Repeat with Each** | Input: *Reminders* (set automatically). Inside, add a **Text** action and type: variable *Repeat Item* → **Title**, then ` \| `, then *Repeat Item* → **Due Date**. Tap the date variable → **Date Format: ISO 8601**. |
+| 2 | **Repeat with Each** | Input: *Reminders* (set automatically). Inside, add a **Text** action and type: variable *Repeat Item* → **Title**, then ` \| `, then *Repeat Item* → **Due Date**. Tap the date variable → **Date Format: ISO 8601**. ⚠️ Don't use the variable *Reminders* – it holds the whole list, and every reminder would arrive several times. |
 | 3 | **Combine Text** | Input: *Repeat Results*, separator: **New Lines**. |
 | 4 | **Get Contents of URL** | URL: the **address** from the module. *Show More* → Method **POST** → *Add new header*: key `Authorization`, value: the **header value** from the module (`Bearer …`). *Request Body*: **File** → variable *Combined Text*. |
 
