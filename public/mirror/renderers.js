@@ -37,6 +37,9 @@ export function makeFmt(general) {
   };
   const keyFmt = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
   const dayKey = (d) => keyFmt.format(d);
+  // Hour 0–23 in the mirror's time zone as a number (locale formats like "17 Uhr" can't be parsed).
+  const hourFmt = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hourCycle: 'h23' });
+  const hourOf = (d) => Number(hourFmt.format(d)) % 24;
   const keyDiff = (a, b) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / DAY);
   const utc = (key) => new Date(`${key}T12:00:00Z`);
   const fu = (opts) => {
@@ -50,6 +53,7 @@ export function makeFmt(general) {
     t,
     f,
     dayKey,
+    hourOf,
     keyDiff,
     time: (d) => f({ hour: '2-digit', minute: '2-digit' }).format(d),
     hour: (d) => f({ hour: '2-digit', minute: '2-digit' }).format(d),
@@ -355,7 +359,7 @@ const waste = (el, mod, ctx) => {
     }
     const now = new Date();
     const today = ctx.fmt.dayKey(now);
-    const hour = Number(ctx.fmt.f({ hour: 'numeric', hour12: false }).format(now));
+    const hour = ctx.fmt.hourOf(now);
     el.innerHTML = `<div class="waste">${d.days
       .map((day) => {
         const diff = ctx.fmt.keyDiff(today, day.date);
@@ -481,9 +485,8 @@ const camera = (el, mod) => {
 const greeting = (el, mod, ctx) => {
   const s = mod.settings;
   let current = '';
-  const hourFmt = ctx.fmt.f({ hour: '2-digit', hourCycle: 'h23' });
   const pick = () => {
-    const h = Number(hourFmt.format(new Date()));
+    const h = ctx.fmt.hourOf(new Date());
     const key = h >= 5 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'afternoon' : h >= 17 && h < 22 ? 'evening' : 'night';
     const lines = s[key].split('\n').map((l) => l.trim()).filter(Boolean);
     if (!lines.length) return '';

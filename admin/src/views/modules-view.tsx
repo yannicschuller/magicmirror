@@ -37,6 +37,16 @@ export function ModulesView() {
 
 function ModuleList({ selected }: { selected?: string }) {
   const { cfg, t, touch, page, setModule } = useStore();
+  const confirm = useConfirm();
+  // Deactivated modules can be deleted right from the list.
+  const remove = async (m: Module) => {
+    const ok = await confirm({ title: t('Delete module "{name}"?', { name: moduleName(m, t) }), action: t('Delete'), destructive: true });
+    if (!ok) return;
+    const idx = cfg.modules.indexOf(m);
+    if (idx >= 0) cfg.modules.splice(idx, 1);
+    if (selected === m.id) setModule(null);
+    touch();
+  };
   const types = Object.entries(MODULE_TYPES).map(([value, type]) => ({ value, label: type.label }));
   const [addType, setAddType] = useState(types[0].value);
   const listRef = useRef<HTMLDivElement>(null);
@@ -85,6 +95,21 @@ function ModuleList({ selected }: { selected?: string }) {
                   {typeLabel(m, t)} · {regionLabel(m.region, t)} · {pagesSummary(m, cfg, t)}
                 </span>
               </button>
+              {!m.enabled && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={t('Delete module')}
+                      className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                      onClick={() => remove(m)}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('Delete module')}</TooltipContent>
+                </Tooltip>
+              )}
             </div>
           ))}
         </div>
