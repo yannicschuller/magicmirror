@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Pages: duplicate a page (with its modules); show a page only on certain weekdays/times or in a date range; exclusive pages (e.g. a morning page); skip pages whose own modules are all hidden
+- Public transport: EFA preset for Saxony (VVO – incl. Leipzig/MDV with real-time data); hint that v6.db.transport.rest was shut down
 - Module schedule: show any module only on certain weekdays / between two times
 - Module height "use as much space as possible" (extends into empty areas of its column)
 - Calendar: week & month view, running/next event highlight, public & school holidays, birthdays with age, busy-only calendars, filters, multi-day "day 2 of 5", fade-out

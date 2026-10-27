@@ -43,3 +43,44 @@ export function scheduleActive(schedule, date = new Date(), tz = 'Europe/Berlin'
   const prev = day === 1 ? 7 : day - 1;
   return min < to && schedule.days.includes(prev);
 }
+
+// Calendar date (YYYY-MM-DD) of `date` in time zone `tz`.
+export function dateKeyIn(date, tz) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+}
+
+// Inclusive date range; an empty bound is open (e.g. only "until 2026-12-24").
+export function dateRangeActive(from, to, date = new Date(), tz = 'Europe/Berlin') {
+  if (!from && !to) return true;
+  const key = dateKeyIn(date, tz);
+  return (!from || key >= from) && (!to || key <= to);
+}
+
+const isDateKey = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+// Page options: schedule, date range, exclusive (while active only these pages
+// rotate) and skipEmpty (skip when all of its own modules are hidden by their schedules).
+export function normalizePageOptions(p) {
+  return {
+    schedule: normalizeSchedule(p.schedule),
+    dateFrom: isDateKey(p.dateFrom) ? p.dateFrom : '',
+    dateTo: isDateKey(p.dateTo) ? p.dateTo : '',
+    exclusive: p.exclusive === true,
+    skipEmpty: p.skipEmpty !== false,
+  };
+}
+
+// Pages that should rotate right now.
+export function activePages(config, date = new Date()) {
+  const tz = config.general.timezone;
+  const enabled = config.pages.filter((p) => p.enabled);
+  const emptyPage = (p) => {
+    const own = config.modules.filter((m) => m.enabled && !m.pages.includes('*') && m.pages.includes(p.id));
+    return own.length > 0 && !own.some((m) => scheduleActive(m.schedule, date, tz));
+  };
+  let list = enabled.filter((p) => scheduleActive(p.schedule, date, tz) && dateRangeActive(p.dateFrom, p.dateTo, date, tz) && !(p.skipEmpty && emptyPage(p)));
+  const exclusive = list.filter((p) => p.exclusive);
+  if (exclusive.length) list = exclusive;
+  if (!list.length) list = (enabled.length ? enabled : config.pages).slice(0, 1);
+  return list;
+}

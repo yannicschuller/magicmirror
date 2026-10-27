@@ -1,5 +1,8 @@
 // Module schema: labels, options, descriptions and default content.
 export default {
+  "HAFAS-REST: e.g. https://v6.vbb.transport.rest (Berlin/Brandenburg) or your own db-rest instance. The public v6.db.transport.rest has been shut down. Outside Berlin, EFA is usually the better choice.": "HAFAS-REST: z. B. https://v6.vbb.transport.rest (Berlin/Brandenburg) oder eine eigene db-rest-Instanz. Das öffentliche v6.db.transport.rest wurde abgeschaltet. Außerhalb Berlins ist EFA meist die bessere Wahl.",
+  "Saxony (VVO – incl. Leipzig/MDV, Dresden, Chemnitz)": "Sachsen (VVO – inkl. Leipzig/MDV, Dresden, Chemnitz)",
+  "Most networks also find stops all over Germany, but real-time data usually only comes from the network of your region.": "Die meisten Verbünde finden auch Haltestellen in ganz Deutschland, Echtzeitdaten gibt es aber meist nur beim Verbund deiner Region.",
   "Location": "Standort",
   "Search for a city. Leave empty to use the location from \"General\".": "Ort suchen. Leer lassen = Standort aus „Allgemein“.",
   "\"Put the bin out today\" reminder from hour (day before)": "Erinnerung „heute rausstellen“ ab Uhrzeit (Vortag)",

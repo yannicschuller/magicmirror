@@ -1,5 +1,14 @@
 // Admin: module height and schedule.
 export default {
+  "Skipped while all modules placed only on this page are hidden by their schedules.": "Wird übersprungen, solange alle Module, die nur auf dieser Seite liegen, durch ihren Zeitplan ausgeblendet sind.",
+  "Skip when empty": "Überspringen, wenn leer",
+  "While this page is active, only it (and other exclusive pages) is shown – e.g. a morning page from 6 to 8.": "Solange diese Seite aktiv ist, wird nur sie (und andere exklusive Seiten) gezeigt – z. B. eine Morgenseite von 6 bis 8 Uhr.",
+  "Exclusive": "Exklusiv",
+  "e.g. a Christmas or holiday page – leave empty for always.": "z. B. eine Weihnachts- oder Urlaubsseite – leer lassen für immer.",
+  "Only in this period": "Nur in diesem Zeitraum",
+  "Page options": "Seiten-Optionen",
+  "Duplicate page": "Seite duplizieren",
+  "Page duplicated with {n} module(s)": "Seite mit {n} Modul(en) dupliziert",
   "\"As much space as possible\" also extends into empty areas above and below.": "„So viel Platz wie möglich“ nutzt auch leere Flächen darüber und darunter.",
   "All day on the selected days.": "Ganztägig an den gewählten Tagen.",
   "Automatic (as much as the content needs)": "Automatisch (so viel wie der Inhalt braucht)",

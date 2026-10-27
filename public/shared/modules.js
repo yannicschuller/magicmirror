@@ -4,7 +4,7 @@
 
 import { translator, langOf } from './i18n.js';
 import { locationFields } from './fields.js';
-import { normalizeSchedule } from './schedule.js';
+import { normalizeSchedule, normalizePageOptions } from './schedule.js';
 import PLUGIN_MODULES from './modules/index.js';
 
 export const DEFAULT_LOCALE = 'en-GB';
@@ -32,6 +32,7 @@ export const EFA_PRESETS = [
   { value: 'bayern', label: 'Bavaria (bahnland bayern)', url: 'https://bahnland-bayern.de/efa/' },
   { value: 'vgn', label: 'VGN Nuremberg', url: 'https://efa.vgn.de/vgnExt_oeffi/' },
   { value: 'vrr', label: 'VRR / NRW', url: 'https://efa.vrr.de/vrr/' },
+  { value: 'sachsen', label: 'Saxony (VVO – incl. Leipzig/MDV, Dresden, Chemnitz)', url: 'https://efa.vvo-online.de/VMSSL3/' },
   { value: 'custom', label: 'Custom EFA URL', url: '' },
 ];
 
@@ -249,8 +250,10 @@ export const MODULE_TYPES = {
       { key: 'provider', label: 'Provider', type: 'select', default: 'efa', options: [
         { value: 'efa', label: 'EFA (transit association)' }, { value: 'hafas', label: 'HAFAS-REST (e.g. db-rest / transport.rest)' },
       ] },
-      { key: 'efaPreset', label: 'Transit network', type: 'select', default: 'vvs', options: EFA_PRESETS.map(({ value, label }) => ({ value, label })), showIf: { provider: 'efa' } },
-      { key: 'baseUrl', label: 'Base URL', type: 'text', default: '', placeholder: 'https://v6.db.transport.rest', showIf: { _transitCustom: true } },
+      { key: 'efaPreset', label: 'Transit network', type: 'select', default: 'vvs', options: EFA_PRESETS.map(({ value, label }) => ({ value, label })), showIf: { provider: 'efa' },
+        help: 'Most networks also find stops all over Germany, but real-time data usually only comes from the network of your region.' },
+      { key: 'baseUrl', label: 'Base URL', type: 'text', default: '', placeholder: 'https://v6.vbb.transport.rest', showIf: { _transitCustom: true },
+        help: 'HAFAS-REST: e.g. https://v6.vbb.transport.rest (Berlin/Brandenburg) or your own db-rest instance. The public v6.db.transport.rest has been shut down. Outside Berlin, EFA is usually the better choice.' },
       { key: 'stop', label: 'Stop', type: 'transitStop', default: null },
       { key: 'limit', label: 'Number of departures', type: 'number', default: 8, min: 1, max: 30 },
       { key: 'walkMinutes', label: 'Walk to stop (min., hide earlier departures)', type: 'number', default: 0, min: 0, max: 60 },
@@ -524,7 +527,7 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
       while (seen.has(id) || id === '*') id = uid('p');
       seen.add(id);
       const duration = Math.min(3600, Math.max(5, Number(p.duration) || 30));
-      return { id, name: String(p.name || tr('Page')), duration, enabled: p.enabled !== false };
+      return { id, name: String(p.name || tr('Page')), duration, enabled: p.enabled !== false, ...normalizePageOptions(p) };
     });
   if (!pages.length) pages = d.pages;
   const pageIds = new Set(pages.map((p) => p.id));

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
-import { ArrowDown, ArrowUp, Clock, MonitorPlay, MoveVertical, Plus, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, MonitorPlay, SlidersHorizontal, Star, MoveVertical, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useConfirm } from '@/components/confirm';
 import { NumberInput, noPlus } from '@/components/fields';
 import { IconButton } from '@/components/icon-button';
-import { api, errorMessage } from '@/lib/api';
+import { PageOptions } from '@/components/page-options';
+import { api, clone, errorMessage } from '@/lib/api';
 import { REGIONS, uid, type Module, type Page } from '@/lib/shared';
 import { moduleName, onPage, pagesSummary, typeLabel } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
@@ -75,8 +76,20 @@ function PagesPanel({ current }: { current: Page }) {
 }
 
 function PageRow({ p, i, active }: { p: Page; i: number; active: boolean }) {
-  const { cfg, t, touch, page, setPage } = useStore();
+  const { cfg, t, mt, touch, page, setPage } = useStore();
   const confirm = useConfirm();
+  const [options, setOptions] = useState(false);
+  // Copies the page and the modules placed on it (as independent copies);
+  // modules shown on all pages appear on the copy automatically.
+  const duplicate = () => {
+    const copy: Page = { ...p, id: uid('p'), name: mt('{name} (copy)', { name: p.name }) };
+    cfg.pages.splice(cfg.pages.indexOf(p) + 1, 0, copy);
+    const mods = cfg.modules.filter((m) => !m.pages.includes('*') && m.pages.includes(p.id));
+    for (const m of mods) cfg.modules.push({ ...clone(m), id: uid('m'), pages: [copy.id] });
+    setPage(copy.id);
+    touch();
+    toast.success(t('Page duplicated with {n} module(s)', { n: mods.length }));
+  };
   const swap = (j: number) => {
     if (j < 0 || j >= cfg.pages.length) return;
     [cfg.pages[i], cfg.pages[j]] = [cfg.pages[j], cfg.pages[i]];
@@ -189,10 +202,38 @@ function PageRow({ p, i, active }: { p: Page; i: number; active: boolean }) {
         <IconButton label={t('Move down')} disabled={i === cfg.pages.length - 1} onClick={() => swap(i + 1)}>
           <ArrowDown />
         </IconButton>
+        <span className="flex items-center gap-1 px-1 text-primary">
+          {p.schedule?.enabled && (
+            <span title={t('Only shown {from}–{to}', { from: p.schedule.from, to: p.schedule.to })}>
+              <Clock className="size-3.5" />
+            </span>
+          )}
+          {(p.dateFrom || p.dateTo) && (
+            <span title={`${p.dateFrom || '…'} – ${p.dateTo || '…'}`}>
+              <CalendarRange className="size-3.5" />
+            </span>
+          )}
+          {p.exclusive && (
+            <span title={t('Exclusive')}>
+              <Star className="size-3.5" />
+            </span>
+          )}
+        </span>
+        <IconButton label={t('Page options')} className={cn(options && 'text-primary')} onClick={() => setOptions(!options)}>
+          <SlidersHorizontal />
+        </IconButton>
+        <IconButton label={t('Duplicate page')} onClick={duplicate}>
+          <Copy />
+        </IconButton>
         <IconButton label={t('Delete page')} className="hover:text-destructive" onClick={remove}>
           <Trash2 />
         </IconButton>
       </div>
+      {options && (
+        <div className="col-span-full">
+          <PageOptions p={p} />
+        </div>
+      )}
     </div>
   );
 }

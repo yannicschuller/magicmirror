@@ -35,7 +35,20 @@ export type ModuleType = {
 
 export type Region = { id: string; label: string };
 
-export type Page = { id: string; name: string; duration: number; enabled: boolean };
+export type Page = {
+  id: string;
+  name: string;
+  duration: number;
+  enabled: boolean;
+  schedule?: Schedule;
+  /** inclusive YYYY-MM-DD, '' = open */
+  dateFrom?: string;
+  dateTo?: string;
+  /** while active, only exclusive pages rotate */
+  exclusive?: boolean;
+  /** skip when all of its own modules are hidden by their schedules */
+  skipEmpty?: boolean;
+};
 
 export type Module = {
   id: string;

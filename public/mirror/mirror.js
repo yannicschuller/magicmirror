@@ -1,7 +1,7 @@
 import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
 import { translator, langOf } from '/shared/i18n.js';
-import { scheduleActive } from '/shared/schedule.js';
+import { scheduleActive, activePages } from '/shared/schedule.js';
 
 const params = new URLSearchParams(location.search);
 const pinnedPage = params.get('page');
@@ -74,8 +74,8 @@ function build() {
     if (api.tick && api.tickEvery) inst.tickTimer = setInterval(() => inst.visible && api.tick(), api.tickEvery);
     instances.push(inst);
   }
-  pages = config.pages.filter((p) => p.enabled);
-  if (!pages.length) pages = config.pages.slice(0, 1);
+  // ?page=<id> pins a page regardless of its schedule.
+  pages = pinnedPage && config.pages.some((p) => p.id === pinnedPage) ? config.pages : activePages(config);
   const pinned = pages.findIndex((p) => p.id === pinnedPage);
   showPage(pinned >= 0 ? pinned : Math.min(pageIndex, pages.length - 1), true);
 }
@@ -305,5 +305,13 @@ buildGrid();
 init().then(connectEvents);
 setInterval(() => {
   updateDim();
-  if (config) applyVisibility();
+  if (!config) return;
+  // Page schedules / date ranges: keep the current page if it is still active.
+  const next = pinnedPage ? pages : activePages(config);
+  if (next.map((p) => p.id).join() !== pages.map((p) => p.id).join()) {
+    const current = pages[pageIndex]?.id;
+    pages = next;
+    const keep = pages.findIndex((p) => p.id === current);
+    showPage(keep >= 0 ? keep : 0);
+  } else applyVisibility();
 }, 60000);

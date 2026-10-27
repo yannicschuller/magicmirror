@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import type { Module, Schedule } from '@/lib/shared';
+import type { Schedule } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -13,8 +13,8 @@ const PRESETS: { label: string; days: number[] }[] = [
   { label: 'Weekend', days: [6, 7] },
 ];
 
-/** "Only show at certain times": weekdays + time window (may run past midnight). */
-export function ScheduleEditor({ m }: { m: Module }) {
+/** "Only show at certain times": weekdays + time window (may run past midnight). Used for modules and pages. */
+export function ScheduleEditor({ m }: { m: { id: string; schedule?: Schedule } }) {
   const { t, touch } = useStore();
   const s: Schedule = (m.schedule ||= { enabled: false, days: [1, 2, 3, 4, 5, 6, 7], from: '06:00', to: '09:00' });
   const set = (patch: Partial<Schedule>) => {

@@ -207,3 +207,27 @@ test('module schedule: days, time window and windows past midnight', async () =>
   assert.equal(cfg.modules[0].height, 'fill');
   assert.deepEqual(cfg.modules[0].schedule, { enabled: true, days: [2], from: '06:00', to: '09:00' });
 });
+
+test('page options: schedule, date range, exclusive and skip-empty', async () => {
+  const { activePages } = await import('../public/shared/schedule.js');
+  const cfg = normalizeConfig({
+    general: { timezone: 'Europe/Berlin' },
+    pages: [
+      { id: 'home', name: 'Home' },
+      { id: 'morning', name: 'Morning', exclusive: true, schedule: { enabled: true, days: [1, 2, 3, 4, 5], from: '06:00', to: '08:00' } },
+      { id: 'xmas', name: 'Xmas', dateFrom: '2026-12-01', dateTo: '2026-12-26' },
+      { id: 'transit', name: 'Transit' },
+    ],
+    modules: [
+      { id: 'c', type: 'clock', pages: ['*'] },
+      { id: 't', type: 'transit', pages: ['transit'], schedule: { enabled: true, days: [1, 2, 3, 4, 5], from: '06:00', to: '09:00' } },
+    ],
+  });
+  const ids = (d) => activePages(cfg, new Date(d)).map((p) => p.id);
+  assert.deepEqual(ids('2026-11-02T05:30:00Z'), ['morning']); // Mon 06:30 → exclusive morning page only
+  assert.deepEqual(ids('2026-11-02T07:30:00Z'), ['home', 'transit']); // Mon 08:30 → morning over, transit module still on
+  assert.deepEqual(ids('2026-11-02T08:30:00Z'), ['home']); // Mon 09:30 → transit page has nothing to show → skipped
+  assert.deepEqual(ids('2026-12-24T10:00:00Z'), ['home', 'xmas']); // Thu: Christmas page in its date range
+  assert.equal(cfg.pages[1].exclusive, true);
+  assert.equal(cfg.pages[0].skipEmpty, true);
+});
