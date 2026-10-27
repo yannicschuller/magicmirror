@@ -76,7 +76,8 @@ body.hide-cursor, body.hide-cursor * { cursor: none !important; }
 .region[data-region='fullscreen'] .module, .region[data-region='fullscreen'] .mod-body { height: 100%; }
 
 .module { max-width: 100%; transition: opacity .6s ease, transform .6s ease; }
-.module.off { display: none; }
+/* !important: module styles (e.g. .mod-flights.fl-flex) must never override hiding */
+.module.off { display: none !important; }
 .module.entering, .module.leaving { opacity: 0; }
 body[data-transition='slide'] .module.entering { transform: translateX(4vmin); }
 body[data-transition='slide'] .module.leaving { transform: translateX(-4vmin); }
@@ -573,3 +574,21 @@ td:last-child { padding-right: 0; }
 #dim { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 2s; z-index: 10; }
 .loading { animation: blink 1.6s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: .4; } }
+
+/* F1 track layout (SVG from bacinger/f1-circuits) */
+.f1-track { margin: .8em 0 .4em; }
+.f1-track svg { display: block; width: 100%; height: auto; max-height: var(--track-h, 14vmin); overflow: visible; }
+.region[data-region$='center'] .f1-track svg { margin: 0 auto; }
+.region[data-region$='right'] .f1-track svg { margin-left: auto; }
+.f1-track.size-small { --track-h: 9vmin; }
+.f1-track.size-large { --track-h: 22vmin; }
+.f1-track-line { fill: none; stroke: var(--fg); stroke-width: 1.6; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.f1-track-glow { fill: none; stroke: var(--accent); stroke-opacity: .25; stroke-width: 6; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.f1-track-start { fill: var(--accent); }
+.f1-track-facts { margin-top: .3em; }
+
+/* F1 in centred/right areas: rows follow the area's alignment, table names stay left-aligned in their column */
+.region[data-region$='center'] .f1-facts, .region[data-region$='center'] .f1-podium,
+.region[data-region$='bar'] .f1-facts, .region[data-region$='bar'] .f1-podium { justify-content: center; }
+.region[data-region$='right'] .f1-facts, .region[data-region$='right'] .f1-podium { justify-content: flex-end; }
+.f1-standings td:nth-child(2) { text-align: left; }

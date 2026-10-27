@@ -1,5 +1,6 @@
 // Mirror: module renderers and weather descriptions.
 export default {
+  "first GP {year}": "erster GP {year}",
   "Air {n}": "Luft {n}",
   "all day": "ganztägig",
   "Camera unreachable": "Kamera nicht erreichbar",

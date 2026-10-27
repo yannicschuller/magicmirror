@@ -49,6 +49,41 @@ async function trackWeather(race) {
 
 const driverName = (d) => `${d.givenName} ${d.familyName}`;
 
+// Track layouts: bacinger/f1-circuits (MIT, GeoJSON). Matched to the race by
+// coordinates and turned into a small SVG path (equirectangular projection).
+const CIRCUITS_URL = 'https://raw.githubusercontent.com/bacinger/f1-circuits/master/f1-circuits.geojson';
+
+export function trackShape(feature) {
+  const coords = feature.geometry.type === 'LineString' ? feature.geometry.coordinates : feature.geometry.coordinates.flat();
+  const lat0 = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+  const k = Math.cos((lat0 * Math.PI) / 180);
+  const pts = coords.map(([lon, lat]) => [lon * k, -lat]);
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const [minX, minY] = [Math.min(...xs), Math.min(...ys)];
+  const span = Math.max(Math.max(...xs) - minX, Math.max(...ys) - minY) || 1;
+  const scaled = pts.map(([x, y]) => [((x - minX) / span) * 100, ((y - minY) / span) * 100]);
+  const w = Math.max(...scaled.map((p) => p[0]));
+  const h = Math.max(...scaled.map((p) => p[1]));
+  const d = scaled.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('') + 'Z';
+  const p = feature.properties;
+  return { d, w: Math.round(w * 10) / 10, h: Math.round(h * 10) / 10, start: scaled[0].map((v) => Math.round(v * 10) / 10), length: p.length || null, firstGp: p.firstgp || null, name: p.Name };
+}
+
+async function trackLayout(race) {
+  const data = await cached('f1:circuits', 7 * 86400, () => fetchJson(CIRCUITS_URL, { timeout: 20000 }));
+  const lat = Number(race.Circuit.Location.lat);
+  const lon = Number(race.Circuit.Location.long);
+  let best = null;
+  for (const f of data.features) {
+    const c = f.geometry.type === 'LineString' ? f.geometry.coordinates : f.geometry.coordinates.flat();
+    const [flon, flat] = c[0];
+    const dist = Math.hypot((flat - lat) * 111, (flon - lon) * 111 * Math.cos((lat * Math.PI) / 180));
+    if (!best || dist < best.dist) best = { f, dist };
+  }
+  return best && best.dist < 8 ? trackShape(best.f) : null;
+}
+
 export async function f1(settings, cfg) {
   const lang = langOf(cfg.general.locale);
   const t = translator(lang);
@@ -84,6 +119,9 @@ export async function f1(settings, cfg) {
   };
 
   const tasks = [];
+  if (settings.showTrackMap) {
+    tasks.push(trackLayout(next).then((tr) => (result.track = tr)).catch(() => {}));
+  }
   if (settings.showTrackWeather) {
     tasks.push(trackWeather(next).then((w) => (result.trackWeather = w)).catch(() => {}));
   }

@@ -230,6 +230,10 @@ export const MODULE_TYPES = {
     fields: [
       { key: 'showCountdown', label: 'Countdown', type: 'bool', default: true },
       { key: 'showSessions', label: 'Schedule of all sessions', type: 'bool', default: true },
+      { key: 'showTrackMap', label: 'Track layout', type: 'bool', default: true },
+      { key: 'trackMapSize', label: 'Size of the track layout', type: 'select', default: 'medium', options: [
+        { value: 'small', label: 'Small' }, { value: 'medium', label: 'Medium' }, { value: 'large', label: 'Large' },
+      ], showIf: { showTrackMap: true } },
       { key: 'showTrackWeather', label: 'Track weather (race day)', type: 'bool', default: true },
       { key: 'showPreviousWinner', label: 'Last year\'s winner', type: 'bool', default: true },
       { key: 'showLastRace', label: 'Last race podium', type: 'bool', default: true },

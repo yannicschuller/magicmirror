@@ -231,3 +231,13 @@ test('page options: schedule, date range, exclusive and skip-empty', async () =>
   assert.equal(cfg.pages[1].exclusive, true);
   assert.equal(cfg.pages[0].skipEmpty, true);
 });
+
+test('F1 track layout: GeoJSON line becomes a normalised SVG path', async () => {
+  const { trackShape } = await import('../src/providers/f1.js');
+  const shape = trackShape({ properties: { Name: 'Test', length: 4300, firstgp: 1990 }, geometry: { type: 'LineString', coordinates: [[10, 50], [10.02, 50], [10.02, 50.01], [10, 50.01]] } });
+  assert.match(shape.d, /^M0\.0 77\.[0-9]L/); // first point = start/finish, north up
+  assert.ok(shape.d.endsWith('Z'));
+  assert.equal(shape.w, 100);
+  assert.ok(shape.h > 0 && shape.h < 100);
+  assert.deepEqual([shape.length, shape.firstGp], [4300, 1990]);
+});

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Formula 1: track layout (bacinger/f1-circuits, MIT) with length and first GP; facts and podium centred in centred areas
+- Fix: modules of other pages could stay visible (module CSS overrode hiding), and fast page switches could leave modules half-faded
+- "Show" in the admin now also works for pages that are switched off or outside their schedule
 - Pages: animated weather background (rain, drizzle, snow, thunderstorm, fog, clouds, sun, starry sky) – off/subtle/strong per page; preview with `?ambient=rain`
 - Pages: duplicate a page (with its modules); show a page only on certain weekdays/times or in a date range; exclusive pages (e.g. a morning page); skip pages whose own modules are all hidden
 - Public transport: EFA preset for Saxony (VVO – incl. Leipzig/MDV with real-time data); hint that v6.db.transport.rest was shut down

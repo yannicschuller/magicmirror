@@ -45,6 +45,7 @@ function destroyAll() {
   for (const inst of instances) {
     clearInterval(inst.tickTimer);
     clearTimeout(inst.fetchTimer);
+    clearTimeout(inst.fadeTimer);
     try { inst.api.destroy?.(); } catch (err) { console.error(err); }
   }
   instances = [];
@@ -149,12 +150,17 @@ function applyVisibility(immediate = false) {
     const want = onPage(inst.mod, page);
     if (want === inst.visible) continue;
     inst.visible = want;
+    // Timers (not requestAnimationFrame – paused in hidden tabs) and always cancel the
+    // other direction, so fast page switches never leave a module half-faded.
+    clearTimeout(inst.fadeTimer);
+    const cls = inst.wrap.classList;
     if (want) {
-      inst.wrap.classList.remove('off');
+      cls.remove('off', 'leaving');
       if (!immediate && transition !== 'none') {
-        inst.wrap.classList.add('entering');
-        requestAnimationFrame(() => requestAnimationFrame(() => inst.wrap.classList.remove('entering')));
-      }
+        cls.add('entering');
+        void inst.wrap.offsetWidth; // start the transition from the "entering" state
+        inst.fadeTimer = setTimeout(() => cls.remove('entering'), 20);
+      } else cls.remove('entering');
       inst.api.show?.();
       inst.api.tick?.();
       const every = refreshSeconds(inst);
@@ -164,12 +170,13 @@ function applyVisibility(immediate = false) {
       }
     } else {
       inst.api.hide?.();
-      if (immediate || transition === 'none') inst.wrap.classList.add('off');
+      cls.remove('entering');
+      if (immediate || transition === 'none') cls.add('off');
       else {
-        inst.wrap.classList.add('leaving');
-        setTimeout(() => {
-          inst.wrap.classList.remove('leaving');
-          if (!inst.visible) inst.wrap.classList.add('off');
+        cls.add('leaving');
+        inst.fadeTimer = setTimeout(() => {
+          cls.remove('leaving');
+          if (!inst.visible) cls.add('off');
         }, 600);
       }
     }
@@ -279,8 +286,16 @@ function connectEvents() {
   });
   es.addEventListener('page', (e) => {
     const { page } = JSON.parse(e.data);
-    const i = pages.findIndex((p) => p.id === page);
-    if (i >= 0) showPage(i);
+    let i = pages.findIndex((p) => p.id === page);
+    // "Show" from the admin also works for pages that are currently not rotating
+    // (switched off, outside their schedule …): shown once, then rotation continues.
+    if (i < 0) {
+      const extra = config.pages.find((p) => p.id === page);
+      if (!extra) return;
+      pages = [...pages, extra];
+      i = pages.length - 1;
+    }
+    showPage(i);
   });
   es.onopen = () => (statusEl.hidden = true);
 }

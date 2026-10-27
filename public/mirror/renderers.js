@@ -396,6 +396,12 @@ const f1 = (el, mod, ctx) => {
       <div class="f1-meta dim small">${t('Round {n}', { n: d.round })}${d.totalRounds ? ` / ${d.totalRounds}` : ''} · ${t('Season {n}', { n: d.season })}${d.isSprint ? ` · <span class="accent">${t('Sprint weekend')}</span>` : ''}</div>
       <div class="f1-name">${esc(d.raceName)}</div>
       <div class="f1-circuit dim">${icons.pin} ${esc(d.circuit)} · ${esc(d.locality)}, ${esc(d.country)}</div>`;
+    if (s.showTrackMap && d.track) {
+      const tr = d.track;
+      const pad = 6;
+      const facts = [tr.length && `${num(tr.length / 1000, 3)} km`, tr.firstGp && t('first GP {year}', { year: tr.firstGp })].filter(Boolean).join(' · ');
+      html += `<div class="f1-track size-${esc(s.trackMapSize || 'medium')}"><svg viewBox="${-pad} ${-pad} ${tr.w + 2 * pad} ${tr.h + 2 * pad}" role="img" aria-label="${esc(tr.name || d.circuit)}"><path class="f1-track-glow" d="${tr.d}"/><path class="f1-track-line" d="${tr.d}"/><circle class="f1-track-start" cx="${tr.start[0]}" cy="${tr.start[1]}" r="2.6"/></svg>${facts ? `<div class="f1-track-facts dim small">${esc(facts)}</div>` : ''}</div>`;
+    }
     if (s.showCountdown) {
       html += `<div class="f1-countdown${live ? ' live' : ''}"><span class="f1-cd-label">${esc(next.label)}</span><span class="f1-cd-value">${live ? '● LIVE' : t('in {time}', { time: countdown(ms) })}</span></div>`;
     }
