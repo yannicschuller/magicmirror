@@ -2,6 +2,21 @@
 // and school holidays (OpenHolidays API). Overrides the core `calendar` entry
 // of MODULE_TYPES (plug-ins are applied after the core modules).
 import { CALENDAR_ICONS } from '../calendar-icons.js';
+// modules.js imports this file (circular): EFA_PRESETS is only read lazily, once modules.js has run.
+import { EFA_PRESETS } from '../modules.js';
+
+// Field whose `options` are built on first access (and then stored as a plain value).
+function lazyOptions(field, build) {
+  return Object.defineProperty(field, 'options', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      const options = build();
+      Object.defineProperty(field, 'options', { value: options, enumerable: true, writable: true, configurable: true });
+      return options;
+    },
+  });
+}
 
 // German states (ISO 3166-2:DE without the "DE-" prefix).
 export const DE_STATES = [
@@ -120,7 +135,14 @@ export default {
       { value: 'car', label: 'Car' },
       { value: 'bike', label: 'Bike' },
       { value: 'foot', label: 'On foot' },
+      { value: 'transit', label: 'Bus & train' },
+      { value: 'auto', label: 'Automatic (public transport nearby, otherwise car)' },
     ] },
+    { key: 'travelTransitRadiusKm', label: 'Automatic: public transport up to (km from the start)', type: 'number', default: 15, min: 1, max: 100, showIf: { travelCard: true, travelMode: 'auto' } },
+    lazyOptions({ key: 'travelTransitNetwork', label: 'Public transport network', type: 'select', default: '', showIf: { travelCard: true },
+      help: 'Used for "Bus & train" and "Automatic": connections (EFA) arriving in time, with the latest departure. Without a departures module VVS is used. If no connection is found, the card falls back to walking or driving.' },
+    () => [{ value: '', label: 'Same as the departures module' }, ...EFA_PRESETS.map(({ value, label }) => ({ value, label }))]),
+    { key: 'travelTransitUrl', label: 'EFA base URL', type: 'text', default: '', placeholder: 'https://efa.example.de/efa/', showIf: { travelCard: true, travelTransitNetwork: 'custom' } },
     { key: 'travelLeadMinutes', label: 'Show the card this many minutes before leaving', type: 'number', default: 30, min: 0, max: 180, showIf: { travelCard: true } },
     { key: 'travelBufferMinutes', label: 'Buffer added to the travel time (minutes)', type: 'number', default: 5, min: 0, max: 60, showIf: { travelCard: true } },
     { key: 'travelFrom', label: 'Start of the route', type: 'location', default: null, showIf: { travelCard: true },
@@ -128,7 +150,9 @@ export default {
     { key: 'travelFromAddress', label: 'Start address (optional, more exact than a city)', type: 'text', default: '', secret: true, showIf: { travelCard: true },
       placeholder: 'Musterstraße 1, 04109 Leipzig',
       help: 'Looked up once with OpenStreetMap (Nominatim) and preferred over the start location above. Stays on the server.' },
-    { key: 'travelMapHeight', label: 'Map height (% of screen height, 0 = auto)', type: 'number', default: 0, min: 0, max: 80, showIf: { travelCard: true } },
+    { key: 'travelMap', label: 'Show route map', type: 'bool', default: true, showIf: { travelCard: true } },
+    { key: 'travelMapHeight', label: 'Max. map height (% of screen height, 0 = auto)', type: 'number', default: 0, min: 0, max: 80, showIf: { travelCard: true, travelMap: true },
+      help: 'The map sits small beside the text so that the next events stay visible.' },
 
     // ---- holidays
     { key: 'holidayCountry', label: 'Holidays: country', type: 'select', default: 'DE', options: [

@@ -5,6 +5,7 @@ import { DAY, addDays, eventSpan } from '../../public/shared/calendar-days.js';
 import { publicHolidaysBetween, schoolHolidaysBetween } from './holidays.js';
 import { resolveLocation } from '../../public/shared/modules.js';
 import { computeTravel, geocode } from './route.js';
+import { travelTransitBase } from './trip.js';
 
 const GRID_LIMIT = 300;
 
@@ -225,7 +226,8 @@ export async function calendar(settings, cfg) {
     try {
       const base = resolveLocation({ location: s.travelFrom }, cfg.general);
       const from = (s.travelFromAddress && (await geocode(s.travelFromAddress, { near: base, lang }))) || base;
-      const travel = await computeTravel(travelEvents, s, from, { now, lang });
+      const transitBase = ['transit', 'auto'].includes(s.travelMode) ? travelTransitBase(s, cfg.modules) : '';
+      const travel = await computeTravel(travelEvents, s, from, { now, lang, transitBase, timeZone: tz });
       if (travel) out.travel = travel;
     } catch (err) {
       console.warn(`[calendar] time to leave: ${err.message}`);

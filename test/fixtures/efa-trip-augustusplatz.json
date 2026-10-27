@@ -1,0 +1,777 @@
+{
+ "version": "11.0.6.72",
+ "systemMessages": [],
+ "journeys": [
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 300,
+     "origin": {
+      "name": "(Leipzig), Willy-Brandt-Platz 5",
+      "disassembledName": "Willy-Brandt-Platz 5",
+      "type": "address",
+      "coord": [
+       51.345479,
+       12.382054
+      ],
+      "departureTimePlanned": "2026-10-28T07:45:00Z",
+      "departureTimeEstimated": "2026-10-28T07:45:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:50:00Z",
+      "arrivalTimeEstimated": "2026-10-28T07:50:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.345479,
+       12.382054
+      ],
+      [
+       51.344817,
+       12.381201
+      ],
+      [
+       51.34475,
+       12.381165
+      ],
+      [
+       51.344284,
+       12.380662
+      ],
+      [
+       51.34416,
+       12.380429
+      ],
+      [
+       51.344071,
+       12.380285
+      ],
+      [
+       51.344009,
+       12.38042
+      ]
+     ]
+    },
+    {
+     "duration": 120,
+     "origin": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "departureTimePlanned": "2026-10-28T07:50:00Z",
+      "departureTimeEstimated": "2026-10-28T07:50:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Augustusplatz",
+      "disassembledName": "Augustusplatz",
+      "type": "platform",
+      "coord": [
+       51.338846,
+       12.381489
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:52:00Z",
+      "arrivalTimeEstimated": "2026-10-28T07:52:00Z",
+      "parent": {
+       "name": "Leipzig, Augustusplatz",
+       "disassembledName": "Augustusplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "transportation": {
+      "name": "Tram 15",
+      "disassembledName": "15",
+      "number": "15",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Meusdorf"
+      }
+     },
+     "coords": [
+      [
+       51.343636,
+       12.380872
+      ],
+      [
+       51.343439,
+       12.381277
+      ],
+      [
+       51.343289,
+       12.381358
+      ],
+      [
+       51.340224,
+       12.38025
+      ],
+      [
+       51.339347,
+       12.380071
+      ],
+      [
+       51.339173,
+       12.380346
+      ],
+      [
+       51.338837,
+       12.381542
+      ]
+     ]
+    },
+    {
+     "duration": 240,
+     "origin": {
+      "name": "Leipzig, Augustusplatz",
+      "disassembledName": "Augustusplatz",
+      "type": "platform",
+      "coord": [
+       51.338846,
+       12.381489
+      ],
+      "departureTimePlanned": "2026-10-28T07:52:00Z",
+      "departureTimeEstimated": "2026-10-28T07:52:00Z",
+      "parent": {
+       "name": "Leipzig, Augustusplatz",
+       "disassembledName": "Augustusplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Augustusplatz 9",
+      "disassembledName": "Augustusplatz 9",
+      "type": "address",
+      "coord": [
+       51.338111,
+       12.379144
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:56:00Z",
+      "arrivalTimeEstimated": "2026-10-28T07:56:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.338835,
+       12.381489
+      ],
+      [
+       51.338801,
+       12.381354
+      ],
+      [
+       51.338223,
+       12.380303
+      ],
+      [
+       51.338347,
+       12.379638
+      ],
+      [
+       51.338352,
+       12.379476
+      ],
+      [
+       51.338111,
+       12.379144
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 300,
+     "origin": {
+      "name": "(Leipzig), Willy-Brandt-Platz 5",
+      "disassembledName": "Willy-Brandt-Platz 5",
+      "type": "address",
+      "coord": [
+       51.345479,
+       12.382054
+      ],
+      "departureTimePlanned": "2026-10-28T07:49:00Z",
+      "departureTimeEstimated": "2026-10-28T07:49:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:54:00Z",
+      "arrivalTimeEstimated": "2026-10-28T07:54:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.345479,
+       12.382054
+      ],
+      [
+       51.344817,
+       12.381201
+      ],
+      [
+       51.34475,
+       12.381165
+      ],
+      [
+       51.344284,
+       12.380662
+      ],
+      [
+       51.34416,
+       12.380429
+      ],
+      [
+       51.344071,
+       12.380285
+      ],
+      [
+       51.344009,
+       12.38042
+      ]
+     ]
+    },
+    {
+     "duration": 120,
+     "origin": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "departureTimePlanned": "2026-10-28T07:54:00Z",
+      "departureTimeEstimated": "2026-10-28T07:54:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Augustusplatz",
+      "disassembledName": "Augustusplatz",
+      "type": "platform",
+      "coord": [
+       51.338846,
+       12.381489
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:56:00Z",
+      "arrivalTimeEstimated": "2026-10-28T07:56:00Z",
+      "parent": {
+       "name": "Leipzig, Augustusplatz",
+       "disassembledName": "Augustusplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "transportation": {
+      "name": "Tram 7",
+      "disassembledName": "7",
+      "number": "7",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Sommerfeld"
+      }
+     },
+     "coords": [
+      [
+       51.343636,
+       12.380872
+      ],
+      [
+       51.343439,
+       12.381277
+      ],
+      [
+       51.343289,
+       12.381358
+      ],
+      [
+       51.340224,
+       12.38025
+      ],
+      [
+       51.339347,
+       12.380071
+      ],
+      [
+       51.339173,
+       12.380346
+      ],
+      [
+       51.338837,
+       12.381542
+      ]
+     ]
+    },
+    {
+     "duration": 240,
+     "origin": {
+      "name": "Leipzig, Augustusplatz",
+      "disassembledName": "Augustusplatz",
+      "type": "platform",
+      "coord": [
+       51.338846,
+       12.381489
+      ],
+      "departureTimePlanned": "2026-10-28T07:56:54Z",
+      "departureTimeEstimated": "2026-10-28T07:56:54Z",
+      "parent": {
+       "name": "Leipzig, Augustusplatz",
+       "disassembledName": "Augustusplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Augustusplatz 9",
+      "disassembledName": "Augustusplatz 9",
+      "type": "address",
+      "coord": [
+       51.338111,
+       12.379144
+      ],
+      "arrivalTimePlanned": "2026-10-28T08:00:54Z",
+      "arrivalTimeEstimated": "2026-10-28T08:00:54Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.338835,
+       12.381489
+      ],
+      [
+       51.338801,
+       12.381354
+      ],
+      [
+       51.338223,
+       12.380303
+      ],
+      [
+       51.338347,
+       12.379638
+      ],
+      [
+       51.338352,
+       12.379476
+      ],
+      [
+       51.338111,
+       12.379144
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 300,
+     "origin": {
+      "name": "(Leipzig), Willy-Brandt-Platz 5",
+      "disassembledName": "Willy-Brandt-Platz 5",
+      "type": "address",
+      "coord": [
+       51.345479,
+       12.382054
+      ],
+      "departureTimePlanned": "2026-10-28T07:51:00Z",
+      "departureTimeEstimated": "2026-10-28T07:51:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:56:00Z",
+      "arrivalTimeEstimated": "2026-10-28T07:56:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.345479,
+       12.382054
+      ],
+      [
+       51.344817,
+       12.381201
+      ],
+      [
+       51.34475,
+       12.381165
+      ],
+      [
+       51.344284,
+       12.380662
+      ],
+      [
+       51.34416,
+       12.380429
+      ],
+      [
+       51.344071,
+       12.380285
+      ],
+      [
+       51.344009,
+       12.38042
+      ]
+     ]
+    },
+    {
+     "duration": 120,
+     "origin": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "departureTimePlanned": "2026-10-28T07:56:00Z",
+      "departureTimeEstimated": "2026-10-28T07:56:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Augustusplatz",
+      "disassembledName": "Augustusplatz",
+      "type": "platform",
+      "coord": [
+       51.338846,
+       12.381489
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:58:00Z",
+      "arrivalTimeEstimated": "2026-10-28T07:58:00Z",
+      "parent": {
+       "name": "Leipzig, Augustusplatz",
+       "disassembledName": "Augustusplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "transportation": {
+      "name": "Tram 12",
+      "disassembledName": "12",
+      "number": "12",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Technisches Rathaus"
+      }
+     },
+     "coords": [
+      [
+       51.343636,
+       12.380872
+      ],
+      [
+       51.343439,
+       12.381277
+      ],
+      [
+       51.343289,
+       12.381358
+      ],
+      [
+       51.340224,
+       12.38025
+      ],
+      [
+       51.339347,
+       12.380071
+      ],
+      [
+       51.339173,
+       12.380346
+      ],
+      [
+       51.338837,
+       12.381542
+      ]
+     ]
+    },
+    {
+     "duration": 240,
+     "origin": {
+      "name": "Leipzig, Augustusplatz",
+      "disassembledName": "Augustusplatz",
+      "type": "platform",
+      "coord": [
+       51.338846,
+       12.381489
+      ],
+      "departureTimePlanned": "2026-10-28T07:58:00Z",
+      "departureTimeEstimated": "2026-10-28T07:58:00Z",
+      "parent": {
+       "name": "Leipzig, Augustusplatz",
+       "disassembledName": "Augustusplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Augustusplatz 9",
+      "disassembledName": "Augustusplatz 9",
+      "type": "address",
+      "coord": [
+       51.338111,
+       12.379144
+      ],
+      "arrivalTimePlanned": "2026-10-28T08:02:00Z",
+      "arrivalTimeEstimated": "2026-10-28T08:02:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.338835,
+       12.381489
+      ],
+      [
+       51.338801,
+       12.381354
+      ],
+      [
+       51.338223,
+       12.380303
+      ],
+      [
+       51.338347,
+       12.379638
+      ],
+      [
+       51.338352,
+       12.379476
+      ],
+      [
+       51.338111,
+       12.379144
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": null,
+   "isAdditional": false,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 898,
+     "origin": {
+      "name": "(Leipzig), Willy-Brandt-Platz 5",
+      "disassembledName": "Willy-Brandt-Platz 5",
+      "type": "address",
+      "coord": [
+       51.345479,
+       12.382054
+      ],
+      "departureTimePlanned": "2026-10-28T07:45:00Z",
+      "departureTimeEstimated": "2026-10-28T07:45:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "(Leipzig), Augustusplatz 9",
+      "disassembledName": "Augustusplatz 9",
+      "type": "address",
+      "coord": [
+       51.338111,
+       12.379144
+      ],
+      "arrivalTimePlanned": "2026-10-28T07:59:58Z",
+      "arrivalTimeEstimated": "2026-10-28T07:59:58Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.345479,
+       12.382054
+      ],
+      [
+       51.34411,
+       12.38165
+      ],
+      [
+       51.343526,
+       12.381039
+      ],
+      [
+       51.343072,
+       12.381237
+      ],
+      [
+       51.339615,
+       12.379997
+      ],
+      [
+       51.338111,
+       12.379144
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

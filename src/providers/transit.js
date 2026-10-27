@@ -1,7 +1,7 @@
 import { cached, fetchJson, splitList } from '../util.js';
 import { transitBaseUrl } from '../../public/shared/modules.js';
 
-const EFA_CLASS = {
+export const EFA_CLASS = {
   0: 'train', 1: 'sbahn', 2: 'ubahn', 3: 'tram', 4: 'tram', 5: 'bus', 6: 'bus', 7: 'bus', 8: 'other', 9: 'ferry',
   10: 'bus', 11: 'other', 13: 'train', 14: 'train', 15: 'train', 16: 'train', 17: 'bus', 19: 'bus',
 };

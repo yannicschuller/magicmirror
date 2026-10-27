@@ -1,0 +1,1221 @@
+{
+ "version": "11.0.6.72",
+ "systemMessages": [],
+ "journeys": [
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 1,
+   "legs": [
+    {
+     "duration": 360,
+     "origin": {
+      "name": "(Leipzig), Karl-Heine-Straße 50",
+      "disassembledName": "Karl-Heine-Straße 50",
+      "type": "address",
+      "coord": [
+       51.332044,
+       12.334704
+      ],
+      "departureTimePlanned": "2026-10-27T16:52:00Z",
+      "departureTimeEstimated": "2026-10-27T16:52:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332426,
+       12.33942
+      ],
+      "arrivalTimePlanned": "2026-10-27T16:58:00Z",
+      "arrivalTimeEstimated": "2026-10-27T16:58:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.332044,
+       12.334704
+      ],
+      [
+       51.331707,
+       12.334848
+      ],
+      [
+       51.332067,
+       12.336249
+      ],
+      [
+       51.332392,
+       12.337821
+      ],
+      [
+       51.332375,
+       12.338594
+      ],
+      [
+       51.332358,
+       12.339259
+      ],
+      [
+       51.332431,
+       12.33942
+      ]
+     ]
+    },
+    {
+     "duration": 720,
+     "origin": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332426,
+       12.33942
+      ],
+      "departureTimePlanned": "2026-10-27T16:58:00Z",
+      "departureTimeEstimated": "2026-10-27T16:58:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Goerdelerring",
+      "disassembledName": "Goerdelerring",
+      "type": "platform",
+      "coord": [
+       51.344205,
+       12.370996
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:10:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:10:00Z",
+      "parent": {
+       "name": "Leipzig, Goerdelerring",
+       "disassembledName": "Goerdelerring",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "04"
+      }
+     },
+     "transportation": {
+      "name": "Tram 14",
+      "disassembledName": "14",
+      "number": "14",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Klinikum St. Georg"
+      }
+     },
+     "coords": [
+      [
+       51.332745,
+       12.33894
+      ],
+      [
+       51.332344,
+       12.339407
+      ],
+      [
+       51.332149,
+       12.34755
+      ],
+      [
+       51.339439,
+       12.365342
+      ],
+      [
+       51.34208,
+       12.369263
+      ],
+      [
+       51.344173,
+       12.372726
+      ],
+      [
+       51.344177,
+       12.37355
+      ]
+     ]
+    },
+    {
+     "duration": 480,
+     "origin": {
+      "name": "Leipzig, Goerdelerring",
+      "disassembledName": "Goerdelerring",
+      "type": "platform",
+      "coord": [
+       51.34416,
+       12.372865
+      ],
+      "departureTimePlanned": "2026-10-27T16:55:00Z",
+      "departureTimeEstimated": "2026-10-27T17:13:54Z",
+      "parent": {
+       "name": "Leipzig, Goerdelerring",
+       "disassembledName": "Goerdelerring",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "01"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Georg-Schumann-/ Lützowstr.",
+      "disassembledName": "Georg-Schumann-/ Lützowstr.",
+      "type": "stop",
+      "coord": [
+       51.361182,
+       12.371239
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:03:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:21:54Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "name": "Tram 12",
+      "disassembledName": "12",
+      "number": "12",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Gohlis-Nord   über Zoo"
+      }
+     },
+     "coords": [
+      [
+       51.344313,
+       12.372174
+      ],
+      [
+       51.344834,
+       12.371588
+      ],
+      [
+       51.349676,
+       12.368373
+      ],
+      [
+       51.3575,
+       12.368657
+      ],
+      [
+       51.358485,
+       12.36776
+      ],
+      [
+       51.360829,
+       12.370163
+      ],
+      [
+       51.361078,
+       12.370396
+      ]
+     ],
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    },
+    {
+     "duration": 120,
+     "origin": {
+      "name": "Leipzig, Georg-Schumann-/ Lützowstr.",
+      "disassembledName": "Georg-Schumann-/ Lützowstr.",
+      "type": "platform",
+      "coord": [
+       51.361316,
+       12.371347
+      ],
+      "departureTimePlanned": "2026-10-27T17:03:00Z",
+      "departureTimeEstimated": "2026-10-27T17:21:54Z",
+      "parent": {
+       "name": "Leipzig, Georg-Schumann-/ Lützowstr.",
+       "disassembledName": "Georg-Schumann-/ Lützowstr.",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "03"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Georg-Schumann-Straße 31",
+      "disassembledName": "Georg-Schumann-Straße 31",
+      "type": "address",
+      "coord": [
+       51.360969,
+       12.371993
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:05:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:23:54Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.361193,
+       12.371248
+      ],
+      [
+       51.361114,
+       12.371661
+      ],
+      [
+       51.361075,
+       12.37176
+      ],
+      [
+       51.361002,
+       12.371724
+      ],
+      [
+       51.360969,
+       12.371984
+      ],
+      [
+       51.360969,
+       12.371993
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": 0,
+   "isAdditional": true,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 1080,
+     "origin": {
+      "name": "(Leipzig), Karl-Heine-Straße 50",
+      "disassembledName": "Karl-Heine-Straße 50",
+      "type": "address",
+      "coord": [
+       51.332044,
+       12.334704
+      ],
+      "departureTimePlanned": "2026-10-27T16:57:00Z",
+      "departureTimeEstimated": "2026-10-27T16:57:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, S-Bf. Plagwitz",
+      "disassembledName": "1",
+      "type": "platform",
+      "coord": [
+       51.327868,
+       12.322038
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:15:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:15:00Z",
+      "parent": {
+       "name": "Leipzig, S-Bf. Plagwitz",
+       "disassembledName": "S-Bf. Plagwitz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "1",
+       "platformName": "1"
+      }
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.332044,
+       12.334704
+      ],
+      [
+       51.330837,
+       12.331641
+      ],
+      [
+       51.32958,
+       12.326925
+      ],
+      [
+       51.328794,
+       12.323987
+      ],
+      [
+       51.328345,
+       12.323098
+      ],
+      [
+       51.327913,
+       12.322254
+      ]
+     ]
+    },
+    {
+     "duration": 720,
+     "origin": {
+      "name": "Leipzig, S-Bf. Plagwitz",
+      "disassembledName": "1",
+      "type": "platform",
+      "coord": [
+       51.327868,
+       12.322038
+      ],
+      "departureTimePlanned": "2026-10-27T17:15:00Z",
+      "departureTimeEstimated": "2026-10-27T17:15:00Z",
+      "parent": {
+       "name": "Leipzig, S-Bf. Plagwitz",
+       "disassembledName": "S-Bf. Plagwitz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "1",
+       "platformName": "1"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, S-Bahnhof Gohlis",
+      "disassembledName": "1",
+      "type": "platform",
+      "coord": [
+       51.362971,
+       12.374104
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:28:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:27:00Z",
+      "parent": {
+       "name": "Leipzig, S-Bahnhof Gohlis",
+       "disassembledName": "S-Bahnhof Gohlis",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "Gl. 1",
+       "platformName": "1"
+      }
+     },
+     "transportation": {
+      "name": "S-Bahn S1",
+      "number": "S1",
+      "product": {
+       "id": 3,
+       "class": 1,
+       "name": "S-Bahn",
+       "iconId": 2
+      },
+      "destination": {
+       "name": "Leipzig, S-Bf. Stötteritz"
+      }
+     },
+     "coords": [
+      [
+       51.328192,
+       12.322128
+      ],
+      [
+       51.337645,
+       12.31714
+      ],
+      [
+       51.354069,
+       12.305793
+      ],
+      [
+       51.361429,
+       12.341456
+      ],
+      [
+       51.367117,
+       12.36231
+      ],
+      [
+       51.362984,
+       12.374034
+      ],
+      [
+       51.362927,
+       12.3742
+      ]
+     ],
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    },
+    {
+     "duration": 480,
+     "origin": {
+      "name": "Leipzig, S-Bahnhof Gohlis",
+      "disassembledName": "1",
+      "type": "platform",
+      "coord": [
+       51.362971,
+       12.374104
+      ],
+      "departureTimePlanned": "2026-10-27T17:28:00Z",
+      "departureTimeEstimated": "2026-10-27T17:27:00Z",
+      "parent": {
+       "name": "Leipzig, S-Bahnhof Gohlis",
+       "disassembledName": "S-Bahnhof Gohlis",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "Gl. 1",
+       "platformName": "1"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Georg-Schumann-Straße 31",
+      "disassembledName": "Georg-Schumann-Straße 31",
+      "type": "address",
+      "coord": [
+       51.360969,
+       12.371993
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:36:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:35:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.362954,
+       12.37414
+      ],
+      [
+       51.363022,
+       12.37352
+      ],
+      [
+       51.36255,
+       12.372748
+      ],
+      [
+       51.361322,
+       12.371535
+      ],
+      [
+       51.361126,
+       12.371796
+      ],
+      [
+       51.360985,
+       12.371832
+      ],
+      [
+       51.360969,
+       12.371993
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 1,
+   "legs": [
+    {
+     "duration": 300,
+     "origin": {
+      "name": "(Leipzig), Karl-Heine-Straße 50",
+      "disassembledName": "Karl-Heine-Straße 50",
+      "type": "address",
+      "coord": [
+       51.332044,
+       12.334704
+      ],
+      "departureTimePlanned": "2026-10-27T17:00:00Z",
+      "departureTimeEstimated": "2026-10-27T17:00:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332319,
+       12.338387
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:05:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:05:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "01"
+      }
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.332044,
+       12.334704
+      ],
+      [
+       51.331836,
+       12.334776
+      ],
+      [
+       51.331764,
+       12.335118
+      ],
+      [
+       51.332117,
+       12.336447
+      ],
+      [
+       51.332392,
+       12.337525
+      ],
+      [
+       51.332387,
+       12.338028
+      ],
+      [
+       51.332375,
+       12.338396
+      ]
+     ]
+    },
+    {
+     "duration": 480,
+     "origin": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332319,
+       12.338387
+      ],
+      "departureTimePlanned": "2026-10-27T17:05:00Z",
+      "departureTimeEstimated": "2026-10-27T17:05:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "01"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Waldplatz",
+      "disassembledName": "Waldplatz",
+      "type": "platform",
+      "coord": [
+       51.341776,
+       12.355976
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:13:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:13:00Z",
+      "parent": {
+       "name": "Leipzig, Waldplatz",
+       "disassembledName": "Waldplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "03"
+      }
+     },
+     "transportation": {
+      "name": "Tram 3",
+      "disassembledName": "3",
+      "number": "3",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Sommerfeld"
+      }
+     },
+     "coords": [
+      [
+       51.332369,
+       12.338303
+      ],
+      [
+       51.333846,
+       12.339423
+      ],
+      [
+       51.335527,
+       12.339732
+      ],
+      [
+       51.337011,
+       12.339928
+      ],
+      [
+       51.338534,
+       12.342367
+      ],
+      [
+       51.341438,
+       12.355392
+      ],
+      [
+       51.341899,
+       12.357295
+      ]
+     ],
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    },
+    {
+     "duration": 420,
+     "origin": {
+      "name": "Leipzig, Waldplatz",
+      "disassembledName": "Waldplatz",
+      "type": "platform",
+      "coord": [
+       51.342354,
+       12.358582
+      ],
+      "departureTimePlanned": "2026-10-27T17:16:00Z",
+      "departureTimeEstimated": "2026-10-27T17:16:00Z",
+      "parent": {
+       "name": "Leipzig, Waldplatz",
+       "disassembledName": "Waldplatz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "08"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Menckestr.",
+      "disassembledName": "Menckestr.",
+      "type": "platform",
+      "coord": [
+       51.362276,
+       12.365499
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:23:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:23:00Z",
+      "parent": {
+       "name": "Leipzig, Menckestr.",
+       "disassembledName": "Menckestr.",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "transportation": {
+      "name": "Tram 4",
+      "disassembledName": "4",
+      "number": "4",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Gohlis, Landsberger Straße"
+      }
+     },
+     "coords": [
+      [
+       51.342555,
+       12.359046
+      ],
+      [
+       51.350024,
+       12.354738
+      ],
+      [
+       51.353504,
+       12.35301
+      ],
+      [
+       51.356929,
+       12.358979
+      ],
+      [
+       51.358661,
+       12.360279
+      ],
+      [
+       51.359997,
+       12.362094
+      ]
+     ],
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    },
+    {
+     "duration": 480,
+     "origin": {
+      "name": "Leipzig, Menckestr.",
+      "disassembledName": "Menckestr.",
+      "type": "platform",
+      "coord": [
+       51.362276,
+       12.365499
+      ],
+      "departureTimePlanned": "2026-10-27T17:23:00Z",
+      "departureTimeEstimated": "2026-10-27T17:23:00Z",
+      "parent": {
+       "name": "Leipzig, Menckestr.",
+       "disassembledName": "Menckestr.",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Georg-Schumann-Straße 31",
+      "disassembledName": "Georg-Schumann-Straße 31",
+      "type": "address",
+      "coord": [
+       51.360969,
+       12.371993
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:31:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:31:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.362276,
+       12.365481
+      ],
+      [
+       51.361619,
+       12.368876
+      ],
+      [
+       51.361272,
+       12.370367
+      ],
+      [
+       51.361165,
+       12.370592
+      ],
+      [
+       51.361182,
+       12.370897
+      ],
+      [
+       51.360969,
+       12.371993
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 1,
+   "legs": [
+    {
+     "duration": 360,
+     "origin": {
+      "name": "(Leipzig), Karl-Heine-Straße 50",
+      "disassembledName": "Karl-Heine-Straße 50",
+      "type": "address",
+      "coord": [
+       51.332044,
+       12.334704
+      ],
+      "departureTimePlanned": "2026-10-27T17:02:00Z",
+      "departureTimeEstimated": "2026-10-27T17:02:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332426,
+       12.33942
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:08:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:08:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.332044,
+       12.334704
+      ],
+      [
+       51.331707,
+       12.334848
+      ],
+      [
+       51.332067,
+       12.336249
+      ],
+      [
+       51.332392,
+       12.337821
+      ],
+      [
+       51.332375,
+       12.338594
+      ],
+      [
+       51.332358,
+       12.339259
+      ],
+      [
+       51.332431,
+       12.33942
+      ]
+     ]
+    },
+    {
+     "duration": 1080,
+     "origin": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332426,
+       12.33942
+      ],
+      "departureTimePlanned": "2026-10-27T17:08:00Z",
+      "departureTimeEstimated": "2026-10-27T17:08:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Wilhelm-Liebknecht-Platz",
+      "disassembledName": "Wilhelm-Liebknecht-Platz",
+      "type": "platform",
+      "coord": [
+       51.349889,
+       12.377644
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:26:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:26:00Z",
+      "parent": {
+       "name": "Leipzig, Wilhelm-Liebknecht-Platz",
+       "disassembledName": "Wilhelm-Liebknecht-Platz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "04"
+      }
+     },
+     "transportation": {
+      "name": "Tram 14",
+      "disassembledName": "14",
+      "number": "14",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Klinikum St. Georg"
+      }
+     },
+     "coords": [
+      [
+       51.332745,
+       12.33894
+      ],
+      [
+       51.332176,
+       12.346878
+      ],
+      [
+       51.341219,
+       12.367558
+      ],
+      [
+       51.344189,
+       12.373999
+      ],
+      [
+       51.344763,
+       12.378774
+      ],
+      [
+       51.349876,
+       12.377752
+      ],
+      [
+       51.35004,
+       12.378029
+      ]
+     ]
+    },
+    {
+     "duration": 240,
+     "origin": {
+      "name": "Leipzig, Wilhelm-Liebknecht-Platz",
+      "disassembledName": "Wilhelm-Liebknecht-Platz",
+      "type": "platform",
+      "coord": [
+       51.350024,
+       12.378003
+      ],
+      "departureTimePlanned": "2026-10-27T17:29:00Z",
+      "departureTimeEstimated": "2026-10-27T17:29:00Z",
+      "parent": {
+       "name": "Leipzig, Wilhelm-Liebknecht-Platz",
+       "disassembledName": "Wilhelm-Liebknecht-Platz",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Georg-Schumann-/ Lützowstr.",
+      "disassembledName": "Georg-Schumann-/ Lützowstr.",
+      "type": "stop",
+      "coord": [
+       51.361182,
+       12.371239
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:33:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:33:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "name": "Tram 38",
+      "disassembledName": "38",
+      "number": "38",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Wahren"
+      }
+     },
+     "coords": [
+      [
+       51.350077,
+       12.376711
+      ],
+      [
+       51.353263,
+       12.376641
+      ],
+      [
+       51.35687,
+       12.376828
+      ],
+      [
+       51.358005,
+       12.376175
+      ],
+      [
+       51.360192,
+       12.374686
+      ],
+      [
+       51.36092,
+       12.372514
+      ],
+      [
+       51.361202,
+       12.37116
+      ]
+     ],
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    },
+    {
+     "duration": 120,
+     "origin": {
+      "name": "Leipzig, Georg-Schumann-/ Lützowstr.",
+      "disassembledName": "Georg-Schumann-/ Lützowstr.",
+      "type": "platform",
+      "coord": [
+       51.361316,
+       12.371347
+      ],
+      "departureTimePlanned": "2026-10-27T17:33:00Z",
+      "departureTimeEstimated": "2026-10-27T17:33:00Z",
+      "parent": {
+       "name": "Leipzig, Georg-Schumann-/ Lützowstr.",
+       "disassembledName": "Georg-Schumann-/ Lützowstr.",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "03"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Georg-Schumann-Straße 31",
+      "disassembledName": "Georg-Schumann-Straße 31",
+      "type": "address",
+      "coord": [
+       51.360969,
+       12.371993
+      ],
+      "arrivalTimePlanned": "2026-10-27T17:35:00Z",
+      "arrivalTimeEstimated": "2026-10-27T17:35:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.361193,
+       12.371248
+      ],
+      [
+       51.361114,
+       12.371661
+      ],
+      [
+       51.361075,
+       12.37176
+      ],
+      [
+       51.361002,
+       12.371724
+      ],
+      [
+       51.360969,
+       12.371984
+      ],
+      [
+       51.360969,
+       12.371993
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

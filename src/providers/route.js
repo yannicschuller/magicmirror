@@ -4,6 +4,7 @@
 // Nominatim requests are serialized to max. 1 per second (usage policy). The
 // app's User-Agent (with contact URL) is sent by util.js.
 import { fetchJson, haversineKm } from '../util.js';
+import { transitTrip, pickJourney } from './trip.js';
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
 // OSRM demo servers (no live traffic!). FOSSGIS hosts bike and foot profiles.
@@ -14,7 +15,10 @@ export const ROUTERS = {
 };
 // Cautious (low) average straight-line speeds in km/h: give an upper bound for the
 // travel time, used to skip routing calls for events that are still far away.
-const MIN_SPEED = { car: 25, bike: 9, foot: 3.5 };
+// Public transport: incl. walking and waiting (an extra 25 min are added below).
+const MIN_SPEED = { car: 25, bike: 9, foot: 3.5, transit: 8 };
+export const TRAVEL_MODES = ['car', 'bike', 'foot', 'transit', 'auto'];
+const FOOT_FALLBACK_KM = 2; // public transport unavailable: walk below this distance, else car
 export const MAX_HOURS = 4; // longer trips are not considered
 
 const GEO_TTL = 30 * 86400 * 1000;
@@ -224,10 +228,19 @@ export function inTravelWindow(now, start, leaveMs, leadMin, marginMin = MARGIN_
 // Card visible on the mirror: from (leave − lead) until the event starts.
 export const showTravelCard = (now, travel) => now.getTime() >= Date.parse(travel.leaveAt) - travel.lead * 60000 && now < new Date(travel.start);
 
+// Travel mode for an event `km` (straight line) away: "auto" = public transport within
+// travelTransitRadiusKm of the start, car beyond.
+export function travelModeFor(s, km) {
+  const mode = TRAVEL_MODES.includes(s.travelMode) ? s.travelMode : 'car';
+  if (mode !== 'auto') return mode;
+  const radius = Number(s.travelTransitRadiusKm);
+  return km <= (Number.isFinite(radius) && radius >= 0 ? radius : 15) ? 'transit' : 'car';
+}
+
 // Picks the next event that needs the card now (or within the refresh margin) and routes there.
 // `events`: candidate events of non-busy-only calendars ({ title, location, start, allDay }).
-export async function computeTravel(events, s, from, { now = new Date(deps.now()), lang = 'de' } = {}) {
-  const mode = ROUTERS[s.travelMode] ? s.travelMode : 'car';
+// `transitBase`: EFA base URL for public transport (see trip.js), `timeZone` of the mirror.
+export async function computeTravel(events, s, from, { now = new Date(deps.now()), lang = 'de', transitBase = '', timeZone } = {}) {
   const lead = Math.max(0, Number(s.travelLeadMinutes) || 0);
   const buffer = Math.max(0, Number(s.travelBufferMinutes) || 0);
   for (const e of travelCandidates(events, now, { travelLeadMinutes: lead, travelBufferMinutes: buffer })) {
@@ -235,6 +248,37 @@ export async function computeTravel(events, s, from, { now = new Date(deps.now()
     if (!to) continue;
     const km = haversineKm(from.lat, from.lon, to.lat, to.lon);
     if (km < 0.15) continue; // the event is here
+    const base = {
+      title: e.title,
+      location: e.location,
+      start: e.start,
+      lead,
+      from: { lat: from.lat, lon: from.lon },
+      to: { lat: to.lat, lon: to.lon, label: to.label },
+    };
+    let mode = travelModeFor(s, km);
+    if (mode === 'transit') {
+      const maxDuration = Math.min(MAX_HOURS * 60, (km / MIN_SPEED.transit) * 60 + 25);
+      if (!inTravelWindow(now, e.start, leaveAtMs(e.start, maxDuration, buffer), lead)) continue;
+      const arriveBy = new Date(e.start).getTime() - buffer * 60000;
+      const j = pickJourney(await transitTrip(transitBase, from, to, arriveBy, { timeZone }), arriveBy);
+      if (j && j.legs.some((l) => !l.walk)) {
+        const leave = Date.parse(j.depart);
+        if (!inTravelWindow(now, e.start, leave, lead)) continue;
+        return {
+          ...base,
+          mode: 'transit',
+          durationMin: Math.max(1, Math.round((Date.parse(j.arrive) - leave) / 60000)),
+          leaveAt: j.depart,
+          arriveAt: j.arrive,
+          interchanges: j.interchanges,
+          late: j.late === true,
+          legs: j.legs,
+        };
+      }
+      // No connection (EFA down, nothing found, walking only): walk or drive instead.
+      mode = km <= FOOT_FALLBACK_KM ? 'foot' : 'car';
+    }
     // Cheap pre-check: too early even for a slow trip → no routing call yet.
     const maxDuration = Math.min(MAX_HOURS * 60, (km / MIN_SPEED[mode]) * 60 + 10);
     if (!inTravelWindow(now, e.start, leaveAtMs(e.start, maxDuration, buffer), lead)) continue;
@@ -243,17 +287,12 @@ export async function computeTravel(events, s, from, { now = new Date(deps.now()
     const leave = leaveAtMs(e.start, r.durationMin, buffer);
     if (!inTravelWindow(now, e.start, leave, lead)) continue;
     return {
-      title: e.title,
-      location: e.location,
-      start: e.start,
+      ...base,
       mode,
-      lead,
       durationMin: r.durationMin,
       distanceKm: r.distanceKm,
       leaveAt: new Date(leave).toISOString(),
       geometry: r.geometry,
-      from: { lat: from.lat, lon: from.lon },
-      to: { lat: to.lat, lon: to.lon, label: to.label },
     };
   }
   return null;

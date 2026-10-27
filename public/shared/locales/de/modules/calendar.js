@@ -89,7 +89,16 @@ export default {
   "Leave empty to use the location from \"General\".": "Leer lassen = Standort aus „Allgemein“.",
   "Start address (optional, more exact than a city)": "Startadresse (optional, genauer als ein Ort)",
   "Looked up once with OpenStreetMap (Nominatim) and preferred over the start location above. Stays on the server.": "Wird einmalig über OpenStreetMap (Nominatim) gesucht und hat Vorrang vor dem Startpunkt oben. Bleibt auf dem Server.",
-  "Map height (% of screen height, 0 = auto)": "Kartenhöhe (% der Bildschirmhöhe, 0 = automatisch)",
+  "Bus & train": "Bus & Bahn (ÖPNV)",
+  "Automatic (public transport nearby, otherwise car)": "Automatisch (in der Nähe ÖPNV, sonst Auto)",
+  "Automatic: public transport up to (km from the start)": "Automatisch: ÖPNV bis (km vom Startpunkt)",
+  "Public transport network": "Verkehrsverbund (ÖPNV)",
+  "Same as the departures module": "Wie im Abfahrten-Modul",
+  "Used for \"Bus & train\" and \"Automatic\": connections (EFA) arriving in time, with the latest departure. Without a departures module VVS is used. If no connection is found, the card falls back to walking or driving.": "Für „Bus & Bahn“ und „Automatisch“: Verbindungen (EFA), die rechtzeitig ankommen – mit der spätesten Abfahrt. Ohne Abfahrten-Modul wird der VVS genutzt. Wird keine Verbindung gefunden, zeigt die Karte den Fuß- oder Autoweg.",
+  "EFA base URL": "EFA-Basis-URL",
+  "Show route map": "Routenkarte anzeigen",
+  "Max. map height (% of screen height, 0 = auto)": "Max. Kartenhöhe (% der Bildschirmhöhe, 0 = automatisch)",
+  "The map sits small beside the text so that the next events stay visible.": "Die Karte steht klein neben dem Text, damit die nächsten Termine sichtbar bleiben.",
 
   // time to leave (mirror)
   "Leave at {time}": "Losfahren um {time}",
@@ -99,6 +108,11 @@ export default {
   "{duration} ({km} km) to {place}": "{duration} ({km} km) bis {place}",
   "Starts {time}": "Beginn {time}",
   "without live traffic": "ohne Verkehrslage",
+  "Leave by {time}": "Spätestens los um {time}",
+  "Go now!": "jetzt los!",
+  "{duration} to {place}": "{duration} bis {place}",
+  "{n}× change": "{n}× umsteigen",
+  "no change": "ohne Umstieg",
 
   // public holidays
   "New Year's Day": "Neujahr",

@@ -15,6 +15,7 @@ const MODE_ICONS = {
   bike: ico('<circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5L9 9h7l2.5 7.5M9 9l3.5 7.5L16 9M8 6.5h3"/>'),
   foot: ico('<circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2.2-6-2.7-2.7.8-4.3 3.2 1.8 2.5 2.7M9.7 8.2L6.8 10l-.8 3.2M12.2 15l2.3 2 1 4"/>'),
 };
+const TRANSIT_ICON = ico('<rect x="5" y="3.5" width="14" height="13" rx="3"/><path d="M5 11h14M9 20.5l1.5-4M15 20.5l-1.5-4M8.5 14h.01M15.5 14h.01M9 1.5h6"/>');
 
 export default function render(el, mod, ctx) {
   const s = mod.settings;
@@ -168,24 +169,58 @@ export default function render(el, mod, ctx) {
   };
 
   // ---- "time to leave" card: text redrawn on every tick, the map only when the route changes.
+  // Compact on purpose: a small map beside the text, so the next events stay visible below.
   let shell = null; // { slot, main }
   let tv = null; // { id, card, info, mapEl, map, routeKey, obs }
-  const routeKey = (x) => `${x.mode}|${x.geometry.length}|${x.geometry[0]}|${x.to.lat},${x.to.lon}`;
+  const pointsOf = (x) => (x.legs ? x.legs.flatMap((l) => l.coords || []) : x.geometry || []);
+  const routeKey = (x) => {
+    const pts = pointsOf(x);
+    return `${x.mode}|${x.leaveAt}|${pts.length}|${pts[0]}|${pts.at(-1)}|${x.to.lat},${x.to.lon}`;
+  };
+
+  const countdown = (x, now, nowText) => {
+    const ms = new Date(x.leaveAt) - now;
+    const state = ms <= 0 ? 'late' : ms <= WARN_MS ? 'warn' : '';
+    return `<span class="cal-tv-cd${state ? ` ${state}` : ''}">${esc(ms <= 0 ? nowText : relative(ms))}</span>`;
+  };
+  const head = (icon, text, cd, extra = '') => `<div class="cal-tv-head"><span class="cal-tv-ico">${icon}</span><span class="cal-tv-leave">${esc(text)}</span>${extra}${cd}</div>`;
+  // One-line card ("mini"): the first ride next to the leave time.
+  const firstRide = (x) => {
+    const l = x.legs.find((y) => !y.walk);
+    return l ? `<span class="cal-tv-first"><span class="line cat-${esc(l.category)}">${esc(l.line)}</span>${esc(l.from.name)} ${esc(ctx.fmt.time(new Date(l.from.time)))}</span>` : '';
+  };
+  // "{duration} … to <b>title</b>" with the title bold.
+  const toTitle = (text, title) => {
+    const [pre, post] = esc(text).split('\u0000');
+    return `${pre}<b>${esc(title)}</b>${post || ''}`;
+  };
+
+  const legsHtml = (x) => x.legs.map((l) => {
+    if (l.walk) return `<span class="tvl walk">${MODE_ICONS.foot}${esc(t('{m} min', { m: l.min }))}</span>`;
+    const late = (d) => (d > 0 ? `<span class="tvl-late">+${d}</span>` : '');
+    return `<span class="tvl ride"><span class="line cat-${esc(l.category)}">${esc(l.line)}</span>`
+      + `<span class="tvl-stop">${esc(l.from.name)} <b>${esc(ctx.fmt.time(new Date(l.from.time)))}</b>${late(l.from.delay)}</span>`
+      + `<span class="tvl-arr">→</span><span class="tvl-stop">${esc(l.to.name)} ${esc(ctx.fmt.time(new Date(l.to.time)))}</span></span>`;
+  }).join('<span class="tvl-sep">›</span>');
 
   const travelInfo = (x, now) => {
     const leave = new Date(x.leaveAt);
-    const ms = leave - now;
+    const note = [t('Starts {time}', { time: ctx.fmt.time(new Date(x.start)) }), x.location];
+    if (x.mode === 'transit') {
+      const changes = x.interchanges > 0 ? t('{n}× change', { n: x.interchanges }) : t('no change');
+      const sub = t('{duration} to {place}', { duration: duration(x.durationMin * 60000), place: '\u0000' });
+      return head(TRANSIT_ICON, t('Leave by {time}', { time: ctx.fmt.time(leave) }), countdown(x, now, t('Go now!')), firstRide(x))
+        + `<div class="cal-tv-sub">${toTitle(sub, x.title)}<span class="dim"> · ${esc(changes)}</span></div>`
+        + `<div class="cal-tv-legs">${legsHtml(x)}</div>`
+        + `<div class="cal-tv-note">${note.map(esc).join(' · ')}</div>`;
+    }
     const foot = x.mode === 'foot';
-    const state = ms <= 0 ? 'late' : ms <= WARN_MS ? 'warn' : '';
-    const cd = ms <= 0 ? t(foot ? 'Leave now on foot!' : 'Leave now!') : relative(ms);
     const km = x.distanceKm.toLocaleString(ctx.fmt.locale, { maximumFractionDigits: x.distanceKm < 10 ? 1 : 0 });
-    const head = t(foot ? 'Start walking at {time}' : 'Leave at {time}', { time: ctx.fmt.time(leave) });
     const sub = t('{duration} ({km} km) to {place}', { duration: duration(x.durationMin * 60000), km, place: '\u0000' });
-    const [pre, post] = esc(sub).split('\u0000');
-    const note = [t('Starts {time}', { time: ctx.fmt.time(new Date(x.start)) }), x.location, x.mode === 'car' ? t('without live traffic') : ''].filter(Boolean);
-    return `<div class="cal-tv-head"><span class="cal-tv-ico">${x.mode === 'car' ? calIcons.car : MODE_ICONS[x.mode] || calIcons.car}</span><span class="cal-tv-leave">${esc(head)}</span><span class="cal-tv-cd${state ? ` ${state}` : ''}">${esc(cd)}</span></div>`
-      + `<div class="cal-tv-sub">${pre}<b>${esc(x.title)}</b>${post || ''}</div>`
-      + `<div class="cal-tv-note">${note.map(esc).join(' · ')}</div>`;
+    if (x.mode === 'car') note.push(t('without live traffic'));
+    return head(x.mode === 'car' ? calIcons.car : MODE_ICONS[x.mode] || calIcons.car, t(foot ? 'Start walking at {time}' : 'Leave at {time}', { time: ctx.fmt.time(leave) }), countdown(x, now, t(foot ? 'Leave now on foot!' : 'Leave now!')))
+      + `<div class="cal-tv-sub">${toTitle(sub, x.title)}</div>`
+      + `<div class="cal-tv-note">${note.filter(Boolean).map(esc).join(' · ')}</div>`;
   };
 
   const fitRoute = () => {
@@ -193,20 +228,20 @@ export default function render(el, mod, ctx) {
     tv.map.invalidateSize({ pan: false, animate: false });
     const L = window.L;
     const x = last.travel;
-    const bounds = L.latLngBounds([[x.from.lat, x.from.lon], [x.to.lat, x.to.lon], ...x.geometry]);
-    tv.map.fitBounds(bounds, { padding: [22, 22], maxZoom: 16, animate: false });
+    const bounds = L.latLngBounds([[x.from.lat, x.from.lon], [x.to.lat, x.to.lon], ...pointsOf(x)]);
+    tv.map.fitBounds(bounds, { padding: [10, 10], maxZoom: 16, animate: false });
   };
 
   const drawRoute = () => {
     const L = window.L;
     const x = last?.travel;
-    if (!tv || !L || !x) return;
+    if (!tv || !tv.mapEl || !L || !x) return;
     if (!tv.map) {
       if (!tv.mapEl.offsetWidth) return; // hidden page: try again on show()/tick
       tv.map = L.map(tv.mapEl, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, fadeAnimation: false, zoomAnimation: false, markerZoomAnimation: false });
       tv.map.attributionControl.setPrefix('');
       const tiles = TILES.esri_dark;
-      L.tileLayer(tiles.url, { maxZoom: 18, attribution: `${tiles.attribution} · OSRM`, className: tiles.className }).addTo(tv.map);
+      L.tileLayer(tiles.url, { maxZoom: 18, attribution: `${tiles.attribution}${x.legs ? '' : ' · OSRM'}`, className: tiles.className }).addTo(tv.map);
       tv.layer = L.layerGroup().addTo(tv.map);
       if (window.ResizeObserver) {
         let timer = 0;
@@ -221,23 +256,24 @@ export default function render(el, mod, ctx) {
     if (key === tv.routeKey) return;
     tv.routeKey = key;
     const accent = ctx.general.accentColor || '#7dd3fc';
+    const line = (pts, color, opts = {}) => {
+      if (pts.length < 2) return;
+      if (!opts.dashArray) L.polyline(pts, { color: '#000', weight: 6, opacity: 0.55, interactive: false }).addTo(tv.layer);
+      L.polyline(pts, { color, weight: 3.5, opacity: 0.95, interactive: false, ...opts }).addTo(tv.layer);
+    };
     tv.layer.clearLayers();
-    if (x.geometry.length > 1) {
-      L.polyline(x.geometry, { color: '#000', weight: 7, opacity: 0.55, interactive: false }).addTo(tv.layer);
-      L.polyline(x.geometry, { color: accent, weight: 4, opacity: 0.95, interactive: false }).addTo(tv.layer);
+    if (x.legs) {
+      for (const l of x.legs) line(l.coords || [], l.walk ? '#9ca3af' : accent, l.walk ? { weight: 2.5, dashArray: '3 5' } : {});
+      for (const l of x.legs) {
+        if (l.walk || !l.coords?.length) continue;
+        for (const p of [l.coords[0], l.coords.at(-1)]) L.circleMarker(p, { radius: 3.5, color: '#000', weight: 1.5, fillColor: '#fff', fillOpacity: 1, interactive: false }).addTo(tv.layer);
+      }
+    } else {
+      line(x.geometry, accent);
     }
-    L.circleMarker([x.from.lat, x.from.lon], { radius: 5, color: '#fff', weight: 2, fillColor: accent, fillOpacity: 1, interactive: false }).addTo(tv.layer);
-    L.circleMarker([x.to.lat, x.to.lon], { radius: 7, color: '#fff', weight: 2.5, fillColor: '#f87171', fillOpacity: 1, interactive: false }).addTo(tv.layer);
+    L.circleMarker([x.from.lat, x.from.lon], { radius: 4.5, color: '#fff', weight: 2, fillColor: accent, fillOpacity: 1, interactive: false }).addTo(tv.layer);
+    L.circleMarker([x.to.lat, x.to.lon], { radius: 6, color: '#fff', weight: 2, fillColor: '#f87171', fillOpacity: 1, interactive: false }).addTo(tv.layer);
     fitRoute();
-  };
-
-  // Auto height: fill the region's free height (between 90 px and half the width / 30 vh).
-  const sizeMap = () => {
-    const region = el.closest('.region');
-    if (!tv || !region || !tv.mapEl.classList.contains('auto') || !tv.mapEl.offsetWidth) return;
-    const free = region.getBoundingClientRect().bottom - tv.mapEl.getBoundingClientRect().top - 6;
-    const h = Math.round(Math.max(90, Math.min(tv.mapEl.offsetWidth / 2, window.innerHeight * 0.3, free)));
-    if (Math.abs(h - tv.mapEl.offsetHeight) > 2) tv.mapEl.style.height = `${h}px`;
   };
 
   const closeTravel = () => {
@@ -256,17 +292,39 @@ export default function render(el, mod, ctx) {
     if (tv && tv.id !== id) closeTravel();
     if (!tv) {
       const card = document.createElement('div');
-      card.className = 'cal-tv';
-      const h = Number(s.travelMapHeight) > 0 ? ` style="height:${Number(s.travelMapHeight)}vh"` : '';
-      card.innerHTML = `<div class="cal-tv-info"></div><div class="cal-tv-map${h ? '' : ' auto'}"${h}></div>`;
+      const withMap = s.travelMap !== false;
+      card.className = `cal-tv${withMap ? ' with-map' : ''}`;
+      const max = Number(s.travelMapHeight) > 0 ? ` style="max-height:${Number(s.travelMapHeight)}vh;min-height:min(5.5em,${Number(s.travelMapHeight)}vh)"` : '';
+      card.innerHTML = `<div class="cal-tv-info"></div>${withMap ? `<div class="cal-tv-map"${max}></div>` : ''}`;
       shell.slot.append(card);
       tv = { id, card, info: card.querySelector('.cal-tv-info'), mapEl: card.querySelector('.cal-tv-map'), map: null, routeKey: '' };
-      loadLeaflet().then(drawRoute).catch(() => {});
+      if (withMap) loadLeaflet().then(drawRoute).catch(() => {});
     }
+    tv.card.classList.toggle('transit', x.mode === 'transit');
     const html = travelInfo(x, now);
     if (html !== tv.infoHtml) tv.info.innerHTML = tv.infoHtml = html;
-    sizeMap();
-    if (window.L) drawRoute();
+    if (window.L && tv.mapEl) drawRoute();
+  };
+
+  // Keeps the next events visible: if the card would push the 3rd event out of the region,
+  // it drops the note line ("tight"), then the map and the duration line ("tiny"), then
+  // shrinks to one line ("mini").
+  const FIT = ['tight', 'tiny', 'mini'];
+  const fitCard = () => {
+    const region = el.closest('.region');
+    if (!tv || !region || !el.offsetHeight) return;
+    const before = FIT.find((c) => tv.card.classList.contains(c)) || '';
+    tv.card.classList.remove(...FIT);
+    const rows = shell.main.querySelectorAll('.cal-ev, .cw, .cm-wrap');
+    const target = rows[Math.min(3, rows.length) - 1] || tv.card;
+    const bottom = region.getBoundingClientRect().bottom;
+    let state = '';
+    for (const cls of FIT) {
+      if (target.getBoundingClientRect().bottom <= bottom + 1) break;
+      tv.card.classList.add(cls);
+      state = cls;
+    }
+    if (state !== before && tv.map) setTimeout(fitRoute, 0);
   };
 
   const draw = () => {
@@ -294,6 +352,7 @@ export default function render(el, mod, ctx) {
       html += `${errors}</div>`;
     }
     if (html !== lastHtml) shell.main.innerHTML = lastHtml = html;
+    fitCard();
   };
 
   return {
@@ -305,8 +364,9 @@ export default function render(el, mod, ctx) {
     tickEvery: 30000,
     show() {
       if (tv) setTimeout(() => {
-        sizeMap();
-        if (tv?.map) fitRoute();
+        fitCard();
+        if (!tv?.mapEl) return;
+        if (tv.map) fitRoute();
         else drawRoute();
       }, 50);
     },

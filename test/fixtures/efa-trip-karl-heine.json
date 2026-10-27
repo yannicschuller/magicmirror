@@ -1,0 +1,718 @@
+{
+ "version": "11.0.6.72",
+ "systemMessages": [],
+ "journeys": [
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 360,
+     "origin": {
+      "name": "(Leipzig), Willy-Brandt-Platz 5",
+      "disassembledName": "Willy-Brandt-Platz 5",
+      "type": "address",
+      "coord": [
+       51.345479,
+       12.382054
+      ],
+      "departureTimePlanned": "2026-10-28T16:28:00Z",
+      "departureTimeEstimated": "2026-10-28T16:28:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Hauptbahnhof, Westseite",
+      "disassembledName": "Hauptbahnhof, Westseite",
+      "type": "platform",
+      "coord": [
+       51.344867,
+       12.378722
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:34:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:34:00Z",
+      "parent": {
+       "name": "Leipzig, Hauptbahnhof, Westseite",
+       "disassembledName": "Hauptbahnhof, Westseite",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "01"
+      }
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.345479,
+       12.382054
+      ],
+      [
+       51.344834,
+       12.381201
+      ],
+      [
+       51.344755,
+       12.380231
+      ],
+      [
+       51.344615,
+       12.379845
+      ],
+      [
+       51.344688,
+       12.379288
+      ],
+      [
+       51.3448,
+       12.378668
+      ],
+      [
+       51.344851,
+       12.378704
+      ]
+     ]
+    },
+    {
+     "duration": 780,
+     "origin": {
+      "name": "Leipzig, Hauptbahnhof, Westseite",
+      "disassembledName": "Hauptbahnhof, Westseite",
+      "type": "platform",
+      "coord": [
+       51.344867,
+       12.378722
+      ],
+      "departureTimePlanned": "2026-10-28T16:34:00Z",
+      "departureTimeEstimated": "2026-10-28T16:34:00Z",
+      "parent": {
+       "name": "Leipzig, Hauptbahnhof, Westseite",
+       "disassembledName": "Hauptbahnhof, Westseite",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "01"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.33274,
+       12.338846
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:47:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:47:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "04"
+      }
+     },
+     "transportation": {
+      "name": "Tram 14",
+      "disassembledName": "14",
+      "number": "14",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "S-Bf. Plagwitz"
+      }
+     },
+     "coords": [
+      [
+       51.344953,
+       12.378732
+      ],
+      [
+       51.344206,
+       12.371456
+      ],
+      [
+       51.339689,
+       12.365676
+      ],
+      [
+       51.332299,
+       12.341663
+      ],
+      [
+       51.33796,
+       12.360421
+      ],
+      [
+       51.332183,
+       12.348114
+      ],
+      [
+       51.332361,
+       12.339778
+      ]
+     ]
+    },
+    {
+     "duration": 360,
+     "origin": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.33274,
+       12.338846
+      ],
+      "departureTimePlanned": "2026-10-28T16:47:00Z",
+      "departureTimeEstimated": "2026-10-28T16:47:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "04"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Karl-Heine-Straße 50",
+      "disassembledName": "Karl-Heine-Straße 50",
+      "type": "address",
+      "coord": [
+       51.332044,
+       12.334704
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:53:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:53:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.332712,
+       12.338944
+      ],
+      [
+       51.332443,
+       12.338828
+      ],
+      [
+       51.332387,
+       12.338028
+      ],
+      [
+       51.332117,
+       12.336447
+      ],
+      [
+       51.331707,
+       12.334848
+      ],
+      [
+       51.332044,
+       12.334704
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 300,
+     "origin": {
+      "name": "(Leipzig), Willy-Brandt-Platz 5",
+      "disassembledName": "Willy-Brandt-Platz 5",
+      "type": "address",
+      "coord": [
+       51.345479,
+       12.382054
+      ],
+      "departureTimePlanned": "2026-10-28T16:33:00Z",
+      "departureTimeEstimated": "2026-10-28T16:33:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:38:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:38:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.345479,
+       12.382054
+      ],
+      [
+       51.344817,
+       12.381201
+      ],
+      [
+       51.34475,
+       12.381165
+      ],
+      [
+       51.344284,
+       12.380662
+      ],
+      [
+       51.34416,
+       12.380429
+      ],
+      [
+       51.344071,
+       12.380285
+      ],
+      [
+       51.344009,
+       12.38042
+      ]
+     ]
+    },
+    {
+     "duration": 780,
+     "origin": {
+      "name": "Leipzig, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "type": "stop",
+      "coord": [
+       51.345114,
+       12.381264
+      ],
+      "departureTimePlanned": "2026-10-28T16:38:00Z",
+      "departureTimeEstimated": "2026-10-28T16:38:00Z",
+      "parent": {
+       "name": "Leipzig",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332426,
+       12.33942
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:51:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:51:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "transportation": {
+      "name": "Tram 3",
+      "disassembledName": "3",
+      "number": "3",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "Knautkleeberg"
+      }
+     },
+     "coords": [
+      [
+       51.344225,
+       12.379766
+      ],
+      [
+       51.344308,
+       12.373708
+      ],
+      [
+       51.342049,
+       12.358461
+      ],
+      [
+       51.337454,
+       12.340144
+      ],
+      [
+       51.336764,
+       12.339815
+      ],
+      [
+       51.3337,
+       12.339341
+      ],
+      [
+       51.332745,
+       12.33894
+      ]
+     ]
+    },
+    {
+     "duration": 360,
+     "origin": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.332426,
+       12.33942
+      ],
+      "departureTimePlanned": "2026-10-28T16:51:00Z",
+      "departureTimeEstimated": "2026-10-28T16:51:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "02"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Karl-Heine-Straße 50",
+      "disassembledName": "Karl-Heine-Straße 50",
+      "type": "address",
+      "coord": [
+       51.332044,
+       12.334704
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:57:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:57:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.332431,
+       12.33942
+      ],
+      [
+       51.332364,
+       12.338944
+      ],
+      [
+       51.332375,
+       12.338441
+      ],
+      [
+       51.332392,
+       12.337525
+      ],
+      [
+       51.331842,
+       12.335405
+      ],
+      [
+       51.331836,
+       12.334776
+      ],
+      [
+       51.332044,
+       12.334704
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "rating": 0,
+   "isAdditional": false,
+   "interchanges": 0,
+   "legs": [
+    {
+     "duration": 360,
+     "origin": {
+      "name": "(Leipzig), Willy-Brandt-Platz 5",
+      "disassembledName": "Willy-Brandt-Platz 5",
+      "type": "address",
+      "coord": [
+       51.345479,
+       12.382054
+      ],
+      "departureTimePlanned": "2026-10-28T16:38:00Z",
+      "departureTimeEstimated": "2026-10-28T16:38:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "destination": {
+      "name": "Leipzig, Hauptbahnhof, Westseite",
+      "disassembledName": "Hauptbahnhof, Westseite",
+      "type": "platform",
+      "coord": [
+       51.344867,
+       12.378722
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:44:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:44:00Z",
+      "parent": {
+       "name": "Leipzig, Hauptbahnhof, Westseite",
+       "disassembledName": "Hauptbahnhof, Westseite",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "01"
+      }
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.345479,
+       12.382054
+      ],
+      [
+       51.344834,
+       12.381201
+      ],
+      [
+       51.344755,
+       12.380231
+      ],
+      [
+       51.344615,
+       12.379845
+      ],
+      [
+       51.344688,
+       12.379288
+      ],
+      [
+       51.3448,
+       12.378668
+      ],
+      [
+       51.344851,
+       12.378704
+      ]
+     ]
+    },
+    {
+     "duration": 780,
+     "origin": {
+      "name": "Leipzig, Hauptbahnhof, Westseite",
+      "disassembledName": "Hauptbahnhof, Westseite",
+      "type": "platform",
+      "coord": [
+       51.344867,
+       12.378722
+      ],
+      "departureTimePlanned": "2026-10-28T16:44:00Z",
+      "departureTimeEstimated": "2026-10-28T16:44:00Z",
+      "parent": {
+       "name": "Leipzig, Hauptbahnhof, Westseite",
+       "disassembledName": "Hauptbahnhof, Westseite",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "01"
+      }
+     },
+     "destination": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.33274,
+       12.338846
+      ],
+      "arrivalTimePlanned": "2026-10-28T16:57:00Z",
+      "arrivalTimeEstimated": "2026-10-28T16:57:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "04"
+      }
+     },
+     "transportation": {
+      "name": "Tram 14",
+      "disassembledName": "14",
+      "number": "14",
+      "product": {
+       "id": 4,
+       "class": 4,
+       "name": "Tram",
+       "iconId": 4
+      },
+      "destination": {
+       "name": "S-Bf. Plagwitz"
+      }
+     },
+     "coords": [
+      [
+       51.344953,
+       12.378732
+      ],
+      [
+       51.344206,
+       12.371456
+      ],
+      [
+       51.339689,
+       12.365676
+      ],
+      [
+       51.332299,
+       12.341663
+      ],
+      [
+       51.33796,
+       12.360421
+      ],
+      [
+       51.332183,
+       12.348114
+      ],
+      [
+       51.332361,
+       12.339778
+      ]
+     ]
+    },
+    {
+     "duration": 360,
+     "origin": {
+      "name": "Leipzig, Felsenkeller",
+      "disassembledName": "Felsenkeller",
+      "type": "platform",
+      "coord": [
+       51.33274,
+       12.338846
+      ],
+      "departureTimePlanned": "2026-10-28T16:57:00Z",
+      "departureTimeEstimated": "2026-10-28T16:57:00Z",
+      "parent": {
+       "name": "Leipzig, Felsenkeller",
+       "disassembledName": "Felsenkeller",
+       "type": "stop"
+      },
+      "properties": {
+       "platform": "04"
+      }
+     },
+     "destination": {
+      "name": "(Leipzig), Karl-Heine-Straße 50",
+      "disassembledName": "Karl-Heine-Straße 50",
+      "type": "address",
+      "coord": [
+       51.332044,
+       12.334704
+      ],
+      "arrivalTimePlanned": "2026-10-28T17:03:00Z",
+      "arrivalTimeEstimated": "2026-10-28T17:03:00Z",
+      "parent": {
+       "name": "(Leipzig)",
+       "type": "locality"
+      },
+      "properties": {}
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "footpath",
+       "iconId": 100
+      }
+     },
+     "coords": [
+      [
+       51.332712,
+       12.338944
+      ],
+      [
+       51.332443,
+       12.338828
+      ],
+      [
+       51.332387,
+       12.338028
+      ],
+      [
+       51.332117,
+       12.336447
+      ],
+      [
+       51.331707,
+       12.334848
+      ],
+      [
+       51.332044,
+       12.334704
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}
