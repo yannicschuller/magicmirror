@@ -190,3 +190,20 @@ test('old "use global location" switch is migrated', () => {
   assert.equal(cfg.modules[1].settings.location.name, 'Hamburg');
   assert.ok(!('useGlobalLocation' in cfg.modules[1].settings));
 });
+
+test('module schedule: days, time window and windows past midnight', async () => {
+  const { scheduleActive, normalizeSchedule } = await import('../public/shared/schedule.js');
+  const at = (iso) => new Date(iso); // UTC; Berlin is UTC+1 in winter
+  const weekdayMorning = normalizeSchedule({ enabled: true, days: [1, 2, 3, 4, 5], from: '06:00', to: '09:00' });
+  assert.equal(scheduleActive(weekdayMorning, at('2026-11-02T06:30:00Z'), 'Europe/Berlin'), true); // Mon 07:30
+  assert.equal(scheduleActive(weekdayMorning, at('2026-11-02T08:00:00Z'), 'Europe/Berlin'), false); // Mon 09:00
+  assert.equal(scheduleActive(weekdayMorning, at('2026-11-01T06:30:00Z'), 'Europe/Berlin'), false); // Sun
+  const night = normalizeSchedule({ enabled: true, days: [5], from: '22:00', to: '02:00' });
+  assert.equal(scheduleActive(night, at('2026-11-06T22:30:00Z'), 'Europe/Berlin'), true); // Fri 23:30
+  assert.equal(scheduleActive(night, at('2026-11-07T00:30:00Z'), 'Europe/Berlin'), true); // Sat 01:30 belongs to Fri
+  assert.equal(scheduleActive(night, at('2026-11-08T00:30:00Z'), 'Europe/Berlin'), false); // Sun 01:30
+  assert.equal(scheduleActive(normalizeSchedule(null), at('2026-11-08T00:30:00Z')), true);
+  const cfg = normalizeConfig({ modules: [{ type: 'clock', height: 'fill', schedule: { enabled: true, days: [9, 2], from: 'x' } }] });
+  assert.equal(cfg.modules[0].height, 'fill');
+  assert.deepEqual(cfg.modules[0].schedule, { enabled: true, days: [2], from: '06:00', to: '09:00' });
+});

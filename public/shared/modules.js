@@ -4,6 +4,7 @@
 
 import { translator, langOf } from './i18n.js';
 import { locationFields } from './fields.js';
+import { normalizeSchedule } from './schedule.js';
 import PLUGIN_MODULES from './modules/index.js';
 
 export const DEFAULT_LOCALE = 'en-GB';
@@ -52,28 +53,7 @@ export function transitBaseUrl(s) {
   return url;
 }
 
-export const CALENDAR_ICONS = [
-  { value: 'calendar', label: 'Calendar' },
-  { value: 'person', label: 'Person' },
-  { value: 'family', label: 'Family' },
-  { value: 'heart', label: 'Heart / partner' },
-  { value: 'work', label: 'Work' },
-  { value: 'school', label: 'School / university' },
-  { value: 'sport', label: 'Sport' },
-  { value: 'ball', label: 'Football / club' },
-  { value: 'cake', label: 'Birthday' },
-  { value: 'party', label: 'Celebration / party' },
-  { value: 'medical', label: 'Doctor / health' },
-  { value: 'plane', label: 'Travel / vacation' },
-  { value: 'car', label: 'Car / garage' },
-  { value: 'home', label: 'House / home' },
-  { value: 'cart', label: 'Shopping' },
-  { value: 'music', label: 'Music / concert' },
-  { value: 'paw', label: 'Pet' },
-  { value: 'star', label: 'Important / star' },
-  { value: 'flag', label: 'Holiday' },
-  { value: 'bell', label: 'Reminder' },
-];
+export { CALENDAR_ICONS } from './calendar-icons.js';
 
 
 // Keywords cover German and English collection calendars.
@@ -107,6 +87,19 @@ export const MODULE_TYPES = {
       { key: 'showWeek', label: 'Show week number', type: 'bool', default: true },
       { key: 'size', label: 'Size', type: 'select', default: 'large', options: [
         { value: 'small', label: 'Small' }, { value: 'medium', label: 'Medium' }, { value: 'large', label: 'Large' }, { value: 'huge', label: 'Huge' },
+      ] },
+      { key: 'style', label: 'Clock style', type: 'select', default: 'digital', options: [
+        { value: 'digital', label: 'Digital' }, { value: 'analog', label: 'Analog' }, { value: 'word', label: 'Word clock' }, { value: 'analogDigital', label: 'Analog + digital' },
+      ] },
+      { key: 'analogFace', label: 'Clock face', type: 'select', default: 'ticks', help: 'Analog styles only', options: [
+        { value: 'minimal', label: 'Minimal' }, { value: 'ticks', label: 'Tick marks' }, { value: 'numbers', label: 'Numbers' }, { value: 'roman', label: 'Roman numerals' },
+      ] },
+      { key: 'showSecondHand', label: 'Second hand', type: 'bool', default: true, help: 'Analog styles only' },
+      { key: 'wordStyle', label: 'Word clock layout', type: 'select', default: 'sentence', showIf: { style: 'word' }, options: [
+        { value: 'sentence', label: 'Sentence' }, { value: 'grid', label: 'Letter grid' },
+      ] },
+      { key: 'wordDialect', label: 'Quarter hours (German)', type: 'select', default: 'standard', showIf: { style: 'word' }, options: [
+        { value: 'standard', label: 'viertel nach drei / viertel vor vier' }, { value: 'east', label: 'viertel vier / dreiviertel vier (East German)' },
       ] },
     ],
   },
@@ -195,47 +188,7 @@ export const MODULE_TYPES = {
     ],
   },
 
-  calendar: {
-    label: 'Calendar',
-    description: 'Events from multiple iCal/ICS calendars',
-    defaultRegion: 'middle_left',
-    defaultTitle: 'Events',
-    refresh: 600,
-    fields: [
-      { key: 'calendars', label: 'Calendar', type: 'list', itemLabel: 'Calendar', default: [], fields: [
-        { key: 'name', label: 'Name', type: 'text', default: 'Calendar' },
-        { key: 'url', label: 'iCal URL (https:// or webcal://)', type: 'text', default: '', secret: true, placeholder: 'https://calendar.google.com/calendar/ical/.../basic.ics' },
-        { key: 'color', label: 'Color', type: 'color', default: '#7dd3fc' },
-        { key: 'icon', label: 'Icon', type: 'select', default: 'calendar', options: CALENDAR_ICONS },
-        { key: 'enabled', label: 'Enabled', type: 'bool', default: true },
-      ] },
-      { key: 'style', label: 'Style', type: 'select', default: 'badge', options: [
-        { value: 'badge', label: 'Icon on colored circle' },
-        { value: 'icon', label: 'Icon in calendar color' },
-        { value: 'bar', label: 'Colored bar + icon' },
-        { value: 'dot', label: 'Colored dot only' },
-      ] },
-      { key: 'colorTitle', label: 'Event title in calendar color', type: 'bool', default: false },
-      { key: 'showLegend', label: 'Show legend (calendars with icon & color)', type: 'bool', default: false },
-      { key: 'iconRules', label: 'Icons by event keyword (overrides the calendar icon)', type: 'list', itemLabel: 'Rule', default: [
-        { keywords: 'geburtstag, birthday, bday', icon: 'cake' },
-        { keywords: 'arzt, zahnarzt, termin praxis, impfung, physio, doctor, dentist, vaccination', icon: 'medical' },
-        { keywords: 'urlaub, flug, reise, vacation, holiday, flight, trip', icon: 'plane' },
-        { keywords: 'training, fitness, gym, laufen, yoga, schwimmen, running, swimming', icon: 'sport' },
-        { keywords: 'werkstatt, tüv, reifen, garage, mot, tyres', icon: 'car' },
-        { keywords: 'konzert, festival, concert, gig', icon: 'music' },
-        { keywords: 'party, feier, hochzeit, wedding, celebration', icon: 'party' },
-      ], fields: [
-        { key: 'keywords', label: 'Keywords (comma-separated)', type: 'text', default: '' },
-        { key: 'icon', label: 'Icon', type: 'select', default: 'star', options: CALENDAR_ICONS },
-      ] },
-      { key: 'daysAhead', label: 'Days ahead', type: 'number', default: 14, min: 1, max: 365 },
-      { key: 'maxEvents', label: 'Max. events', type: 'number', default: 10, min: 1, max: 50 },
-      { key: 'groupByDay', label: 'Group by day', type: 'bool', default: true },
-      { key: 'showLocation', label: 'Show location', type: 'bool', default: false },
-      { key: 'showCalendarName', label: 'Show calendar name', type: 'bool', default: false },
-    ],
-  },
+  // calendar: plug-in module, see ./modules/calendar.js
 
   waste: {
     label: 'Waste calendar',
@@ -244,6 +197,7 @@ export const MODULE_TYPES = {
     defaultTitle: 'Waste collection',
     refresh: 3600,
     fields: [
+      { key: 'service', label: 'Find by town / address (no iCal needed)', type: 'wasteService', default: null, secret: true, help: 'Search your town or waste management company, enter your address and test it. Needs the optional "waste" service (installer question or COMPOSE_PROFILES=waste). Collection types are mapped onto the waste types below via their keywords.' },
       { key: 'sources', label: 'iCal sources (from your waste management company)', type: 'list', itemLabel: 'Source', default: [], fields: [
         { key: 'name', label: 'Name', type: 'text', default: 'Abfuhrkalender' },
         { key: 'url', label: 'iCal URL', type: 'text', default: '', secret: true },
@@ -308,6 +262,14 @@ export const MODULE_TYPES = {
       ] },
       { key: 'showPlatform', label: 'Show platform', type: 'bool', default: true },
       { key: 'showDelay', label: 'Show delay', type: 'bool', default: true },
+      { key: 'goNow', label: 'Leave-now indicator', type: 'bool', default: false, help: 'Traffic light based on the walking time to the stop' },
+      { key: 'bufferMinutes', label: 'Buffer (min.)', type: 'number', default: 2, min: 0, max: 30, showIf: { goNow: true } },
+      { key: 'rushMinutes', label: 'Time saved by hurrying (min.)', type: 'number', default: 3, min: 0, max: 30, showIf: { goNow: true } },
+      { key: 'hideUnreachable', label: 'Hide unreachable departures', type: 'bool', default: true, showIf: { goNow: true } },
+      { key: 'goNowStyle', label: 'Indicator style', type: 'select', default: 'dot', showIf: { goNow: true }, options: [
+        { value: 'dot', label: 'Coloured dot' }, { value: 'row', label: 'Tinted row' }, { value: 'banner', label: 'Banner above the table' },
+      ] },
+      { key: 'goNowLines', label: 'Banner: only these lines (comma-separated, empty = all)', type: 'text', default: '', showIf: { goNow: true, goNowStyle: 'banner' } },
     ],
   },
 
@@ -325,15 +287,32 @@ export const MODULE_TYPES = {
       ] },
       { key: 'localUrl', label: 'aircraft.json URL', type: 'text', default: 'http://ultrafeeder/data/aircraft.json', showIf: { source: 'local' } },
       ...locationFields,
+      { key: 'display', label: 'Display', type: 'select', default: 'map', options: [
+        { value: 'map', label: 'Map with all aircraft' },
+        { value: 'nearest', label: 'Nearest aircraft (photo, route, map)' },
+        { value: 'both', label: 'Map with all aircraft + nearest aircraft' },
+      ] },
       { key: 'radiusKm', label: 'Radius (km)', type: 'number', default: 40, min: 5, max: 400 },
       { key: 'zoom', label: 'Zoom level', type: 'number', default: 9, min: 4, max: 14 },
-      { key: 'height', label: 'Map height (% of screen height)', type: 'number', default: 35, min: 10, max: 100 },
-      { key: 'refreshSeconds', label: 'Refresh (sec.)', type: 'number', default: 5, min: 2, max: 120 },
+      { key: 'height', label: 'Map height (% of screen height, 0 = fit to free space)', type: 'number', default: 0, min: 0, max: 100 },
+      { key: 'refreshSeconds', label: 'Refresh (sec.)', type: 'number', default: 5, min: 2, max: 600,
+        help: 'Applies to your own receiver. Online sources are updated at most every 3 minutes (adsb.lol allows about 500 requests per day) – for a live map use your own ADS-B stick.' },
       { key: 'maxAltitudeFt', label: 'Max. altitude (ft, 0 = all)', type: 'number', default: 0, min: 0, max: 60000 },
       { key: 'showLabels', label: 'Callsigns on the map', type: 'bool', default: true },
       { key: 'showRings', label: 'Range rings', type: 'bool', default: true },
       { key: 'showList', label: 'List of nearest aircraft', type: 'bool', default: true },
       { key: 'listCount', label: 'Entries in list', type: 'number', default: 5, min: 1, max: 20 },
+      { key: 'units', label: 'Units', type: 'select', default: 'ft_kmh', options: [
+        { value: 'ft_kmh', label: 'ft, km/h, km' }, { value: 'metric', label: 'm, km/h, km' },
+        { value: 'aviation', label: 'ft, kt, NM' }, { value: 'imperial', label: 'ft, mph, mi' },
+      ] },
+      { key: 'spotAirborneOnly', label: 'Nearest aircraft: only airborne', type: 'bool', default: true },
+      { key: 'spotMinAltitudeFt', label: 'Nearest aircraft: min. altitude (ft, 0 = any)', type: 'number', default: 0, min: 0, max: 40000 },
+      { key: 'spotRequireCallsign', label: 'Nearest aircraft: ignore aircraft without callsign', type: 'bool', default: false },
+      { key: 'showRoute', label: 'Nearest aircraft: route (adsb.lol)', type: 'bool', default: true },
+      { key: 'showPhoto', label: 'Nearest aircraft: photo (planespotters.net)', type: 'bool', default: true },
+      { key: 'showSquawk', label: 'Nearest aircraft: squawk', type: 'bool', default: false },
+      { key: 'trailLength', label: 'Nearest aircraft: track trail (positions, 0 = off)', type: 'number', default: 20, min: 0, max: 120 },
       { key: 'tiles', label: 'Map style', type: 'select', default: 'esri_dark', options: [
         { value: 'esri_dark', label: 'Dark (Esri Dark Gray)' }, { value: 'osm_dark', label: 'OpenStreetMap dark' }, { value: 'osm', label: 'OpenStreetMap light' }, { value: 'custom', label: 'Custom tile URL' },
       ] },
@@ -461,6 +440,11 @@ function coerce(field, value, t) {
       return Number.isFinite(lat) && Number.isFinite(lon) ? { name: String(value.name || ''), lat, lon } : null;
     }
     case 'transitStop': return value.id ? { id: String(value.id), name: String(value.name || value.id) } : null;
+    case 'wasteService': {
+      if (typeof value !== 'object' || !/^[a-z0-9_]+$/.test(String(value.source || ''))) return null;
+      const obj = (o) => (o && typeof o === 'object' && !Array.isArray(o) ? clone(o) : {});
+      return { source: String(value.source), title: String(value.title || value.source), args: obj(value.args), labels: obj(value.labels) };
+    }
     default: return String(value);
   }
 }
@@ -482,6 +466,8 @@ export function defaultModule(type, extra = {}, locale = DEFAULT_LOCALE) {
     pages: ['*'],
     region: t.defaultRegion,
     order: 0,
+    height: 'auto',
+    schedule: normalizeSchedule(null),
     settings: applyDefaults(t.fields, {}, tr),
     ...extra,
   };
@@ -562,6 +548,9 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
         pages: mp,
         region: REGION_IDS.has(m.region) ? m.region : t.defaultRegion,
         order: Number.isFinite(Number(m.order)) ? Number(m.order) : i,
+        // "fill" = take all free space in its column (extends into empty areas below/above)
+        height: m.height === 'fill' ? 'fill' : 'auto',
+        schedule: normalizeSchedule(m.schedule),
         settings: applyDefaults(t.fields, migrateSettings(m.settings), tr),
       };
     });

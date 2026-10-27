@@ -37,9 +37,10 @@ export default function render(el, mod, ctx) {
         el.innerHTML = `<div class="dim small">${esc(t('No entities configured'))}</div>`;
         return;
       }
-      // Hide the whole module when every entity is filtered out (e.g. all windows closed).
+      // Hide the whole module when every entity is filtered out (e.g. all windows closed)
+      // or the module condition does not hold (d.hidden).
       wrap?.classList.toggle('empty', !list.length);
-      const cls = (e) => ['ha-item', s.highlightActive && e.active && e.value === undefined ? 'active' : '', e.available === false ? 'unavailable' : '', e.missing ? 'missing' : '', e.value === undefined ? 'text' : ''].filter(Boolean).join(' ');
+      const cls = (e) => ['ha-item', s.highlightActive && e.active && e.value === undefined ? 'active' : '', e.available === false ? 'unavailable' : '', e.missing ? 'missing' : '', e.value === undefined ? 'text' : '', e.warn ? 'warn' : ''].filter(Boolean).join(' ');
       const icon = (e) => `<span class="ha-ico">${ICONS[e.icon] || ICONS.generic}</span>`;
       if (s.layout === 'grid') {
         el.innerHTML = `<div class="ha-grid" style="--ha-cols:${Math.min(s.columns, list.length) || 1}">${list

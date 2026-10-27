@@ -22,3 +22,6 @@
 .mod-homeassistant .ha-item.unavailable .ha-value,
 .mod-homeassistant .ha-item.missing .ha-value { color: var(--dim); font-size: 1em; font-weight: 300; }
 .mod-homeassistant .ha-item.missing .ha-label { text-decoration: line-through; }
+.mod-homeassistant .ha-item.warn .ha-ico,
+.mod-homeassistant .ha-item.warn .ha-value,
+.mod-homeassistant .ha-item.warn .ha-unit { color: var(--warn); }

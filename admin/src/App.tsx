@@ -15,7 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ConfirmProvider } from '@/components/confirm';
-import { LANGUAGES } from '@/lib/shared';
+import { LANGUAGES, type Build } from '@/lib/shared';
 import { StoreProvider, useStore, useT, VIEWS, type View } from '@/lib/store';
 import { VersionBadge } from '@/components/version-badge';
 import { BackupView } from '@/views/backup-view';
@@ -43,13 +43,13 @@ export default function App() {
   );
 }
 
-function Brand() {
-  const { me } = useStore();
+// Also rendered by the loading screen (outside the store), so the build info is a prop.
+function Brand({ build }: { build?: Build }) {
   return (
     <div className="flex shrink-0 items-center gap-2.5 text-[15px] font-semibold">
       <img src="/brand/logo.svg" alt="" className="size-7 drop-shadow-[0_0_8px_rgb(167_139_250/0.35)]" />
       <span>Magic Mirror</span>
-      <VersionBadge build={me.build} className="max-sm:hidden" />
+      {build && <VersionBadge build={build} className="max-sm:hidden" />}
     </div>
   );
 }
@@ -81,7 +81,7 @@ function Shell() {
     <Tabs value={view} onValueChange={(v) => setView(v as View)} className="min-h-screen gap-0">
       <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1700px] flex-wrap items-center gap-x-5 gap-y-2 px-3 py-2.5 sm:px-5">
-          <Brand />
+          <Brand build={me.build} />
           <div className="order-last -mx-3 w-[calc(100%+1.5rem)] overflow-x-auto px-3 [scrollbar-width:none] sm:order-none sm:mx-0 sm:w-auto sm:px-0 [&::-webkit-scrollbar]:hidden">
             <TabsList className="h-9">
               {VIEWS.map((v) => (

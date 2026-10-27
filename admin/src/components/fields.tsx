@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { IconButton } from '@/components/icon-button';
+import { WasteServiceField } from '@/components/waste-service-field';
 import { api, errorMessage, keyOf } from '@/lib/api';
 import { applyDefaults, type Field, type Option, type Values } from '@/lib/shared';
 import { useStore } from '@/lib/store';
@@ -248,6 +249,12 @@ function FieldInput({ field, values, onChange }: { field: Field; values: Values;
       return (
         <FieldRow field={field} wide>
           <TransitStopField value={v} values={values} onValue={set} />
+        </FieldRow>
+      );
+    case 'wasteService':
+      return (
+        <FieldRow field={field} wide>
+          <WasteServiceField value={v} values={values} onValue={set} />
         </FieldRow>
       );
     case 'list':

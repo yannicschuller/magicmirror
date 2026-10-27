@@ -1,0 +1,14 @@
+# Runtime dependencies of the "Waste Collection Schedule" sources (without Home Assistant).
+# lxml / curl_cffi / charset-normalizer / cryptography ship armv7 wheels; cffi is compiled
+# in the build stage on arm/v7 (no wheel on PyPI).
+requests==2.34.2
+beautifulsoup4==4.15.0
+lxml==6.1.3
+python-dateutil==2.9.0.post0
+pytz==2026.5
+icalendar==7.3.0
+icalevents==0.3.1
+jinja2==3.1.6
+pypdf==6.21.3
+pdfminer.six==20260107
+curl_cffi==0.17.0

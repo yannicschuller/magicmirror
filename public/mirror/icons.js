@@ -39,7 +39,7 @@ export const icons = {
   camera: svg('<rect x="3" y="7" width="14" height="10" rx="2"/><path d="M17 10l4-2v8l-4-2"/>'),
 };
 
-// Calendar icons (keys = CALENDAR_ICONS in shared/modules.js)
+// Calendar icons (keys = CALENDAR_ICONS in shared/calendar-icons.js)
 export const calIcons = {
   calendar: svg('<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
   person: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),

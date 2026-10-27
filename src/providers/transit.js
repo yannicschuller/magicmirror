@@ -89,7 +89,11 @@ export async function transit(settings) {
   const lines = splitList(settings.lines);
   const exclude = splitList(settings.excludeDestinations);
   const cats = new Set(settings.categories);
-  const earliest = Date.now() + settings.walkMinutes * 60000 - 30000;
+  // With the leave-now indicator, departures you can still catch by hurrying (rushMinutes) stay
+  // on the board; with hideUnreachable off, missed ones are kept too (shown greyed out).
+  const goNow = settings.goNow;
+  const walk = goNow ? (settings.hideUnreachable === false ? 0 : Math.max(0, settings.walkMinutes - (settings.rushMinutes ?? 3))) : settings.walkMinutes;
+  const earliest = Date.now() + walk * 60000 - 30000;
   const departures = raw
     .filter((d) => cats.has(d.category))
     .filter((d) => !lines.length || lines.includes(d.line.toLowerCase()))

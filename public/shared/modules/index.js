@@ -6,5 +6,6 @@ import tasks from './tasks.js';
 import fuel from './fuel.js';
 import sky from './sky.js';
 import football from './football.js';
+import calendar from './calendar.js';
 
-export default [news, homeassistant, tasks, fuel, sky, football];
+export default [news, homeassistant, tasks, fuel, sky, football, calendar];

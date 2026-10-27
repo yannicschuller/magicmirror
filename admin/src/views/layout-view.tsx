@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
-import { ArrowDown, ArrowUp, MonitorPlay, Plus, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Clock, MonitorPlay, MoveVertical, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Badge } from '@/components/ui/badge';
@@ -210,7 +210,7 @@ function LayoutPanel({ page }: { page: Page }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div
-          className="mm-screen-grid grid w-full gap-2 rounded-xl border bg-black p-2 sm:p-3 md:aspect-video md:max-h-[62vh]"
+          className="mm-screen-grid grid w-full gap-2 rounded-xl border bg-black p-2 sm:p-3"
         >
           {REGIONS.map((r) => (
             <Zone key={r.id} region={r.id} label={t(r.label)} page={page} />
@@ -318,8 +318,34 @@ function ModuleChip({ m, page, outside = false }: { m: Module; page: Page; outsi
         dragging && 'opacity-40',
       )}
     >
-      <span className="truncate text-[13px] font-semibold">{moduleName(m, t)}</span>
+      <span className="flex min-w-0 items-center gap-1.5 truncate text-[13px] font-semibold">
+        <span className="truncate">{moduleName(m, t)}</span>
+        {m.schedule?.enabled && (
+          <span title={t('Only shown {from}–{to}', { from: m.schedule.from, to: m.schedule.to })}>
+            <Clock className="size-3 shrink-0 text-primary" />
+          </span>
+        )}
+      </span>
       <span className="truncate text-[11px] text-muted-foreground">{meta}</span>
+      {!outside && (
+        <button
+          type="button"
+          title={m.height === 'fill' ? t('Uses as much space as possible – click for automatic height') : t('Use as much space as possible')}
+          aria-label={t('Use as much space as possible')}
+          aria-pressed={m.height === 'fill'}
+          className={cn(
+            'absolute right-1 bottom-1 rounded p-0.5 hover:bg-primary/15 hover:text-primary',
+            m.height === 'fill' ? 'text-primary' : 'text-muted-foreground/60',
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            m.height = m.height === 'fill' ? 'auto' : 'fill';
+            touch();
+          }}
+        >
+          <MoveVertical className="size-3" />
+        </button>
+      )}
       {!outside && (
         <button
           type="button"

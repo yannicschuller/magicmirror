@@ -199,6 +199,7 @@ if [ "$P_UPDATE" = y ]; then
 else
   UPDATE_TIME_VALUE=off
 fi
+ask_yes P_WASTE "$(m "Find your waste collection by town/address (no iCal needed)?" "Müllabfuhr per Ort/Adresse finden (ohne iCal)?")" "$(has_profile waste y)"
 ask_yes P_CAMERA "$(m "Show RTSP cameras (go2rtc)?" "RTSP-Kameras anzeigen (go2rtc)?")" "$(has_profile camera n)"
 adsb_default="$(has_profile adsb n)"; [ "$(has_profile fr24 n)" = y ] && adsb_default=y
 ask_yes P_ADSB "$(m "Use your own ADS-B USB stick for the aircraft map (optional)?" "Eigenen ADS-B-USB-Stick für die Flugzeugkarte nutzen (optional)?")" "$adsb_default"
@@ -216,6 +217,7 @@ fi
 profiles=()
 [ "$P_KIOSK" = y ] && profiles+=(kiosk)
 profiles+=(autoupdate)
+[ "$P_WASTE" = y ] && profiles+=(waste)
 [ "$P_CAMERA" = y ] && profiles+=(camera)
 [ "$P_ADSB" = y ] && profiles+=(adsb)
 [ "$P_FR24" = y ] && profiles+=(fr24)

@@ -1,6 +1,7 @@
 import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
 import { translator, langOf } from '/shared/i18n.js';
+import { scheduleActive } from '/shared/schedule.js';
 
 const params = new URLSearchParams(location.search);
 const pinnedPage = params.get('page');
@@ -56,7 +57,7 @@ function build() {
   for (const mod of mods) {
     const region = grid.querySelector(`.region[data-region="${mod.region}"]`);
     const wrap = document.createElement('section');
-    wrap.className = `module mod-${mod.type} off`;
+    wrap.className = `module mod-${mod.type}${mod.height === 'fill' ? ' fill' : ''} off`;
     wrap.dataset.id = mod.id;
     wrap.innerHTML = `${mod.title ? `<header class="mod-title">${esc(mod.title)}</header>` : ''}<div class="mod-body"><div class="dim small loading">${ctx.fmt.t('Loading …')}</div></div>`;
     region.append(wrap);
@@ -112,14 +113,36 @@ async function loadData(inst) {
 
 // ---- pages ---------------------------------------------------------------------
 function onPage(mod, page) {
-  return mod.pages.includes('*') || mod.pages.includes(page.id);
+  return (mod.pages.includes('*') || mod.pages.includes(page.id)) && scheduleActive(mod.schedule, new Date(), config.general.timezone);
 }
 
-function showPage(index, immediate = false) {
-  clearTimeout(pageTimer);
-  if (!pages.length) return;
-  pageIndex = ((index % pages.length) + pages.length) % pages.length;
+// Modules with height "fill" take over empty areas above/below them in their column.
+const COLUMNS = { left: 1, center: 2, right: 3 };
+const ROWS = ['top', 'middle', 'bottom'];
+function layoutFill() {
+  const visible = (region) => instances.some((i) => i.visible && i.mod.region === region);
+  for (const [col, colIndex] of Object.entries(COLUMNS)) {
+    const regions = ROWS.map((row) => grid.querySelector(`.region[data-region="${row}_${col}"]`));
+    regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = ''));
+    ROWS.forEach((row, r) => {
+      const fills = instances.some((i) => i.visible && i.mod.region === `${row}_${col}` && i.mod.height === 'fill');
+      if (!fills) return;
+      let start = r;
+      let end = r;
+      while (start > 0 && !visible(`${ROWS[start - 1]}_${col}`)) start--;
+      while (end < ROWS.length - 1 && !visible(`${ROWS[end + 1]}_${col}`)) end++;
+      if (start === end) return;
+      // grid rows: 1 = top bar, 2 = top, 3 = middle, 4 = bottom, 5 = bottom bar
+      regions[r].style.gridRow = `${start + 2} / ${end + 3}`;
+      regions[r].style.gridColumn = String(colIndex);
+    });
+  }
+}
+
+// Re-evaluate schedules without switching the page.
+function applyVisibility(immediate = false) {
   const page = pages[pageIndex];
+  if (!page) return;
   const transition = config.general.transition;
   for (const inst of instances) {
     const want = onPage(inst.mod, page);
@@ -150,6 +173,15 @@ function showPage(index, immediate = false) {
       }
     }
   }
+  layoutFill();
+}
+
+function showPage(index, immediate = false) {
+  clearTimeout(pageTimer);
+  if (!pages.length) return;
+  pageIndex = ((index % pages.length) + pages.length) % pages.length;
+  const page = pages[pageIndex];
+  applyVisibility(immediate);
   renderIndicator();
   if (config.general.rotatePages && pages.length > 1 && !pinnedPage) {
     pageTimer = setTimeout(() => showPage(pageIndex + 1), page.duration * 1000);
@@ -271,4 +303,7 @@ indicator.addEventListener('click', (e) => {
 
 buildGrid();
 init().then(connectEvents);
-setInterval(updateDim, 60000);
+setInterval(() => {
+  updateDim();
+  if (config) applyVisibility();
+}, 60000);

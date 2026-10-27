@@ -1,7 +1,10 @@
-import { icons, calIcons, bin, plane, weatherInfo as wmo, hintIcons, weatherIcons, animatedIcon } from './icons.js';
+import { icons, bin, weatherInfo as wmo, hintIcons, weatherIcons, animatedIcon } from './icons.js';
 import { hourlyChart, uvLevel, aqiLevel, pollenLevel, tempColor, compass } from './weather-chart.js';
 import { translator, langOf } from '/shared/i18n.js';
 import pluginRenderers from './modules/index.js';
+import { flights } from './flights.js';
+import { goStatus, nextReachable } from './transit-go.js';
+import { wordClock, GRIDS, litCells } from './word-clock.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 // Set by makeFmt() – the mirror renders one configuration at a time.
@@ -79,18 +82,51 @@ function countdown(ms) {
 // ---- renderers ---------------------------------------------------------------
 // Each renderer: (el, mod, ctx) => { update?(data), tick?(), show?(), hide?(), destroy?() }
 
+const ROMAN = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+const polar = (deg, r) => [Math.sin((deg * Math.PI) / 180) * r, -Math.cos((deg * Math.PI) / 180) * r].map((v) => v.toFixed(2));
+function analogSvg(face, seconds) {
+  let marks = '';
+  for (let i = 0; i < 60; i++) {
+    const hour = i % 5 === 0;
+    if (face === 'minimal' && i % 15) continue;
+    const labels = face === 'numbers' || face === 'roman';
+    const [r0, cls] = face === 'minimal' ? [82, 'ac-tick big'] : hour && !labels ? [80, 'ac-tick big'] : [90, 'ac-tick'];
+    const [x1, y1] = polar(i * 6, r0);
+    const [x2, y2] = polar(i * 6, 95);
+    marks += `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    if (labels && hour) {
+      const [x, y] = polar(i * 6, 74);
+      marks += `<text class="ac-num" x="${x}" y="${y}">${face === 'roman' ? ROMAN[i / 5] : i / 5 || 12}</text>`;
+    }
+  }
+  return `<svg class="clock-analog" viewBox="-100 -100 200 200" aria-hidden="true">${marks}`
+    + '<g class="ac-hand ac-hr"><line y1="10" y2="-50"/></g><g class="ac-hand ac-min"><line y1="12" y2="-80"/></g>'
+    + `${seconds ? '<g class="ac-hand ac-sec"><line y1="18" y2="-88"/></g>' : ''}<circle class="ac-pin" r="${seconds ? 3.5 : 4.5}"/></svg>`;
+}
+
 const clock = (el, mod, ctx) => {
   const s = mod.settings;
   const { f } = ctx.fmt;
+  const style = s.style || 'digital';
+  const analog = style === 'analog' || style === 'analogDigital';
+  const digital = style === 'digital' || style === 'analogDigital';
+  const word = style === 'word';
+  const secHand = analog && s.showSecondHand !== false;
+  const needSec = secHand || (digital && s.showSeconds);
+  const lang = langOf(ctx.fmt.locale);
   const timeFmt = f({ hour: '2-digit', minute: '2-digit', hour12: !s.format24 });
-  const secFmt = f({ second: '2-digit' });
+  const hmsFmt = f({ hour: 'numeric', minute: 'numeric', hourCycle: 'h23' });
   const dateFmt = f(s.dateStyle === 'full' ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' } : { dateStyle: s.dateStyle });
   const partsFmt = f({ year: 'numeric', month: 'numeric', day: 'numeric' });
-  el.innerHTML = `<div class="clock size-${s.size}"><div class="clock-time"><span class="hm"></span>${s.showSeconds ? '<span class="sec"></span>' : ''}</div>${s.showDate ? '<div class="clock-date"></div>' : ''}${s.showWeek ? '<div class="clock-week dim"></div>' : ''}</div>`;
-  const hm = el.querySelector('.hm');
-  const sec = el.querySelector('.sec');
-  const date = el.querySelector('.clock-date');
-  const week = el.querySelector('.clock-week');
+  const digitalHtml = digital ? `<div class="clock-time"><span class="hm"></span>${s.showSeconds ? '<span class="sec"></span>' : ''}</div>` : '';
+  el.innerHTML = `<div class="clock size-${s.size} style-${style}">${analog ? analogSvg(s.analogFace || 'ticks', secHand) : ''}${digitalHtml}${word ? `<div class="clock-words wc-${s.wordStyle === 'grid' ? 'grid' : 'sentence'}" lang="${lang}"></div>` : ''}${s.showDate ? '<div class="clock-date"></div>' : ''}${s.showWeek ? '<div class="clock-week dim"></div>' : ''}</div>`;
+  const $ = (q) => el.querySelector(q);
+  const hm = $('.hm');
+  const sec = $('.sec');
+  const date = $('.clock-date');
+  const week = $('.clock-week');
+  const words = $('.clock-words');
+  const hands = analog ? { hr: $('.ac-hr'), min: $('.ac-min'), sec: $('.ac-sec') } : null;
   const isoWeek = (now) => {
     const p = Object.fromEntries(partsFmt.formatToParts(now).map((x) => [x.type, Number(x.value)]));
     const d = new Date(Date.UTC(p.year, p.month - 1, p.day));
@@ -99,18 +135,43 @@ const clock = (el, mod, ctx) => {
     const y0 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil(((d - y0) / DAY + 1) / 7);
   };
+  const renderWords = (h, m) => {
+    const w = wordClock(h, m, lang, s.wordDialect);
+    if (s.wordStyle !== 'grid') {
+      words.innerHTML = w.words.map((x, i) => `<span class="${i === w.hourIndex ? 'wc-key' : ''}">${esc(i ? x : x[0].toUpperCase() + x.slice(1))}</span>`).join(' ')
+        + (w.extra ? `<span class="wc-extra">${'•'.repeat(w.extra)}</span>` : '');
+      return;
+    }
+    const g = GRIDS[lang === 'en' ? 'en' : 'de'];
+    const lit = litCells(w.ids, lang);
+    const dots = [0, 1, 2, 3].map((i) => `<i class="wc-dot d${i}${i < w.extra ? ' on' : ''}"></i>`).join('');
+    words.innerHTML = `${dots}<div class="wc-letters">${g.rows.map((row, r) => [...row].map((c, i) => `<span${lit.has(`${r}:${i}`) ? ' class="on"' : ''}>${c}</span>`).join('')).join('')}</div>`;
+  };
+  let lastMin = -1;
   const tick = () => {
     const now = new Date();
-    hm.textContent = timeFmt.format(now);
-    if (sec) sec.textContent = secFmt.format(now).padStart(2, '0');
+    const minKey = Math.floor(now.getTime() / 60000);
+    const secs = now.getSeconds(); // time-zone offsets are whole minutes
+    if (sec) sec.textContent = String(secs).padStart(2, '0');
+    if (hands?.sec) hands.sec.style.transform = `rotate(${secs * 6}deg)`;
+    if (minKey === lastMin) return;
+    lastMin = minKey;
+    const p = Object.fromEntries(hmsFmt.formatToParts(now).map((x) => [x.type, Number(x.value)]));
+    const h = p.hour % 24;
+    if (hm) hm.textContent = timeFmt.format(now);
+    if (hands) {
+      hands.hr.style.transform = `rotate(${((h % 12) + p.minute / 60) * 30}deg)`;
+      hands.min.style.transform = `rotate(${p.minute * 6}deg)`;
+    }
+    if (words) renderWords(h, p.minute);
     if (date) date.textContent = dateFmt.format(now);
     if (week) week.textContent = t('Week {n}', { n: isoWeek(now) });
   };
   tick();
-  return { tick, tickEvery: 1000 };
+  // Without seconds this does almost nothing between minute changes.
+  return { tick, tickEvery: needSec ? 1000 : 2000 };
 };
 
-// Weather codes for the optional background effect.
 const bgKind = (code) => (code >= 95 ? 'thunder' : [71, 73, 75, 77, 85, 86].includes(code) ? 'snow' : (code >= 51 && code <= 67) || (code >= 80 && code <= 82) ? 'rain' : null);
 const SEP = '<span class="w-sep"> · </span>';
 const lvlClass = (l) => String(l).replace(/ /g, '-');
@@ -280,64 +341,6 @@ const weather_hints = (el) => ({
   },
 });
 
-const calendar = (el, mod, ctx) => {
-  const s = mod.settings;
-  const rules = s.iconRules
-    .map((r) => ({ icon: r.icon, keys: r.keywords.split(',').map((k) => k.trim().toLowerCase()).filter(Boolean) }))
-    .filter((r) => r.keys.length);
-  const evTime = (e) => (e.allDay ? t('all day') : ctx.fmt.time(new Date(e.start)));
-  const evDay = (e) => (e.allDay ? e.start : ctx.fmt.dayKey(new Date(e.start)));
-  const iconFor = (e) => {
-    const title = e.title.toLowerCase();
-    return rules.find((r) => r.keys.some((k) => title.includes(k)))?.icon || e.icon || 'calendar';
-  };
-  const marker = (e) => {
-    const color = esc(e.color);
-    if (s.style === 'dot') return `<span class="cal-mark dot" style="background:${color}"></span>`;
-    const svg = calIcons[iconFor(e)] || calIcons.calendar;
-    if (s.style === 'badge') return `<span class="cal-mark badge" style="--c:${color}">${svg}</span>`;
-    return `<span class="cal-mark icon" style="color:${color}">${svg}</span>`;
-  };
-  const row = (e, withDay) => {
-    const today = ctx.fmt.dayKey(new Date());
-    const running = !e.allDay && new Date(e.start) <= new Date() && evDay(e) <= today;
-    const bar = s.style === 'bar' ? ` style="--c:${esc(e.color)}"` : '';
-    return `<div class="cal-ev style-${s.style}${running ? ' running' : ''}"${bar}>${marker(e)}<span class="cal-time ${e.allDay ? 'dim' : ''}">${withDay ? `${esc(ctx.fmt.dayLabel(evDay(e)))} ` : ''}${running ? t('now') : evTime(e)}</span><span class="cal-title"${s.colorTitle ? ` style="color:${esc(e.color)}"` : ''}>${esc(e.title)}${s.showLocation && e.location ? `<span class="dim small"> · ${esc(e.location)}</span>` : ''}${s.showCalendarName ? `<span class="dim small"> · ${esc(e.calendar)}</span>` : ''}</span></div>`;
-  };
-  const legend = () => {
-    if (!s.showLegend) return '';
-    const cals = s.calendars.filter((c) => c.enabled);
-    if (cals.length < 2) return '';
-    return `<div class="cal-legend small">${cals
-      .map((c) => `<span class="cal-leg">${s.style === 'dot' ? `<span class="cal-mark dot" style="background:${esc(c.color)}"></span>` : `<span class="cal-mark icon" style="color:${esc(c.color)}">${calIcons[c.icon] || calIcons.calendar}</span>`}${esc(c.name)}</span>`)
-      .join('')}</div>`;
-  };
-  return {
-    update(d) {
-      if (!d.events.length) {
-        el.innerHTML = `<div class="dim">${s.calendars.length ? t('No events') : t('No calendar set up')}</div>${d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('')}`;
-        return;
-      }
-      let html = `<div class="cal">${legend()}`;
-      if (s.groupByDay) {
-        const groups = new Map();
-        const today = ctx.fmt.dayKey(new Date());
-        for (const e of d.events) {
-          let k = evDay(e);
-          if (k < today) k = today; // multi-day events that started earlier
-          if (!groups.has(k)) groups.set(k, []);
-          groups.get(k).push(e);
-        }
-        for (const [k, evs] of groups) html += `<div class="cal-day"><div class="cal-dh">${esc(ctx.fmt.dayLabel(k, { long: true }))}</div>${evs.map((e) => row(e, false)).join('')}</div>`;
-      } else {
-        html += d.events.map((e) => row(e, true)).join('');
-      }
-      html += d.errors.map((x) => `<div class="err small">${esc(x)}</div>`).join('');
-      el.innerHTML = html + '</div>';
-    },
-  };
-};
-
 const waste = (el, mod, ctx) => {
   const s = mod.settings;
   let last = null;
@@ -444,9 +447,15 @@ const transit = (el, mod, ctx) => {
       return;
     }
     const now = Date.now();
+    const go = s.goNow ? s.goNowStyle || 'dot' : null;
+    const earliest = go ? now - 60000 : now + (Number(s.walkMinutes) || 0) * 60000 - 30000;
     const rows = d.departures
-      .filter((x) => new Date(x.realtime || x.planned).getTime() > now - 60000)
-      .map((x) => {
+      .filter((x) => new Date(x.realtime || x.planned).getTime() > Math.max(now - 60000, earliest))
+      .map((x) => ({ x, st: go ? goStatus(new Date(x.realtime || x.planned).getTime(), now, s) : null }))
+      .filter(({ st }) => !st || st.level !== 'gone' || s.hideUnreachable === false)
+      .map(({ x, st }) => {
+        const goCls = st ? ` go-${st.level}` : '';
+        const dot = go === 'dot' ? `<td class="go-cell">${st && !x.cancelled && st.level !== 'gone' ? '<span class="go-dot"></span>' : ''}</td>` : '';
         const planned = new Date(x.planned);
         const when = new Date(x.realtime || x.planned);
         const mins = Math.round((when - now) / 60000);
@@ -455,110 +464,21 @@ const transit = (el, mod, ctx) => {
         const abs = ctx.fmt.time(planned);
         const time = s.timeMode === 'absolute' ? abs : s.timeMode === 'both' ? `${rel} <span class="dim small">${abs}</span>` : rel;
         const delayHtml = s.showDelay && delay !== null ? `<span class="delay ${delay > 0 ? 'late' : 'ontime'}">${delay > 0 ? `+${delay}` : '±0'}</span>` : '';
-        return `<tr class="${x.cancelled ? 'cancelled' : ''}${mins <= 1 ? ' imminent' : ''}"><td><span class="line cat-${x.category}">${esc(x.line)}</span></td><td class="dest">${esc(x.destination)}</td>${s.showPlatform ? `<td class="plat dim small">${esc(x.platform.replace(/^(Gleis|Bstg\.?|Steig|Bussteig)\s*/i, ''))}</td>` : ''}<td class="r tm">${x.cancelled ? `<span class="late">${t('cancelled')}</span>` : `${time}${delayHtml}`}</td></tr>`;
+        return `<tr class="${x.cancelled ? 'cancelled' : ''}${mins <= 1 && !go ? ' imminent' : ''}${goCls}">${dot}<td><span class="line cat-${x.category}">${esc(x.line)}</span></td><td class="dest">${esc(x.destination)}</td>${s.showPlatform ? `<td class="plat dim small">${esc(x.platform.replace(/^(Gleis|Bstg\.?|Steig|Bussteig)\s*/i, ''))}</td>` : ''}<td class="r tm">${x.cancelled ? `<span class="late">${t('cancelled')}</span>` : `${time}${delayHtml}`}</td></tr>`;
       });
-    el.innerHTML = `<div class="transit">${d.stop ? `<div class="dim small tr-stop">${esc(d.stop)}</div>` : ''}${rows.length ? `<table>${rows.join('')}</table>` : `<div class="dim">${t('No departures')}</div>`}</div>`;
+    let banner = '';
+    if (go === 'banner') {
+      const next = nextReachable(d.departures, now, s);
+      if (next) {
+        const { departure: x, leave, level } = next;
+        const m = Math.floor(leave);
+        const msg = level === 'run' ? t('Run!') : m < 1 ? t('Leave now!') : t('Leave in {m} min', { m });
+        banner = `<div class="go-banner go-${level}"><span class="go-dot"></span><span>${t('Line {line}', { line: esc(x.line) })} → ${esc(x.destination)}: <b>${msg}</b></span></div>`;
+      } else banner = `<div class="go-banner dim">${t('No reachable departure')}</div>`;
+    }
+    el.innerHTML = `<div class="transit go-style-${go || 'none'}">${d.stop ? `<div class="dim small tr-stop">${esc(d.stop)}</div>` : ''}${banner}${rows.length ? `<table>${rows.join('')}</table>` : `<div class="dim">${t('No departures')}</div>`}</div>`;
   };
   return { update(d) { last = d; render(); }, tick: render, tickEvery: 15000 };
-};
-
-let leafletPromise = null;
-function loadLeaflet() {
-  if (window.L) return Promise.resolve(window.L);
-  leafletPromise ||= new Promise((resolve, reject) => {
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = '/vendor/leaflet/leaflet.css';
-    document.head.append(css);
-    const js = document.createElement('script');
-    js.src = '/vendor/leaflet/leaflet.js';
-    js.onload = () => resolve(window.L);
-    js.onerror = reject;
-    document.head.append(js);
-  });
-  return leafletPromise;
-}
-
-function altColor(a) {
-  if (a.ground || a.alt === null) return '#9ca3af';
-  if (a.alt < 3000) return '#fb923c';
-  if (a.alt < 10000) return '#facc15';
-  if (a.alt < 25000) return '#4ade80';
-  if (a.alt < 35000) return '#38bdf8';
-  return '#c084fc';
-}
-const fmtAlt = (a, locale) => (a.ground ? t('on ground') : a.alt === null ? '–' : `${Math.round(a.alt).toLocaleString(locale)} ft`);
-
-const TILES = {
-  esri_dark: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', attribution: '© Esri, HERE, Garmin, © OpenStreetMap', className: 'tiles-dim' },
-  osm_dark: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '© OpenStreetMap', className: 'tiles-dark' },
-  osm: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '© OpenStreetMap' },
-};
-
-const flights = (el, mod, ctx, region) => {
-  const s = mod.settings;
-  const full = region === 'fullscreen';
-  el.innerHTML = `<div class="flights${full ? ' full' : ''}"><div class="fl-map" style="${full ? '' : `height:${s.height}vh`}"></div>${s.showList ? '<div class="fl-list"></div>' : ''}</div>`;
-  const mapEl = el.querySelector('.fl-map');
-  const listEl = el.querySelector('.fl-list');
-  let map = null;
-  let layer = null;
-  const markers = new Map();
-  let pending = null;
-
-  loadLeaflet().then((L) => {
-    const c = pending?.center || ctx.general.location;
-    map = L.map(mapEl, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false });
-    map.setView([c.lat, c.lon], s.zoom);
-    const tiles = TILES[s.tiles] || { url: s.tileUrl, attribution: '' };
-    if (tiles.url) L.tileLayer(tiles.url, { maxZoom: 18, attribution: tiles.attribution, className: tiles.className || '' }).addTo(map);
-    if (s.showRings) {
-      for (const f of [1 / 3, 2 / 3, 1]) L.circle([c.lat, c.lon], { radius: s.radiusKm * f * 1000, color: '#ffffff', opacity: 0.18, weight: 1, fill: false, interactive: false }).addTo(map);
-    }
-    L.circleMarker([c.lat, c.lon], { radius: 4, color: '#fff', weight: 2, fillColor: ctx.general.accentColor, fillOpacity: 1 }).addTo(map);
-    layer = L.layerGroup().addTo(map);
-    if (pending) draw(pending);
-  });
-
-  function draw(d) {
-    const L = window.L;
-    const seen = new Set();
-    for (const a of d.aircraft) {
-      seen.add(a.hex);
-      const html = `<div class="ac-icon">${plane(altColor(a), a.track ?? 0)}</div>${s.showLabels ? `<div class="ac-label">${esc(a.flight)}<br><span>${a.ground ? 'GND' : a.alt !== null ? `${Math.round(a.alt / 100)}` : ''}</span></div>` : ''}`;
-      const icon = L.divIcon({ className: 'ac', html, iconSize: [22, 22], iconAnchor: [11, 11] });
-      if (markers.has(a.hex)) markers.get(a.hex).setLatLng([a.lat, a.lon]).setIcon(icon);
-      else markers.set(a.hex, L.marker([a.lat, a.lon], { icon, interactive: false, keyboard: false }).addTo(layer));
-    }
-    for (const [hex, m] of markers) {
-      if (!seen.has(hex)) {
-        layer.removeLayer(m);
-        markers.delete(hex);
-      }
-    }
-  }
-
-  return {
-    update(d) {
-      pending = d;
-      if (map) draw(d);
-      if (listEl) {
-        const list = d.aircraft.filter((a) => !a.ground).slice(0, s.listCount);
-        listEl.innerHTML = list.length
-          ? `<table>${list
-              .map((a) => `<tr><td><span class="ac-dot" style="background:${altColor(a)}"></span>${esc(a.flight)}</td><td class="dim small">${esc(a.type)}</td><td class="r">${fmtAlt(a, ctx.fmt.locale)}</td><td class="r dim small">${a.speed ?? '–'} km/h</td><td class="r dim small">${num(a.dist, 1)} km</td></tr>`)
-              .join('')}</table>`
-          : `<div class="dim small">${t('No aircraft in the air right now')}</div>`;
-        listEl.insertAdjacentHTML('afterbegin', `<div class="dim small fl-count">${t('{n} aircraft within {r} km', { n: d.aircraft.length, r: s.radiusKm })} · ${t('Source')}: ${d.source === 'local' ? t('own receiver') : d.source === 'airplaneslive' ? 'airplanes.live' : 'adsb.lol'}</div>`);
-      }
-    },
-    show() {
-      if (map) setTimeout(() => map.invalidateSize(), 50);
-    },
-    destroy() {
-      if (map) map.remove();
-    },
-  };
 };
 
 let go2rtcLoaded = null;
@@ -651,4 +571,4 @@ const text = (el, mod) => {
   return {};
 };
 
-export const renderers = { clock, weather, weather_hints, calendar, waste, f1, transit, flights, camera, greeting, text, ...pluginRenderers };
+export const renderers = { clock, weather, weather_hints, waste, f1, transit, flights, camera, greeting, text, ...pluginRenderers };

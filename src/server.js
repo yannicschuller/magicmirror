@@ -13,12 +13,12 @@ import { cached, fetchJson } from './util.js';
 import { MODULE_TYPES, publicConfig, defaultConfig } from '../public/shared/modules.js';
 import { weather, weatherHints } from './providers/weather.js';
 import { provider as news } from './providers/news.js';
-import { provider as homeassistant } from './providers/homeassistant.js';
+import { provider as homeassistant, startHaLive } from './providers/homeassistant.js';
 import { provider as tasks } from './providers/tasks.js';
 import { provider as fuel } from './providers/fuel.js';
 import { provider as football } from './providers/football.js';
 import { calendar } from './providers/calendar.js';
-import { waste } from './providers/waste.js';
+import { waste, wasteAdminRouter } from './providers/waste.js';
 import { f1 } from './providers/f1.js';
 import { transit, searchStops } from './providers/transit.js';
 import { flights } from './providers/flights.js';
@@ -141,6 +141,9 @@ admin.get('/geocode', async (req, res) => {
   }
 });
 
+// Waste collection by town/address: /api/admin/waste/{search,params,options,fetch} → wastecollect sidecar
+admin.use('/waste', wasteAdminRouter());
+
 admin.post('/transit/search', async (req, res) => {
   const { settings = {}, q = '' } = req.body || {};
   if (String(q).trim().length < 2) return res.json([]);
@@ -204,6 +207,7 @@ onConfigChange((cfg) => {
 });
 syncStreams(getConfig());
 setInterval(() => syncStreams(getConfig()), 60000).unref();
+startHaLive(getConfig, broadcast, onConfigChange); // Home Assistant websocket → module refresh events
 
 server.listen(PORT, () => console.log(`[server] Magic Mirror listening on port ${PORT} – mirror: /  admin: /admin`));
 

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Module schedule: show any module only on certain weekdays / between two times
+- Module height "use as much space as possible" (extends into empty areas of its column)
+- Calendar: week & month view, running/next event highlight, public & school holidays, birthdays with age, busy-only calendars, filters, multi-day "day 2 of 5", fade-out
+- Waste collection by town/address search (optional `waste` sidecar based on Waste Collection Schedule)
+- Public transport: "leave now" traffic light
+- Clock: analog and word clock (sentence or letter grid)
+- Home Assistant: live updates via WebSocket, conditions, warning colours
+- Aircraft: "nearest aircraft" spotlight with route, photo and distance; map fits its area; online sources limited to one request per 3 min
 - Admin panel: check for updates, list of changes and one-click update with a progress screen (`UPDATE_TIME=off` = manual only)
 - Location of weather & co. can be searched directly in each module (empty = location from "General")
 - Tasks module: Apple Reminders via an Apple Shortcuts automation (push endpoint `POST /api/push/tasks`)

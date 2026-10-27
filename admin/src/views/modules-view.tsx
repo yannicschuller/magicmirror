@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConfirm } from '@/components/confirm';
+import { ScheduleEditor } from '@/components/schedule-editor';
 import { CheckChip, FieldsForm, NumberInput, OptionSelect, noPlus } from '@/components/fields';
 import { clone, errorMessage } from '@/lib/api';
 import { moduleName, pagesSummary, regionLabel, typeLabel } from '@/lib/helpers';
@@ -208,6 +209,27 @@ function ModuleEditor({ m }: { m: Module }) {
                 touch();
               }}
             />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="m-height" className="text-xs font-medium text-muted-foreground">
+              {t('Height')}
+            </Label>
+            <OptionSelect
+              id="m-height"
+              value={m.height || 'auto'}
+              options={[
+                { value: 'auto', label: 'Automatic (as much as the content needs)' },
+                { value: 'fill', label: 'Use as much space as possible' },
+              ]}
+              onValue={(v) => {
+                m.height = v as Module['height'];
+                touch();
+              }}
+            />
+            <p className="text-xs text-muted-foreground">{t('"As much space as possible" also extends into empty areas above and below.')}</p>
+          </div>
+          <div className="col-span-full">
+            <ScheduleEditor m={m} />
           </div>
           <div className="col-span-full flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-muted-foreground">{t('Pages')}</Label>

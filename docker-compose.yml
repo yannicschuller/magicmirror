@@ -9,6 +9,7 @@
 #   camera      go2rtc for RTSP cameras
 #   adsb        own ADS-B receiver (RTL-SDR USB stick)
 #   fr24        feed Flightradar24 (implies the ADS-B receiver)
+#   waste       find the waste collection calendar by town/address (no iCal needed)
 #
 # Images are published for amd64, arm64 and arm/v7 (Raspberry Pi 3/4/5).
 # To build locally instead: docker compose up -d --build
@@ -26,6 +27,7 @@ services:
     environment:
       GO2RTC_URL: http://go2rtc:1984
       UPDATER_URL: http://updater:8099
+      WASTECOLLECT_URL: http://wastecollect:8098
     volumes:
       - ./data:/data
 
@@ -67,6 +69,14 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/project
+
+  # Waste collection dates by town/address (profile "waste"), based on the
+  # "Waste Collection Schedule" library. Only reachable from the mirror server.
+  wastecollect:
+    image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror-wastecollect:${MM_TAG:-latest}
+    build: ./wastecollect
+    profiles: ["waste"]
+    restart: unless-stopped
 
   # RTSP cameras → browser (profile "camera")
   go2rtc:

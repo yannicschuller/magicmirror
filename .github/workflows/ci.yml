@@ -1,5 +1,6 @@
 # Tests every push/PR and publishes multi-arch images to GitHub Container Registry:
-#   ghcr.io/<owner>/magicmirror, magicmirror-kiosk-{cog,chromium}, magicmirror-updater
+#   ghcr.io/<owner>/magicmirror, magicmirror-kiosk-{cog,chromium}, magicmirror-updater,
+#   magicmirror-wastecollect
 # Tags: "latest" (default branch), "1.2.3" / "1.2" (git tags v1.2.3), "sha-<short>".
 name: CI
 
@@ -51,6 +52,8 @@ jobs:
             browser: chromium
           - name: magicmirror-updater
             context: ./updater
+          - name: magicmirror-wastecollect
+            context: ./wastecollect
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3

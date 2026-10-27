@@ -45,8 +45,13 @@ export type Module = {
   pages: string[];
   region: string;
   order: number;
+  /** "fill" = use all free space in its column */
+  height?: 'auto' | 'fill';
+  schedule?: Schedule;
   settings: Values;
 };
+
+export type Schedule = { enabled: boolean; days: number[]; from: string; to: string };
 
 export type Config = {
   version: number;

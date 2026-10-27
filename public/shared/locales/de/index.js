@@ -10,6 +10,11 @@ import tasks from './modules/tasks.js';
 import fuel from './modules/fuel.js';
 import sky from './modules/sky.js';
 import football from './modules/football.js';
+import flights from './modules/flights.js';
+import calendar from './modules/calendar.js';
+import transitClock from './transit-clock.js';
+import layout from './layout.js';
+import wasteService from './waste-service.js';
 
 // Module dictionaries first, so the core wording wins on duplicates.
-export default { ...news, ...homeassistant, ...tasks, ...fuel, ...sky, ...football, ...schema, ...mirror, ...server, ...admin, ...auth };
+export default { ...news, ...homeassistant, ...tasks, ...fuel, ...sky, ...football, ...calendar, ...flights, ...transitClock, ...layout, ...wasteService, ...schema, ...mirror, ...server, ...admin, ...auth };

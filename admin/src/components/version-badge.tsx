@@ -2,7 +2,7 @@ import { GitCommitHorizontal } from 'lucide-react';
 import { cn } from 'cn';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Build } from '@/lib/shared';
-import { useStore } from '@/lib/store';
+import { useT } from '@/lib/store';
 
 const SOURCES: Record<Build['source'], string> = {
   release: 'Official image',
@@ -12,7 +12,7 @@ const SOURCES: Record<Build['source'], string> = {
 
 /** "v1.1.0 · 7ef27e2" – links to the commit on GitHub, details in a tooltip. */
 export function VersionBadge({ build, className }: { build?: Build; className?: string }) {
-  const { t, lang } = useStore();
+  const { t, lang } = useT();
   if (!build) return null;
   const label = (
     <>

@@ -32,7 +32,7 @@
 | **Weather** | Current conditions, hourly and 7-day forecast, sunrise and sunset | [Open-Meteo](https://open-meteo.com) (no API key) |
 | **Weather hints** | "Don't forget your umbrella!", "Don't forget sunscreen!" (UV), frost/ice, snow, heat, storm, plus official DWD warnings | Open-Meteo, [Bright Sky](https://brightsky.dev) |
 | **Calendar** | Any number of iCal/ICS calendars, each with its own **color and icon** (20 icons). Keyword icons (birthday → cake, doctor → cross, …). Recurring events, 4 styles, legend | Google, Nextcloud, iCloud, Outlook, … |
-| **Waste collection** | Next pickups with colored bins and a "put it out tonight" reminder | iCal file from your waste company, or fixed intervals |
+| **Waste collection** | Next pickups with colored bins and a "put it out tonight" reminder | Search by town/address (`waste` profile), iCal file from your waste company, or fixed intervals |
 | **Formula 1** | Next race: all sessions in local time, countdown / LIVE, track weather, last year's winner, last podium, driver and constructor standings | [Jolpica (Ergast)](https://github.com/jolpica/jolpica-f1), Open-Meteo |
 | **Public transport** | Live departure board with delays, platforms, line/mode filters, walking-time offset | EFA networks (VVS, MVV, bwegt, VRR, VGN, Bavaria, …) or any HAFAS-REST API |
 | **Aircraft map** | Live map of aircraft nearby, plus a list of the nearest | Your own ADS-B USB stick **or** adsb.lol / airplanes.live |
@@ -153,6 +153,7 @@ Enabled via `COMPOSE_PROFILES` in `.env` (comma-separated). The installer sets t
 | `camera` | [go2rtc](https://github.com/AlexxIT/go2rtc) | RTSP cameras → browser. Streams are created automatically from the admin panel. |
 | `adsb` | [ultrafeeder](https://github.com/sdr-enthusiasts/docker-adsb-ultrafeeder) | Your own ADS-B receiver with an RTL-SDR stick, plus tar1090 on port 8090. |
 | `fr24` | [fr24feed](https://github.com/sdr-enthusiasts/docker-flightradar24) + ultrafeeder | Also share your data with **Flightradar24**. |
+| `waste` | `magicmirror-wastecollect` | Find your waste collection calendar by town and address – no iCal needed (see below). |
 
 ### Kiosk (HDMI full-screen)
 
@@ -219,6 +220,8 @@ Apple has no Reminders API, so an Apple Shortcuts automation pushes your open re
 
 Most waste companies offer an iCal export or subscription link. Add the URL, and entries are matched to bin types by keywords (types, colors and keywords are editable). Without iCal, use fixed intervals such as "general waste every 2 weeks from …".
 
+**Search by town / address (no iCal needed):** enable the `waste` profile (installer question, or add `waste` to `COMPOSE_PROFILES`). In the waste module, search for your town or waste company (e.g. *Leipzig*, *Landkreis Böblingen*, *BSR*), enter your street and house number (with suggestions where the provider offers them) and press *Test* to see the next dates. The small `wastecollect` container (port 8098, internal only) uses the MIT-licensed [Waste Collection Schedule](https://github.com/mampfes/hacs_waste_collection_schedule) library with 1,000+ German municipalities and services; results are cached for 6 hours and merged with iCal sources and fixed intervals. Small towns are often listed under their county (*Landkreis*) or waste company.
+
 ## Configuration reference
 
 All options with comments are in [`.env.example`](.env.example). The most important ones:
@@ -231,7 +234,7 @@ All options with comments are in [`.env.example`](.env.example). The most import
 | `BASE_URL` | – | Public URL of the server (needed for OIDC) |
 | `LOCAL_LOGIN` | `true` | Allow username/password sign-in |
 | `OIDC_*` | – | Optional SSO, see above |
-| `COMPOSE_PROFILES` | – | `kiosk,autoupdate,camera,adsb,fr24` |
+| `COMPOSE_PROFILES` | – | `kiosk,autoupdate,camera,adsb,fr24,waste` |
 | `UPDATE_TIME` / `UPDATE_MODE` | `04:00` / `pull` | Auto-update schedule and mode |
 | `MM_REGISTRY` / `MM_TAG` | `ghcr.io/yannicschuller` / `latest` | Image source (for forks) and pinned versions |
 
