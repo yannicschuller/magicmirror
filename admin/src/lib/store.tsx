@@ -106,18 +106,56 @@ export function StoreProvider({ children, fallback }: { children: ReactNode; fal
     [cfg],
   );
 
+  // Saving: sends a snapshot of the working copy. Edits made while the request runs stay in the
+  // working copy (still "unsaved"); a second save during a save waits for the first one; while
+  // the server restarts (update) it retries until it is back.
+  const savingRef = useRef<Promise<void> | null>(null);
+  const cfgRef = useRef(cfg);
+  cfgRef.current = cfg;
   const save = useCallback(async () => {
-    if (!cfg) return;
-    setSaving(true);
-    try {
-      setConfig(await api<Config>('/config', { method: 'PUT', body: cfg }));
-      toast.success(t('Saved – the mirror updates automatically.'));
-    } catch (err) {
-      toast.error(t(errorMessage(err)));
-    } finally {
-      setSaving(false);
+    const previous = savingRef.current;
+    if (previous) {
+      await previous.catch(() => {});
+      // another save queued behind the same one has started meanwhile – it sends the latest state
+      if (savingRef.current !== null && savingRef.current !== previous) return;
     }
-  }, [cfg, setConfig, t]);
+    const current = cfgRef.current;
+    if (!current) return;
+    const run = (async () => {
+      setSaving(true);
+      const snapshot = JSON.stringify(current);
+      let waitToast: string | number | undefined;
+      try {
+        for (let attempt = 0; ; attempt++) {
+          try {
+            const result = await api<Config>('/config', { method: 'PUT', body: snapshot });
+            if (JSON.stringify(cfgRef.current) === snapshot) setConfig(result);
+            else setSaved(snapshot); // edited meanwhile – keep the working copy, the rest stays unsaved
+            if (waitToast !== undefined) toast.dismiss(waitToast);
+            toast.success(t('Saved – the mirror updates automatically.'));
+            return;
+          } catch (err) {
+            // server not reachable (restart during an update): wait up to ~3 minutes
+            const unreachable = err instanceof TypeError || /^HTTP 50[234]$/.test(errorMessage(err));
+            if (!unreachable || attempt >= 60) throw err;
+            waitToast ??= toast.loading(t('The server is restarting – saving as soon as it is back …'));
+            await new Promise((r) => setTimeout(r, 3000));
+          }
+        }
+      } catch (err) {
+        if (waitToast !== undefined) toast.dismiss(waitToast);
+        toast.error(t(errorMessage(err)));
+      } finally {
+        setSaving(false);
+      }
+    })();
+    savingRef.current = run;
+    try {
+      await run;
+    } finally {
+      if (savingRef.current === run) savingRef.current = null;
+    }
+  }, [setConfig, t]);
 
   const discard = useCallback(() => setConfig(JSON.parse(saved)), [saved, setConfig]);
 

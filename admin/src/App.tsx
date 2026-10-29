@@ -19,6 +19,8 @@ import { LANGUAGES, type Build } from '@/lib/shared';
 import { StoreProvider, useStore, useT, VIEWS, type View } from '@/lib/store';
 import { VersionBadge } from '@/components/version-badge';
 import { ChangesDialog } from '@/components/changes-dialog';
+import { UpdateIndicator } from '@/components/update-progress';
+import { UpdateProvider } from '@/lib/update';
 import { BackupView } from '@/views/backup-view';
 import { GeneralView } from '@/views/general-view';
 import { LayoutView } from '@/views/layout-view';
@@ -35,9 +37,11 @@ export default function App() {
   return (
     <TooltipProvider delayDuration={300}>
       <StoreProvider fallback={(error) => <Loading error={error} />}>
-        <ConfirmProvider>
-          <Shell />
-        </ConfirmProvider>
+        <UpdateProvider>
+          <ConfirmProvider>
+            <Shell />
+          </ConfirmProvider>
+        </UpdateProvider>
       </StoreProvider>
       <Toaster position="bottom-center" richColors={false} />
     </TooltipProvider>
@@ -94,6 +98,7 @@ function Shell() {
             </TabsList>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <UpdateIndicator />
             {dirty && (
               <>
                 <Button variant="outline" size="sm" className="border-warning/40 text-warning hover:text-warning" onClick={() => setShowChanges(true)} title={t('Show changes')}>
