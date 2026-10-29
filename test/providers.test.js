@@ -332,3 +332,18 @@ test('activePages: pages limited to some mirrors (?display=…)', async () => {
   assert.deepEqual(ids('flur'), ['a', 'b']);
   assert.deepEqual(ids('bad-oben'), ['a', 'c']);
 });
+
+test('module health: failures after a grace period, partial errors, recovery', async () => {
+  const { recordSuccess, recordFailure, healthReport } = await import('../src/health.js');
+  const cfg = { modules: [{ id: 'h1', type: 'news', title: 'News', enabled: true }, { id: 'h2', type: 'calendar', title: '', enabled: true }] };
+  recordFailure('h1', 'Token expired');
+  assert.equal(healthReport(cfg).length, 0); // a single failure is not reported yet
+  recordFailure('h1', 'Token expired');
+  recordFailure('h1', 'Token expired');
+  assert.deepEqual(healthReport(cfg).map((x) => [x.id, x.kind, x.error]), [['h1', 'error', 'Token expired']]);
+  recordSuccess('h2', { errors: ['Arbeit: HTTP 401'] });
+  assert.equal(healthReport(cfg).length, 1);
+  assert.deepEqual(healthReport(cfg, Date.now() + 11 * 60000).map((x) => [x.id, x.kind]), [['h1', 'error'], ['h2', 'partial']]);
+  recordSuccess('h1', {});
+  assert.deepEqual(healthReport(cfg, Date.now() + 11 * 60000).map((x) => x.id), ['h2']);
+});

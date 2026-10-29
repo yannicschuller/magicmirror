@@ -5,6 +5,7 @@ import express from 'express';
 import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
 import { getDisplay, setDisplayOverride } from './display.js';
+import { recordSuccess, recordFailure, healthReport } from './health.js';
 import { pushRouter } from './push.js';
 import { searchPlaces } from './providers/route.js';
 import { langOf } from '../public/shared/i18n.js';
@@ -102,8 +103,10 @@ app.get('/api/module/:id/data', async (req, res) => {
   if (!provider) return res.json({});
   try {
     const data = await provider(mod.settings, cfg, mod);
+    recordSuccess(mod.id, data);
     res.set('Cache-Control', 'no-store').json({ ok: true, fetchedAt: new Date().toISOString(), data });
   } catch (err) {
+    recordFailure(mod.id, err.message);
     console.warn(`[module ${mod.type}/${mod.id}] ${err.message}`);
     res.status(502).json({ ok: false, error: err.message });
   }
@@ -216,6 +219,7 @@ admin.post('/preview-data', async (req, res) => {
   }
 });
 
+admin.get('/health', (req, res) => res.json(healthReport(getConfig())));
 admin.get('/display', (req, res) => res.json(getDisplay(getConfig())));
 admin.post('/display', (req, res) => {
   const { mode = null, minutes = 0 } = req.body || {};

@@ -1,5 +1,10 @@
 // Admin panel UI.
 export default {
+  "Problem": "Problem",
+  "Loading the data fails since {time}.": "Das Laden der Daten schlägt seit {time} fehl.",
+  "Part of the data cannot be loaded.": "Ein Teil der Daten kann nicht geladen werden.",
+  "{n} module(s) cannot load their data.": "{n} Modul(e) können ihre Daten nicht laden.",
+  "{n} module(s) load only part of their data.": "{n} Modul(e) laden nur einen Teil ihrer Daten.",
   "live – incl. unsaved changes": "live – inkl. ungespeicherter Änderungen",
   "live": "live",
   "History": "Verlauf",

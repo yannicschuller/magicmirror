@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Copy, FlaskConical, Loader2, Plus, Trash2 } from 'lucide-react';
+import { CircleAlert, Copy, FlaskConical, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { clone, errorMessage } from '@/lib/api';
 import { duplicateGroups, mergeDuplicates, moduleName, pagesSummary, regionLabel, typeLabel } from '@/lib/helpers';
 import { MODULE_TYPES, REGIONS, defaultModule, uid, type Module } from '@/lib/shared';
 import { useStore } from '@/lib/store';
+import { useHealth } from '@/lib/health';
 
 export function ModulesView() {
   const { cfg, module, t } = useStore();
@@ -41,6 +42,7 @@ export function ModulesView() {
 
 function ModuleList({ selected }: { selected?: string }) {
   const { cfg, t, touch, page, setModule } = useStore();
+  const issues = useHealth();
   const confirm = useConfirm();
   // Deactivated modules can be deleted right from the list.
   const remove = async (m: Module) => {
@@ -114,7 +116,12 @@ function ModuleList({ selected }: { selected?: string }) {
                     setTimeout(() => document.getElementById('module-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
                 }}
               >
-                <span className="w-full truncate text-sm font-semibold">{moduleName(m, t)}</span>
+                <span className="flex w-full items-center gap-1.5 truncate text-sm font-semibold">
+                  {issues.some((x) => x.id === m.id) && (
+                    <span className={cn('size-2 shrink-0 rounded-full', issues.find((x) => x.id === m.id)!.kind === 'error' ? 'bg-destructive' : 'bg-warning')} title={t('Problem')} />
+                  )}
+                  <span className="truncate">{moduleName(m, t)}</span>
+                </span>
                 <span className="w-full truncate text-xs text-muted-foreground">
                   {typeLabel(m, t)} · {regionLabel(m.region, t)} · {pagesSummary(m, cfg, t)}
                 </span>
@@ -160,7 +167,8 @@ function ModuleList({ selected }: { selected?: string }) {
 }
 
 function ModuleEditor({ m }: { m: Module }) {
-  const { cfg, t, mt, touch, page, setModule } = useStore();
+  const { cfg, t, mt, touch, page, setModule, lang } = useStore();
+  const issue = useHealth().find((x) => x.id === m.id);
   const confirm = useConfirm();
   const type = MODULE_TYPES[m.type];
   const all = m.pages.includes('*');
@@ -209,6 +217,19 @@ function ModuleEditor({ m }: { m: Module }) {
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
+        {issue && (
+          <div className={cn('flex gap-2.5 rounded-lg border p-3 text-sm', issue.kind === 'error' ? 'border-destructive/40 bg-destructive/10' : 'border-warning/40 bg-warning/10')}>
+            <CircleAlert className={cn('mt-0.5 size-4 shrink-0', issue.kind === 'error' ? 'text-destructive' : 'text-warning')} />
+            <div className="min-w-0">
+              <p className="font-medium">
+                {issue.kind === 'error'
+                  ? t('Loading the data fails since {time}.', { time: new Date(issue.since).toLocaleString(lang, { dateStyle: 'short', timeStyle: 'short' }) })
+                  : t('Part of the data cannot be loaded.')}
+              </p>
+              <p className="break-words text-muted-foreground">{t(issue.error)}</p>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-5 gap-y-4">
           <label className="flex cursor-pointer items-center gap-3 py-1.5 text-sm">
             <Switch

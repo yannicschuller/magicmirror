@@ -21,6 +21,8 @@ import { VersionBadge } from '@/components/version-badge';
 import { ChangesDialog } from '@/components/changes-dialog';
 import { UpdateIndicator } from '@/components/update-progress';
 import { UpdateProvider } from '@/lib/update';
+import { HealthProvider } from '@/lib/health';
+import { HealthBanner } from '@/components/health-banner';
 import { BackupView } from '@/views/backup-view';
 import { GeneralView } from '@/views/general-view';
 import { LayoutView } from '@/views/layout-view';
@@ -40,9 +42,11 @@ export default function App() {
     <TooltipProvider delayDuration={300}>
       <StoreProvider fallback={(error) => <Loading error={error} />}>
         <UpdateProvider>
-          <ConfirmProvider>
-            <Shell />
-          </ConfirmProvider>
+          <HealthProvider>
+            <ConfirmProvider>
+              <Shell />
+            </ConfirmProvider>
+          </HealthProvider>
         </UpdateProvider>
       </StoreProvider>
       <Toaster position="bottom-center" richColors={false} />
@@ -159,6 +163,7 @@ function Shell() {
         </div>
       </header>
       <main className="mx-auto w-full max-w-[1700px] p-3 sm:p-5">
+        <HealthBanner />
         <TabsContent value="layout">
           <LayoutView />
         </TabsContent>
