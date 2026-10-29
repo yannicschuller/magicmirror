@@ -4,6 +4,13 @@
 # the server as the unprivileged "node" user.
 set -eu
 
+# Power-saving mode (admin → General → System): cap Node's heap so the kiosk browser keeps
+# more RAM on small devices. Read from the saved configuration at every start.
+if grep -qs '"ecoMode": *true' "${DATA_DIR:-/app/data}/config.json"; then
+  export NODE_OPTIONS="--max-old-space-size=${MM_ECO_HEAP_MB:-160} ${NODE_OPTIONS:-}"
+  echo "[entrypoint] power-saving mode: Node heap limited to ${MM_ECO_HEAP_MB:-160} MB"
+fi
+
 if [ "$(id -u)" = 0 ]; then
   mkdir -p "$DATA_DIR"
   # Fix everything not yet owned by node (e.g. files written by `docker compose exec`).

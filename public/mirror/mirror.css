@@ -662,3 +662,7 @@ body.night-clock .module:not(.mod-clock), body.night-clock #dots, body.night-clo
 
 /* waste: collections that already happened (option "keep showing past collections") */
 .waste-day.past { opacity: .45; }
+
+/* Power-saving mode: no blur / shadow effects (expensive for WebKit on a Pi 3) */
+body.eco *, body.eco *::before, body.eco *::after { filter: none !important; backdrop-filter: none !important; box-shadow: none !important; text-shadow: none !important; }
+body.eco .flights .fl-photo img.fl-ph-bg { display: none; }

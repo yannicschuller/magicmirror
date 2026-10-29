@@ -482,6 +482,8 @@ export const GENERAL_FIELDS = [
     help: '"Switch the screen off" turns the screen black; a TV or monitor with HDMI-CEC also goes to standby (kiosk on the Pi).' },
   { group: 'night', key: 'dimBrightness', label: 'Brightness at night (%)', type: 'number', default: 30, min: 0, max: 100, showIf: { dimEnabled: true, nightMode: ['dim', 'clock'] } },
 
+  { group: 'system', key: 'ecoMode', label: 'Power-saving mode (Raspberry Pi 3)', type: 'bool', default: false,
+    help: 'Less work for small hardware: aircraft map every 15 s instead of every 5 s, no weather animation, no blur or shadow effects, clocks without seconds, simple page changes, compressed transfers and a memory limit for the server (it restarts briefly when you switch).' },
   { group: 'system', key: 'autoReloadHours', label: 'Reload page automatically every x hours (0 = never)', type: 'number', default: 12, min: 0, max: 168 },
 ];
 

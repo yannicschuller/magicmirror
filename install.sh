@@ -203,6 +203,10 @@ if [ "$P_UPDATE" = y ]; then
 else
   UPDATE_TIME_VALUE=off
 fi
+logs_default=n; [ -n "$(env_get MM_LOG_MAX_SIZE)" ] && logs_default=y
+ask_yes P_LOGS "$(m "Spare the SD card: limit container logs to a few MB?" "SD-Karte schonen: Container-Logs auf wenige MB begrenzen?")" "$logs_default"
+LOG_MAX_SIZE=""; LOG_MAX_FILES=""
+if [ "$P_LOGS" = y ]; then LOG_MAX_SIZE=10m; LOG_MAX_FILES=3; fi
 ask_yes P_WASTE "$(m "Find your waste collection by town/address (no iCal needed)?" "Müllabfuhr per Ort/Adresse finden (ohne iCal)?")" "$(has_profile waste y)"
 ask_yes P_CAMERA "$(m "Show RTSP cameras (go2rtc)?" "RTSP-Kameras anzeigen (go2rtc)?")" "$(has_profile camera n)"
 adsb_default="$(has_profile adsb n)"; [ "$(has_profile fr24 n)" = y ] && adsb_default=y
@@ -249,6 +253,10 @@ OIDC_ALLOWED_EMAILS=$OIDC_EMAILS
 OIDC_SCOPE=openid profile email
 SESSION_SECRET=$(env_get SESSION_SECRET)
 TRUST_PROXY=$(env_get TRUST_PROXY)
+
+# Container logs (spare the SD card): empty = practically unlimited (10 GB)
+MM_LOG_MAX_SIZE=$LOG_MAX_SIZE
+MM_LOG_MAX_FILES=$LOG_MAX_FILES
 
 # Auto-update
 UPDATE_TIME=${UPDATE_TIME_VALUE:-04:00}

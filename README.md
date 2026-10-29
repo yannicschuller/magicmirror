@@ -25,6 +25,7 @@
 - **Languages:** English and German, for both the mirror and the admin panel.
 - **Smart visibility:** modules can show only at certain times, only when they have something to show (open tasks, an aircraft nearby, a race weekend …) or stand in for another module; pages can depend on a module's result too.
 - **Night mode:** dim, show only the clock or switch the screen off (HDMI-CEC standby) – by time or from sunset to sunrise.
+- **Light on small hardware:** while the screen is off the mirror pauses all fetches and animations; an optional power-saving mode (*General → System*) reduces refresh rates and effects, compresses transfers and caps the server's memory. The installer can also limit container logs to spare the SD card.
 - **Phone remote:** `/admin/#remote` switches pages, holds the rotation and turns the screen on/off.
 - **Several mirrors:** one server, several screens with their own pages (`/?display=flur`).
 - **Live preview, change diff and history:** see unsaved changes in the admin preview, review them field by field, and restore any of the last 20 saved states.

@@ -1,7 +1,9 @@
 import http from 'node:http';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
+import compression from 'compression';
 import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
 import { getDisplay, setDisplayOverride } from './display.js';
@@ -70,6 +72,11 @@ const app = express();
 const server = http.createServer(app);
 app.disable('x-powered-by');
 if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? true : process.env.TRUST_PROXY);
+
+// Power-saving mode: compressed responses (less to transfer and parse on a slow network/SD).
+// Not for the live event stream – compression would hold its messages back.
+const compress = compression({ filter: (req, res) => !req.path.startsWith('/api/events') && !req.path.startsWith('/go2rtc') && compression.filter(req, res) });
+app.use((req, res, next) => (getConfig()?.general?.ecoMode ? compress(req, res, next) : next()));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, version: VERSION, commit: BUILD.shortCommit, clients: clientCount(), oidc: oidcEnabled, localLogin: localEnabled, go2rtc: go2rtcStatus() }));
 
@@ -279,9 +286,17 @@ app.use((err, req, res, next) => {
 });
 
 // ---- Live updates -------------------------------------------------------------
+// The server's memory limit (power-saving mode) is set by the container entrypoint at start –
+// when the mode is switched, restart (Docker brings the container back within seconds).
+const startedEco = !!getConfig().general.ecoMode;
+const inContainer = fs.existsSync('/.dockerenv') || process.env.MM_IN_CONTAINER === '1';
 onConfigChange((cfg) => {
   broadcast('config', { updatedAt: cfg.updatedAt });
   syncStreams(cfg);
+  if (inContainer && !!cfg.general.ecoMode !== startedEco) {
+    console.log('[server] power-saving mode changed – restarting to apply the memory limit');
+    setTimeout(() => process.exit(0), 1500).unref();
+  }
 });
 syncStreams(getConfig());
 setInterval(() => syncStreams(getConfig()), 60000).unref();

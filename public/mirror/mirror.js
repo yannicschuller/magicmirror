@@ -50,8 +50,9 @@ function applyTheme(g) {
   root.setProperty('--weight', g.fontWeight || '300');
   root.setProperty('--pad', `${g.padding}vmin`);
   document.body.classList.toggle('hide-cursor', g.hideCursor);
+  document.body.classList.toggle('eco', !!g.ecoMode);
   document.body.classList.toggle('no-titles', !g.showTitles);
-  document.body.dataset.transition = g.transition;
+  document.body.dataset.transition = g.ecoMode ? 'none' : g.transition; // power saving: no fades
   // the admin preview already has the rotated (portrait) size
   stage.dataset.rotation = preview ? '0' : g.rotation;
   document.title = g.name;
@@ -85,14 +86,16 @@ function build() {
     const body = wrap.querySelector('.mod-body');
     let api;
     try {
-      api = renderers[mod.type](body, mod, ctx, mod.region) || {};
+      // power saving: clocks without seconds (one update per minute instead of per second)
+      const m = config.general.ecoMode && mod.type === 'clock' ? { ...mod, settings: { ...mod.settings, showSeconds: false, showSecondHand: false } } : mod;
+      api = renderers[mod.type](body, m, ctx, mod.region) || {};
     } catch (err) {
       console.error(mod.type, err);
       body.innerHTML = `<div class="err small">${esc(err.message)}</div>`;
       api = {};
     }
     const inst = { mod, wrap, api, visible: false, lastFetch: 0, type: MODULE_TYPES[mod.type] };
-    if (api.tick && api.tickEvery) inst.tickTimer = setInterval(() => inst.visible && api.tick(), api.tickEvery);
+    if (api.tick && api.tickEvery) inst.tickTimer = setInterval(() => inst.visible && !paused(inst) && api.tick(), api.tickEvery);
     instances.push(inst);
     if (watched(inst)) loadData(inst); // needed to decide whether its page rotates
   }
@@ -103,6 +106,7 @@ function build() {
 }
 
 function refreshSeconds(inst) {
+  if (inst.mod.type === 'flights' && config.general.ecoMode) return Math.max(15, inst.mod.settings.refreshSeconds);
   if (inst.mod.type === 'flights' || inst.mod.type === 'fuel') return inst.mod.settings.refreshSeconds;
   return inst.api.refreshSeconds?.() || inst.type.refresh; // e.g. F1: fast while a session is live
 }
@@ -154,7 +158,7 @@ async function loadData(inst) {
   if (!instances.includes(inst)) return;
   // Retry faster after errors, otherwise follow the module's refresh interval.
   const delay = inst.failures ? Math.min(every || 300, 30 * inst.failures) : refreshSeconds(inst);
-  if (delay) inst.fetchTimer = setTimeout(() => (inst.visible || watched(inst) ? loadData(inst) : (inst.stale = true)), delay * 1000);
+  if (delay) inst.fetchTimer = setTimeout(() => ((inst.visible || watched(inst)) && !paused(inst) ? loadData(inst) : (inst.stale = true)), delay * 1000);
 }
 
 // ---- pages ---------------------------------------------------------------------
@@ -303,7 +307,8 @@ function applyVisibility(immediate = false) {
     const cls = inst.wrap.classList;
     if (want) {
       const every = refreshSeconds(inst);
-      if (!inst.lastFetch || inst.stale || (every && Date.now() - inst.lastFetch > every * 1000)) {
+      if (paused(inst)) inst.stale = true; // fetched when the screen comes back
+      else if (!inst.lastFetch || inst.stale || (every && Date.now() - inst.lastFetch > every * 1000)) {
         inst.stale = false;
         loadData(inst);
       }
@@ -315,8 +320,10 @@ function applyVisibility(immediate = false) {
           void inst.wrap.offsetWidth; // start the transition from the "entering" state
           inst.fadeTimer = setTimeout(() => cls.remove('entering'), 20);
         } else cls.remove('entering');
-        inst.api.show?.();
-        inst.api.tick?.();
+        if (!paused(inst)) {
+          inst.api.show?.();
+          inst.api.tick?.();
+        }
       };
       if (delay) {
         cls.add(moving ? 'leaving' : 'off'); // a moving module fades out where it was
@@ -369,9 +376,9 @@ function showPage(index, immediate = false) {
   pageIndex = ((index % pages.length) + pages.length) % pages.length;
   const page = pages[pageIndex];
   applyVisibility(immediate);
-  setAmbient(page.ambient);
+  setAmbient((screenMode === 'day' || screenMode === 'dim') && !config.general.ecoMode ? page.ambient : 'off');
   clearTimeout(prefetchTimer);
-  const rotating = config.general.rotatePages && pages.length > 1 && !pinnedPage && !holdUntil;
+  const rotating = config.general.rotatePages && pages.length > 1 && !pinnedPage && !holdUntil && screenMode !== 'off';
   renderIndicator(rotating ? page.duration : 0);
   if (rotating) {
     pageTimer = setTimeout(() => showPage(pageIndex + 1), page.duration * 1000);
@@ -411,6 +418,37 @@ function updateDim() {
   dimLayer.style.opacity = String(1 - state.brightness);
   document.body.classList.toggle('night-clock', state.mode === 'clock');
   document.body.classList.toggle('screen-off', state.mode === 'off');
+  if (state.mode !== screenMode) {
+    const before = instances.filter((i) => i.visible && !paused(i));
+    screenMode = state.mode;
+    onPauseChange(before);
+  }
+}
+
+// ---- pause while nobody can see it --------------------------------------------------
+// Screen off: no data fetches, ticks, animations or page rotation. "Clock only": only
+// clocks keep running. Everything catches up when the screen comes back.
+let screenMode = 'day';
+const paused = (inst) => screenMode === 'off' || (screenMode === 'clock' && inst.mod.type !== 'clock');
+
+function onPauseChange(before) {
+  for (const inst of instances) {
+    if (!inst.visible) continue;
+    const was = before.includes(inst);
+    if (paused(inst) && was) inst.api.hide?.();
+    else if (!paused(inst) && !was) {
+      const every = refreshSeconds(inst);
+      if (inst.stale || !inst.lastFetch || (every && Date.now() - inst.lastFetch > every * 1000)) {
+        inst.stale = false;
+        loadData(inst);
+      }
+      inst.api.show?.();
+      inst.api.tick?.();
+    }
+  }
+  const page = pages[pageIndex];
+  setAmbient((screenMode === 'day' || screenMode === 'dim') && !config.general.ecoMode ? page?.ambient : 'off');
+  if (page) showPage(pageIndex, true); // stops / restarts the page rotation
 }
 
 let reloadTimer = null;
@@ -421,10 +459,11 @@ function scheduleReload() {
 }
 
 async function init() {
-  fetch('/api/display', { cache: 'no-store' }).then((r) => r.json()).then((d) => {
-    displayOverride = d.override || null;
-    updateDim();
-  }).catch(() => {});
+  // screen state first, so a mirror starting at night does not fetch everything once
+  await fetch('/api/display', { cache: 'no-store', signal: AbortSignal.timeout(3000) })
+    .then((r) => r.json())
+    .then((d) => (displayOverride = d.override || null))
+    .catch(() => {});
   try {
     const saved = await fetchConfig();
     if (previewConfig) return; // the admin's working copy arrived first – keep it
@@ -437,6 +476,7 @@ async function init() {
     return;
   }
   applyTheme(config.general);
+  screenMode = preview ? 'day' : displayState(config.general, new Date(), displayOverride).mode;
   build();
   updateDim();
   scheduleReload();

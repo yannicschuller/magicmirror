@@ -1,5 +1,7 @@
 // Module schema: labels, options, descriptions and default content.
 export default {
+  "Power-saving mode (Raspberry Pi 3)": "Sparmodus (Raspberry Pi 3)",
+  "Less work for small hardware: aircraft map every 15 s instead of every 5 s, no weather animation, no blur or shadow effects, clocks without seconds, simple page changes, compressed transfers and a memory limit for the server (it restarts briefly when you switch).": "Weniger Last für kleine Hardware: Luftraum alle 15 statt 5 Sekunden, keine Wetter-Animation, keine Weichzeichner- und Schatteneffekte, Uhren ohne Sekunden, einfache Seitenwechsel, komprimierte Übertragung und ein Speicherlimit für den Server (er startet beim Umschalten kurz neu).",
   "Mirrors (several screens with their own pages)": "Spiegel (mehrere Bildschirme mit eigenen Seiten)",
   "Mirror": "Spiegel",
   "URL name": "URL-Name",

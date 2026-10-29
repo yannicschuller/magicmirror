@@ -14,8 +14,17 @@
 # Images are published for amd64, arm64 and arm/v7 (Raspberry Pi 3/4/5).
 # To build locally instead: docker compose up -d --build
 
+# Container logs: practically unlimited by default (10 GB). To spare the SD card, set e.g.
+# MM_LOG_MAX_SIZE=10m and MM_LOG_MAX_FILES=3 in .env (the installer asks).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: ${MM_LOG_MAX_SIZE:-10g}
+    max-file: "${MM_LOG_MAX_FILES:-1}"
+
 services:
   magicmirror:
+    logging: *logging
     image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror:${MM_TAG:-latest}
     build: .
     restart: unless-stopped
@@ -34,6 +43,7 @@ services:
   # Full-screen kiosk on the HDMI output (profile "kiosk").
   # Needs a Raspberry Pi OS *Lite* host (no desktop running on the display).
   kiosk:
+    logging: *logging
     # KIOSK_BROWSER=cog (WPE WebKit, light – default) or chromium
     image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror-kiosk-${KIOSK_BROWSER:-cog}:${MM_TAG:-latest}
     build:
@@ -58,6 +68,7 @@ services:
 
   # Daily auto-update (profile "autoupdate").
   updater:
+    logging: *logging
     image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror-updater:${MM_TAG:-latest}
     build: ./updater
     profiles: ["autoupdate"]
@@ -74,6 +85,7 @@ services:
   # Waste collection dates by town/address (profile "waste"), based on the
   # "Waste Collection Schedule" library. Only reachable from the mirror server.
   wastecollect:
+    logging: *logging
     image: ${MM_REGISTRY:-ghcr.io/yannicschuller}/magicmirror-wastecollect:${MM_TAG:-latest}
     build: ./wastecollect
     profiles: ["waste"]
@@ -81,6 +93,7 @@ services:
 
   # RTSP cameras → browser (profile "camera")
   go2rtc:
+    logging: *logging
     image: alexxit/go2rtc:1.9.9
     profiles: ["camera"]
     restart: unless-stopped
@@ -93,6 +106,7 @@ services:
   # Serves http://ultrafeeder/data/aircraft.json for the aircraft module
   # and the tar1090 web UI on port ${TAR1090_PORT:-8090}.
   ultrafeeder:
+    logging: *logging
     image: ghcr.io/sdr-enthusiasts/docker-adsb-ultrafeeder:latest
     hostname: ultrafeeder
     profiles: ["adsb", "fr24"]
@@ -138,6 +152,7 @@ services:
 
   # Share data with Flightradar24 (profile "fr24", needs FR24_SHARING_KEY)
   fr24:
+    logging: *logging
     image: ghcr.io/sdr-enthusiasts/docker-flightradar24:latest
     profiles: ["fr24"]
     restart: unless-stopped
