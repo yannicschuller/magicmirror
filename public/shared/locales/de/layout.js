@@ -1,5 +1,7 @@
 // Admin: module height and schedule.
 export default {
+  "Available modules": "Verfügbare Module",
+  "Drag a module onto an area to show it on this page as well – it stays on its other pages.": "Zieh ein Modul auf eine Fläche, um es auch auf dieser Seite zu zeigen – auf seinen anderen Seiten bleibt es.",
   "Not on any page yet": "Noch auf keiner Seite",
   "Not on any page yet – drag it onto an area in \"Pages & layout\" or pick pages above.": "Noch auf keiner Seite – zieh es unter „Seiten & Layout“ auf eine Fläche oder wähle oben Seiten aus.",
   "instead of {name}": "statt {name}",

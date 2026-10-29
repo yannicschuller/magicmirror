@@ -241,7 +241,10 @@ function PageRow({ p, i, active }: { p: Page; i: number; active: boolean }) {
 
 function LayoutPanel({ page }: { page: Page }) {
   const { cfg, t } = useStore();
-  const others = cfg.modules.filter((m) => !m.enabled || !onPage(m, page.id));
+  // every module can be placed on every page – the ones not on this page yet, unplaced first
+  const others = cfg.modules
+    .filter((m) => !m.enabled || !onPage(m, page.id))
+    .sort((a, b) => Number(b.pages.length === 0) - Number(a.pages.length === 0));
   return (
     <Card>
       <CardHeader>
@@ -257,7 +260,7 @@ function LayoutPanel({ page }: { page: Page }) {
           ))}
         </div>
         <div>
-          <h3 className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">{t('Modules on other pages / disabled')}</h3>
+          <h3 className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">{t('Available modules')}</h3>
           <div className="flex flex-wrap gap-2">
             {others.length ? (
               others.map((m) => <ModuleChip key={m.id} m={m} page={page} outside />)
@@ -265,7 +268,7 @@ function LayoutPanel({ page }: { page: Page }) {
               <span className="text-xs text-muted-foreground">{t('All modules are on this page.')}</span>
             )}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">{t('Drag onto an area to show the module on this page.')}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t('Drag a module onto an area to show it on this page as well – it stays on its other pages.')}</p>
         </div>
       </CardContent>
     </Card>
