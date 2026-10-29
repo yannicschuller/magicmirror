@@ -2,6 +2,7 @@
 import { VERSION } from './version.js';
 
 const clients = new Set();
+const previews = new Set(); // admin preview frames – get events, but are not "mirrors"
 
 export function sseHandler(req, res) {
   res.writeHead(200, {
@@ -13,13 +14,15 @@ export function sseHandler(req, res) {
   res.write('retry: 5000\n\n');
   // Mirrors reload themselves when they reconnect to a newer server (auto-update).
   res.write(`event: hello\ndata: ${JSON.stringify({ version: VERSION })}\n\n`);
-  clients.add(res);
-  req.on('close', () => clients.delete(res));
+  const set = req.query?.preview ? previews : clients;
+  set.add(res);
+  req.on('close', () => set.delete(res));
 }
 
 export function broadcast(event, data = {}) {
   const msg = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   for (const res of clients) res.write(msg);
+  for (const res of previews) res.write(msg);
 }
 
 export function clientCount() {
@@ -27,5 +30,5 @@ export function clientCount() {
 }
 
 setInterval(() => {
-  for (const res of clients) res.write(': ping\n\n');
+  for (const res of [...clients, ...previews]) res.write(': ping\n\n');
 }, 25000).unref();

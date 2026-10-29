@@ -13,7 +13,7 @@ import { setupAuth, requireAdmin, changePassword, oidcEnabled, localEnabled } fr
 import { sseHandler, broadcast, clientCount } from './events.js';
 import { mountGo2rtc, syncStreams, streamName, go2rtcStatus } from './go2rtc.js';
 import { cached, fetchJson } from './util.js';
-import { MODULE_TYPES, publicConfig, defaultConfig } from '../public/shared/modules.js';
+import { MODULE_TYPES, publicConfig, defaultConfig, normalizeConfig } from '../public/shared/modules.js';
 import { weather, weatherHints, ambientWeather } from './providers/weather.js';
 import { provider as news } from './providers/news.js';
 import { provider as homeassistant, startHaLive } from './providers/homeassistant.js';
@@ -198,6 +198,21 @@ admin.post('/transit/search', async (req, res) => {
     res.json(await searchStops(settings, String(q).trim()));
   } catch (err) {
     res.status(502).json({ error: err.message });
+  }
+});
+
+// Admin preview: data for a module as it is being edited (not saved yet).
+admin.post('/preview-data', async (req, res) => {
+  const cfg = getConfig();
+  const posted = req.body?.module;
+  if (!posted || typeof posted !== 'object') return res.status(400).json({ ok: false, error: 'Invalid module' });
+  const mod = normalizeConfig({ ...cfg, modules: [posted] }).modules[0];
+  const provider = mod && providers[mod.type];
+  if (!provider) return res.json({ ok: true, data: {} });
+  try {
+    res.json({ ok: true, fetchedAt: new Date().toISOString(), data: await provider(mod.settings, cfg, mod) });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err.message });
   }
 });
 

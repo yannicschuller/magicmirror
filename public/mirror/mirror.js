@@ -8,6 +8,9 @@ import { setAmbient } from './ambient.js';
 
 const params = new URLSearchParams(location.search);
 const pinnedPage = params.get('page');
+// ?preview=1: admin preview – gets the unsaved config from the admin page (postMessage)
+// and loads module data for exactly those settings.
+const preview = params.has('preview');
 const stage = document.getElementById('stage');
 const grid = document.getElementById('grid');
 const indicator = document.getElementById('indicator');
@@ -47,7 +50,8 @@ function applyTheme(g) {
   document.body.classList.toggle('hide-cursor', g.hideCursor);
   document.body.classList.toggle('no-titles', !g.showTitles);
   document.body.dataset.transition = g.transition;
-  stage.dataset.rotation = g.rotation;
+  // the admin preview already has the rotated (portrait) size
+  stage.dataset.rotation = preview ? '0' : g.rotation;
   document.title = g.name;
   document.documentElement.lang = langOf(g.locale);
 }
@@ -106,7 +110,9 @@ async function loadData(inst) {
   const every = refreshSeconds(inst);
   inst.lastFetch = Date.now();
   try {
-    const res = await fetch(`/api/module/${encodeURIComponent(inst.mod.id)}/data`, { cache: 'no-store' });
+    const res = preview
+      ? await fetch('/api/admin/preview-data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ module: inst.mod }) })
+      : await fetch(`/api/module/${encodeURIComponent(inst.mod.id)}/data`, { cache: 'no-store' });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || `HTTP ${res.status}`);
     if (!instances.includes(inst)) return;
@@ -374,7 +380,8 @@ let displayOverride = null;
 function updateDim() {
   const g = config?.general;
   if (!g) return;
-  const state = displayState(g, new Date(), displayOverride);
+  // the admin preview always shows the day view
+  const state = preview ? { mode: 'day', brightness: 1 } : displayState(g, new Date(), displayOverride);
   dimLayer.style.opacity = String(1 - state.brightness);
   document.body.classList.toggle('night-clock', state.mode === 'clock');
   document.body.classList.toggle('screen-off', state.mode === 'off');
@@ -393,7 +400,9 @@ async function init() {
     updateDim();
   }).catch(() => {});
   try {
-    config = await fetchConfig();
+    const saved = await fetchConfig();
+    if (previewConfig) return; // the admin's working copy arrived first – keep it
+    config = saved;
     statusEl.hidden = true;
   } catch (err) {
     statusEl.hidden = false;
@@ -407,15 +416,35 @@ async function init() {
   scheduleReload();
 }
 
+// Admin preview: the admin page posts its working copy (incl. unsaved changes).
+let previewConfig = false;
+if (preview) {
+  let lastSig = '';
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || e.data?.type !== 'mm-config') return;
+    const sig = JSON.stringify(e.data.config);
+    if (sig === lastSig) return;
+    lastSig = sig;
+    previewConfig = true;
+    config = e.data.config;
+    statusEl.hidden = true;
+    applyTheme(config.general);
+    build();
+    updateDim();
+  });
+  window.parent?.postMessage({ type: 'mm-preview-ready' }, location.origin);
+}
+
 function buildGrid() {
   grid.innerHTML = REGIONS.map((r) => `<div class="region" data-region="${r.id}"></div>`).join('');
 }
 
 // ---- live updates (SSE) -------------------------------------------------------------
 function connectEvents() {
-  const es = new EventSource('/api/events');
+  const es = new EventSource(preview ? '/api/events?preview=1' : '/api/events');
   let lastUpdate = null;
   es.addEventListener('config', async (e) => {
+    if (preview) return; // the admin page sends the config itself
     const { updatedAt } = JSON.parse(e.data);
     if (updatedAt === lastUpdate) return;
     lastUpdate = updatedAt;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
 import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, MonitorPlay, SlidersHorizontal, Star, MoveVertical, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from 'cn';
@@ -414,36 +414,53 @@ function ModuleChip({ m, page, outside = false }: { m: Module; page: Page; outsi
 // ---- preview --------------------------------------------------------------------------------
 
 function PreviewPanel({ page }: { page: Page }) {
-  const { t, saved } = useStore();
+  const { t, cfg, dirty } = useStore();
   const box = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null);
+  const portrait = cfg.general.rotation === '90' || cfg.general.rotation === '270';
+  const [w, h] = portrait ? [1080, 1920] : [1920, 1080];
   const [scale, setScale] = useState(0.3);
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setScale(el.clientWidth / 1920));
+    const ro = new ResizeObserver(() => setScale(el.clientWidth / w));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [w]);
+
+  // Live: send the working copy (incl. unsaved changes) to the preview, debounced.
+  const json = JSON.stringify(cfg);
+  const send = useCallback(() => frame.current?.contentWindow?.postMessage({ type: 'mm-config', config: JSON.parse(json) }, location.origin), [json]);
+  useEffect(() => {
+    const timer = setTimeout(send, 400);
+    return () => clearTimeout(timer);
+  }, [send]);
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => e.origin === location.origin && e.data?.type === 'mm-preview-ready' && send();
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [send]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base font-semibold">{t('Preview')}</CardTitle>
         <CardAction>
-          <Badge variant="outline" className="text-muted-foreground">
-            {t('saved state')}
+          <Badge variant="outline" className={dirty ? 'border-warning/40 text-warning' : 'text-muted-foreground'}>
+            {dirty ? t('live – incl. unsaved changes') : t('live')}
           </Badge>
         </CardAction>
       </CardHeader>
       <CardContent>
-        <div ref={box} className="relative aspect-video w-full overflow-hidden rounded-xl border bg-black">
+        <div ref={box} className={cn('relative mx-auto w-full overflow-hidden rounded-xl border bg-black', portrait ? 'aspect-[9/16] max-w-sm' : 'aspect-video')}>
           <iframe
-            // reload whenever the saved state or the page changes
-            key={`${page.id}:${saved.length}:${hash(saved)}`}
-            src={`/?page=${encodeURIComponent(page.id)}`}
+            ref={frame}
+            key={page.id}
+            src={`/?page=${encodeURIComponent(page.id)}&preview=1`}
             title={t('Preview')}
             tabIndex={-1}
-            className="pointer-events-none absolute top-0 left-0 h-[1080px] w-[1920px] origin-top-left border-0"
-            style={{ transform: `scale(${scale})` }}
+            className="pointer-events-none absolute top-0 left-0 origin-top-left border-0"
+            style={{ width: w, height: h, transform: `scale(${scale})` }}
           />
         </div>
       </CardContent>
@@ -451,8 +468,3 @@ function PreviewPanel({ page }: { page: Page }) {
   );
 }
 
-function hash(s: string) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return h;
-}

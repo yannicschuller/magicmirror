@@ -1,5 +1,7 @@
 // Admin panel UI.
 export default {
+  "live – incl. unsaved changes": "live – inkl. ungespeicherter Änderungen",
+  "live": "live",
   "History": "Verlauf",
   "The last 20 saved states. Compare one with the current state and restore it if needed.": "Die letzten 20 gespeicherten Stände. Vergleiche einen mit dem aktuellen Stand und stelle ihn bei Bedarf wieder her.",
   "No earlier states yet – they appear after the next save.": "Noch keine früheren Stände – sie erscheinen nach dem nächsten Speichern.",
