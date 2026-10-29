@@ -23,6 +23,12 @@
 - **Auto-update:** new versions are installed overnight and open mirrors reload themselves.
 - **Backup:** export and import the complete configuration as one file.
 - **Languages:** English and German, for both the mirror and the admin panel.
+- **Smart visibility:** modules can show only at certain times, only when they have something to show (open tasks, an aircraft nearby, a race weekend …) or stand in for another module; pages can depend on a module's result too.
+- **Night mode:** dim, show only the clock or switch the screen off (HDMI-CEC standby) – by time or from sunset to sunrise.
+- **Phone remote:** `/admin/#remote` switches pages, holds the rotation and turns the screen on/off.
+- **Several mirrors:** one server, several screens with their own pages (`/?display=flur`).
+- **Live preview, change diff and history:** see unsaved changes in the admin preview, review them field by field, and restore any of the last 20 saved states.
+- **Health notices:** the admin panel tells you when a module keeps failing (expired token, unreachable feed …).
 
 ## Modules
 
@@ -45,6 +51,13 @@
 | **Fuel prices** | Cheapest stations nearby or your favourites, E5/E10/diesel | [Tankerkönig](https://creativecommons.tankerkoenig.de) (free API key, Germany) |
 | **Moon & sun** | Moon phase drawn to scale, next full/new moon, sun arc with current position, twilight and golden hour, day length | computed locally |
 | **Football** | Bundesliga & more: matchday with live scores, table, next matches, favourite team | [OpenLigaDB](https://www.openligadb.de) |
+| **Countdown** | Days until holidays, birthdays (yearly, "turns 40"), events – list or one big number | local |
+| **Parcel tracking** | Status, last scan, "arriving today" and delivery window per parcel | [DHL API](https://developer.dhl.com) (free key), optional [17TRACK](https://www.17track.net) for other carriers |
+| **Pollen & air quality** | DWD pollen forecast for your region (today/tomorrow), European AQI, PM2.5/PM10, ozone, NO₂ | [DWD](https://opendata.dwd.de), Open-Meteo (no API key) |
+| **Bike & scooter sharing** | Nearest stations with free bikes/e-bikes and free-floating scooters nearby | open GBFS feeds (nextbike, Dott, Bolt, Voi, …) |
+| **ISS & night sky** | Visible ISS passes with direction and brightness, planets tonight, moon, conjunctions and meteor showers | [CelesTrak](https://celestrak.org) orbit data, computed locally |
+| **Device status** | CPU temperature, load, RAM, disk, uptime, Raspberry Pi under-voltage/throttling | local |
+| **Internet & network** | Online status, latency, optional speed test and public IP, who is home (device probe or Home Assistant) | local, Cloudflare |
 
 Each module can be added several times (two departure boards, for example). Each copy has its own settings and one of 12 positions, including a full-screen background.
 
@@ -168,6 +181,15 @@ The `kiosk` container runs privileged so it can drive the display (DRM/KMS), key
 - Showing a different server: `KIOSK_URL=http://other-host:8080/`.
 - Extra Chromium flags: `KIOSK_FLAGS=--force-device-scale-factor=1.25`.
 - Night dimming: *General → Night mode*.
+
+### Boot screen (Raspberry Pi)
+
+The installer can set up a boot screen with the Magic Mirror logo, a spinner and a status line ("Starting Docker …", "Waiting for the mirror …") instead of scrolling boot text. It stays until the mirror answers, then the kiosk takes over. Install or remove it later with:
+
+```bash
+sudo kiosk/splash/install-splash.sh --lang de --port 8080
+sudo kiosk/splash/install-splash.sh --remove
+```
 
 ### Updates
 

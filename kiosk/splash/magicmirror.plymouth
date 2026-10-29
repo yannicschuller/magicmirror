@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Magic Mirror
+Description=Magic Mirror boot screen: logo, spinner and a status line
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/magicmirror
+ScriptFile=/usr/share/plymouth/themes/magicmirror/magicmirror.script

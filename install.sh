@@ -186,6 +186,10 @@ KIOSK_BROWSER_V="$(env_get KIOSK_BROWSER)"
 if [ "$P_KIOSK" = y ]; then
   echo "  ${DIM}$(m "cog = WPE WebKit, light (recommended for a Pi 3) · chromium = heavier, maximum compatibility" "cog = WPE WebKit, sparsam (empfohlen für den Pi 3) · chromium = schwerer, maximale Kompatibilität")${N}"
   ask KIOSK_BROWSER_V "$(m "Kiosk browser (cog/chromium)" "Kiosk-Browser (cog/chromium)")" "${KIOSK_BROWSER_V:-cog}"
+  if [ "$IS_PI" = y ]; then
+    splash_default=y; [ -f /etc/systemd/system/mm-splash.service ] || [ ! -f "$INSTALL_DIR/.env" ] || splash_default=n
+    ask_yes P_SPLASH "$(m "Boot screen with the Magic Mirror logo, a spinner and a status line instead of boot text?" "Startbildschirm mit Magic-Mirror-Logo, Ladeanzeige und Statuszeile statt Boot-Text?")" "$splash_default"
+  fi
   case "$KIOSK_BROWSER_V" in chromium) ;; *) KIOSK_BROWSER_V=cog ;; esac
 fi
 # The updater always runs, so updates can be started from the admin panel;
@@ -292,6 +296,15 @@ if [ "$P_KIOSK" = y ]; then
     fi
   fi
   [ -e /dev/dri/card0 ] || [ -e /dev/dri/card1 ] || REBOOT_NEEDED=1
+  if [ "${P_SPLASH:-n}" = y ]; then
+    info "$(m "Installing the boot screen" "Richte den Startbildschirm ein")"
+    if $SUDO "$INSTALL_DIR/kiosk/splash/install-splash.sh" --lang "$UI_LANG" --port "$PORT"; then
+      REBOOT_NEEDED=1
+      ok "$(m "Boot screen installed (remove: sudo kiosk/splash/install-splash.sh --remove)" "Startbildschirm eingerichtet (entfernen: sudo kiosk/splash/install-splash.sh --remove)")"
+    else
+      warn "$(m "Boot screen could not be installed – the mirror works without it" "Startbildschirm konnte nicht eingerichtet werden – der Spiegel läuft auch ohne")"
+    fi
+  fi
 fi
 
 if [ "$P_ADSB" = y ] && [ ! -f /etc/modprobe.d/blacklist-rtlsdr.conf ]; then

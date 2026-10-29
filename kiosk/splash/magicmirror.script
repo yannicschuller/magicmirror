@@ -1,0 +1,67 @@
+# Magic Mirror boot screen (Plymouth script theme): logo, name, a spinner and one status
+# line – boot messages from systemd and "plymouth message --text=…" from mm-splash.
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+sw = Window.GetWidth();
+sh = Window.GetHeight();
+unit = Math.Min(sw, sh);
+
+logo.image = Image("logo.png");
+size = Math.Int(unit * 0.2);
+logo.image = logo.image.Scale(size, size * logo.image.GetHeight() / logo.image.GetWidth());
+logo.sprite = Sprite(logo.image);
+logo.x = Math.Int(sw / 2 - logo.image.GetWidth() / 2);
+logo.y = Math.Int(sh * 0.42 - logo.image.GetHeight() / 2);
+logo.sprite.SetPosition(logo.x, logo.y, 1);
+
+title.image = Image.Text("Magic Mirror", 1, 1, 1, 1, "Sans " + Math.Int(unit * 0.035));
+title.sprite = Sprite(title.image);
+title.sprite.SetPosition(Math.Int(sw / 2 - title.image.GetWidth() / 2), logo.y + logo.image.GetHeight() + Math.Int(unit * 0.03), 1);
+
+# spinner: 12 dots on a circle, a bright "head" running round with a fading tail
+dot = Image("dot.png");
+dots = Math.Int(12);
+radius = unit * 0.025;
+cx = sw / 2;
+cy = logo.y + logo.image.GetHeight() + unit * 0.15;
+for (i = 0; i < dots; i++) {
+  spinner[i] = Sprite(dot);
+  angle = i * 2 * Math.Pi / dots;
+  spinner[i].SetPosition(Math.Int(cx + Math.Sin(angle) * radius - dot.GetWidth() / 2), Math.Int(cy - Math.Cos(angle) * radius - dot.GetHeight() / 2), 2);
+  spinner[i].SetOpacity(0.15);
+}
+frame = 0;
+
+fun refresh_callback() {
+  frame++;
+  head = Math.Int(frame / 4) % dots;
+  for (i = 0; i < dots; i++) {
+    age = (head - i + dots) % dots;
+    spinner[i].SetOpacity(Math.Max(0.12, 1 - age * 0.18));
+  }
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# status line at the bottom: our own messages win over systemd's unit updates
+status.sprite = Sprite();
+status.own = 0;
+fun show_status(text) {
+  status.image = Image.Text(text, 0.6, 0.6, 0.6, 1, "Monospace " + Math.Int(unit * 0.018));
+  status.sprite.SetImage(status.image);
+  status.sprite.SetPosition(Math.Int(sw / 2 - status.image.GetWidth() / 2), Math.Int(sh * 0.9), 3);
+}
+fun message_callback(text) {
+  status.own = 1;
+  show_status(text);
+}
+fun update_callback(text) {
+  if (!status.own) show_status(text);
+}
+Plymouth.SetMessageFunction(message_callback);
+Plymouth.SetUpdateStatusFunction(update_callback);
+show_status("Starting …");
+
+# password prompts (e.g. encrypted disks) are not used on the mirror – keep the screen calm
+fun display_normal_callback() {}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
