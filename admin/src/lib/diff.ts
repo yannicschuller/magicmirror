@@ -138,6 +138,10 @@ export function configDiff(savedJson: string, cur: Values, t: Translate): DiffEn
     prop('height', 'Height', (v) => (v === 'fill' ? t('Use as much space as possible') : t('Automatic')));
     prop('order', 'Order within the area', (v) => String(v));
     prop('schedule', 'Only show at certain times', (v) => scheduleText(v, t));
+    prop('insteadOf', 'Show instead of another module', (v, cfg) => {
+      const o = v && cfg.modules.find((x: Values) => x.id === v);
+      return o ? modName(o) : v ? String(v) : t('No – always show');
+    });
     prop('onlyWithContent', CONDITIONS[m.type]?.label || 'onlyWithContent', (v) => (v ? t('On') : t('Off')));
     changes.push(...fieldChanges(MODULE_TYPES[m.type]?.fields || [], before.settings || {}, m.settings || {}, t));
     if (changes.length) out.push({ section: 'module', title, kind: 'changed', changes });

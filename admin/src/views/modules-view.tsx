@@ -293,6 +293,24 @@ function ModuleEditor({ m }: { m: Module }) {
                 <span>{t(CONDITIONS[m.type]!.label)}</span>
               </label>
             )}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={`instead-${m.id}`} className="text-sm font-normal">{t('Show instead of another module')}</Label>
+              <OptionSelect
+                id={`instead-${m.id}`}
+                className="max-w-96"
+                translate={false}
+                value={m.insteadOf || ''}
+                options={[
+                  { value: '', label: t('No – always show') },
+                  ...cfg.modules.filter((x) => x.id !== m.id).map((x) => ({ value: x.id, label: `${moduleName(x, t)}${x.enabled ? '' : ` (${t('disabled')})`}` })),
+                ]}
+                onValue={(v) => {
+                  m.insteadOf = v;
+                  touch();
+                }}
+              />
+              <p className="text-xs text-muted-foreground">{t('Only shown while the chosen module is hidden – by its pages, its time window or "only show when …" (e.g. a clock while no aircraft is nearby). Put both in the same area so this one takes its place.')}</p>
+            </div>
           </div>
           <div className="col-span-full flex flex-col gap-1.5">
             <Label className="text-xs font-medium text-muted-foreground">{t('Pages')}</Label>

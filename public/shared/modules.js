@@ -501,6 +501,7 @@ export function defaultModule(type, extra = {}, locale = DEFAULT_LOCALE) {
     order: 0,
     height: 'auto',
     onlyWithContent: false,
+    insteadOf: '',
     schedule: normalizeSchedule(null),
     settings: applyDefaults(t.fields, {}, tr),
     ...extra,
@@ -586,6 +587,8 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
         height: m.height === 'fill' ? 'fill' : 'auto',
         // "only show when …" (see ./conditions.js)
         onlyWithContent: m.onlyWithContent === true,
+        // shown only while this other module is hidden (stand-in / fallback)
+        insteadOf: typeof m.insteadOf === 'string' && m.insteadOf !== m.id ? m.insteadOf : '',
         schedule: normalizeSchedule(m.schedule),
         settings: applyDefaults(t.fields, migrateSettings(m.settings), tr),
       };

@@ -111,7 +111,9 @@ async function loadData(inst) {
     if (sig !== inst.lastSig) {
       const first = !inst.lastSig;
       inst.lastSig = sig;
+      const wasEmpty = inst.wrap.classList.contains('empty');
       inst.api.update(json.data);
+      if (wasEmpty !== inst.wrap.classList.contains('empty')) contentChanged(inst);
       clearTimeout(layoutTimer);
       layoutTimer = setTimeout(layoutFill, 50); // a module may have become empty / non-empty
       if (first) {
@@ -137,15 +139,31 @@ async function loadData(inst) {
 }
 
 // ---- pages ---------------------------------------------------------------------
-function onPage(mod, page) {
-  return (mod.pages.includes('*') || mod.pages.includes(page.id)) && scheduleActive(mod.schedule, new Date(), config.general.timezone);
+function onPage(mod, page, seen = new Set()) {
+  if (!(mod.pages.includes('*') || mod.pages.includes(page.id)) || !scheduleActive(mod.schedule, new Date(), config.general.timezone)) return false;
+  // "Instead of": only while the other module is not shown (other page, schedule, nothing to show)
+  if (mod.insteadOf && !seen.has(mod.id)) {
+    seen.add(mod.id);
+    const other = instances.find((i) => i.mod.id === mod.insteadOf);
+    if (other && !other.wrap.classList.contains('no-content') && !other.wrap.classList.contains('empty') && onPage(other.mod, page, seen)) return false;
+  }
+  return true;
 }
+
+// A module's shown/hidden state changed by its content → modules standing in for it follow.
+function contentChanged(inst) {
+  if (!instances.some((i) => i.mod.insteadOf === inst.mod.id)) return;
+  clearTimeout(visibilityTimer);
+  visibilityTimer = setTimeout(() => applyVisibility(), 100);
+}
+let visibilityTimer = null;
 
 // "Only show when …": hide a module while its data has nothing to show. Returns true if changed.
 function applyContent(inst) {
   const hide = inst.mod.onlyWithContent && !moduleHasContent(inst.mod.type, inst.lastData, new Date(), config.general.timezone);
   if (hide === inst.wrap.classList.contains('no-content')) return false;
   inst.wrap.classList.toggle('no-content', hide);
+  contentChanged(inst);
   clearTimeout(layoutTimer);
   layoutTimer = setTimeout(layoutFill, 50);
   // a page made only of such modules is skipped / comes back (e.g. F1 page on race weekends)
