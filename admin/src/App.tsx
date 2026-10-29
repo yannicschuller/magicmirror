@@ -21,6 +21,7 @@ import { StoreProvider, useStore, useT, VIEWS, type View } from '@/lib/store';
 import { VersionBadge } from '@/components/version-badge';
 import { ChangesDialog } from '@/components/changes-dialog';
 import { UpdateIndicator } from '@/components/update-progress';
+import { useActiveTabVisible } from '@/lib/use-active-tab-visible';
 import { UpdateProvider } from '@/lib/update';
 import { HealthProvider } from '@/lib/health';
 import { HealthBanner } from '@/components/health-banner';
@@ -116,13 +117,14 @@ function UserMenu() {
 function Shell() {
   const { t, view, setView, dirty, save, saving, discard, me } = useStore();
   const [showChanges, setShowChanges] = useState(false);
+  const tabBar = useActiveTabVisible<HTMLDivElement>(view);
   return (
     <Tabs value={view} onValueChange={(v) => setView(v as View)} className="min-h-screen gap-0">
       <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1700px] flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 sm:px-5 md:flex-nowrap">
           <Brand build={me.build} />
           {/* on phones the tabs get their own row (scrollable); from md on everything fits in one */}
-          <div className="order-last -mx-3 w-[calc(100%+1.5rem)] min-w-0 overflow-x-auto px-3 [scrollbar-width:none] sm:-mx-5 sm:w-[calc(100%+2.5rem)] sm:px-5 md:order-none md:mx-0 md:w-auto md:flex-1 md:px-0 [&::-webkit-scrollbar]:hidden">
+          <div ref={tabBar} className="order-last -mx-3 w-[calc(100%+1.5rem)] min-w-0 touch-pan-x overflow-x-auto overflow-y-hidden overscroll-x-contain px-3 py-px [scrollbar-width:none] sm:-mx-5 sm:w-[calc(100%+2.5rem)] sm:px-5 md:order-none md:mx-0 md:w-auto md:flex-1 md:px-0 [&::-webkit-scrollbar]:hidden">
             <TabsList className="h-9">
               {VIEWS.map((v) => (
                 <TabsTrigger key={v} value={v} className="px-3">

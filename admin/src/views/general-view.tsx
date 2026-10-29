@@ -6,6 +6,7 @@ import { FieldsForm } from '@/components/fields';
 import { GENERAL_FIELDS, GENERAL_GROUPS } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 import { SystemCard } from './system-card';
+import { useActiveTabVisible } from '@/lib/use-active-tab-visible';
 
 const ICONS: Record<string, typeof Clock> = { basics: Settings2, look: Palette, pages: Clock, night: Moon, system: Monitor };
 const DESCRIPTIONS: Record<string, string> = {
@@ -35,9 +36,10 @@ export function GeneralView() {
       /* storage unavailable */
     }
   };
+  const bar = useActiveTabVisible<HTMLDivElement>(tab);
   return (
     <Tabs value={tab} onValueChange={pick} className="mx-auto flex w-full max-w-4xl flex-col gap-4">
-      <div className="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+      <div ref={bar} className="-mx-3 touch-pan-x overflow-x-auto overflow-y-hidden overscroll-x-contain px-3 py-px [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
         <TabsList className="h-9">
           {GENERAL_GROUPS.map((g) => {
             const Icon = ICONS[g.id] || Settings2;
