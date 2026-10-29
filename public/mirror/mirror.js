@@ -40,7 +40,30 @@ const FONTS = {
   mono: "ui-monospace, 'DejaVu Sans Mono', Menlo, monospace",
 };
 
+// Burn-in protection: the content wanders around a small circle (8 steps), one step every
+// few minutes – an instant jump of a few pixels nobody notices, but static parts move.
+let shiftTimer = null;
+let shiftStep = 0;
+function applyShift(g) {
+  clearInterval(shiftTimer);
+  const root = document.documentElement.style;
+  const set = () => {
+    const r = g.burnInPixels || 6;
+    const a = (shiftStep++ % 8) * (Math.PI / 4);
+    root.setProperty('--shift-x', `${Math.round(Math.cos(a) * r)}px`);
+    root.setProperty('--shift-y', `${Math.round(Math.sin(a) * r)}px`);
+  };
+  if (!g.burnInShift || preview) {
+    root.setProperty('--shift-x', '0px');
+    root.setProperty('--shift-y', '0px');
+    return;
+  }
+  set();
+  shiftTimer = setInterval(set, (g.burnInMinutes || 3) * 60000);
+}
+
 function applyTheme(g) {
+  applyShift(g);
   const root = document.documentElement.style;
   root.setProperty('--bg', g.background);
   root.setProperty('--fg', g.textColor);

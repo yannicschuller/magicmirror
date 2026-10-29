@@ -456,6 +456,10 @@ export const GENERAL_FIELDS = [
   { group: 'look', key: 'rotation', label: 'Rotate screen', type: 'select', default: '0', options: [
     { value: '0', label: '0°' }, { value: '90', label: '90° (portrait)' }, { value: '180', label: '180°' }, { value: '270', label: '270° (portrait)' },
   ] },
+  { group: 'look', key: 'burnInShift', label: 'Burn-in protection (shift the content slightly)', type: 'bool', default: false,
+    help: 'Moves everything a few pixels every few minutes, so static parts such as the clock do not burn into OLED, plasma or old screens. Hardly noticeable.' },
+  { group: 'look', key: 'burnInPixels', label: 'Shift by up to (pixels)', type: 'number', default: 6, min: 2, max: 30, showIf: { burnInShift: true } },
+  { group: 'look', key: 'burnInMinutes', label: 'Shift every (minutes)', type: 'number', default: 3, min: 1, max: 60, showIf: { burnInShift: true } },
   { group: 'look', key: 'showTitles', label: 'Show module titles', type: 'bool', default: true },
   { group: 'look', key: 'hideCursor', label: 'Hide mouse cursor', type: 'bool', default: true },
 

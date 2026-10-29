@@ -666,3 +666,9 @@ body.night-clock .module:not(.mod-clock), body.night-clock #dots, body.night-clo
 /* Power-saving mode: no blur / shadow effects (expensive for WebKit on a Pi 3) */
 body.eco *, body.eco *::before, body.eco *::after { filter: none !important; backdrop-filter: none !important; box-shadow: none !important; text-shadow: none !important; }
 body.eco .flights .fl-photo img.fl-ph-bg { display: none; }
+
+/* Burn-in protection: everything except the full-screen background moves a few pixels
+   (transform does not change the layout; the full-screen area would lose "fixed" inside a
+   transformed parent, so it is not moved). */
+.region:not([data-region='fullscreen']), #progress { transform: translate(var(--shift-x, 0px), var(--shift-y, 0px)); }
+#indicator { transform: translate(calc(-50% + var(--shift-x, 0px)), var(--shift-y, 0px)); }
