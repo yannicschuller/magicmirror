@@ -68,6 +68,7 @@ export function makeFmt(general) {
       return fu(long ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' }).format(utc(key));
     },
     weekdayShort: (key) => fu({ weekday: 'short' }).format(utc(key)).replace('.', ''),
+    weekdayLong: (key) => fu({ weekday: 'long' }).format(utc(key)),
     dateShort: (key) => fu({ day: 'numeric', month: 'short' }).format(utc(key)),
     // Open-Meteo returns local time strings without offset ("2026-10-24T18:00").
     localHour: (s) => s.slice(11, 16),

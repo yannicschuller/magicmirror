@@ -44,15 +44,21 @@ const UNITS = {
   aviation: { alt: 'ft', speed: 'kt', dist: 'NM' },
   imperial: { alt: 'ft', speed: 'mph', dist: 'mi' },
 };
-function unitFmt(units, locale, t) {
+function unitFmt(units, locale, t, altUnit = 'auto', vrateUnit = 'auto') {
   const u = UNITS[units] || UNITS.ft_kmh;
   const int = (n) => Math.round(n).toLocaleString(locale);
+  const alt = altUnit !== 'auto' ? altUnit : u.alt;
+  const vr = vrateUnit !== 'auto' ? vrateUnit : u.alt === 'm' ? 'ms' : 'fpm';
+  const altText = (ft) => (alt === 'km' ? `${num(ft * 0.0003048, 1)} km` : alt === 'm' ? `${int(ft * 0.3048)} m` : `${int(ft)} ft`);
   return {
-    alt: (a) => (a.ground ? t('on ground') : a.alt === null ? '–' : u.alt === 'm' ? `${int(a.alt * 0.3048)} m` : `${int(a.alt)} ft`),
+    alt: (a) => (a.ground ? t('on ground') : a.alt === null ? '–' : altText(a.alt)),
     speed: (kmh) => (kmh === null || kmh === undefined ? '–' : u.speed === 'kt' ? `${int(kmh / 1.852)} kt` : u.speed === 'mph' ? `${int(kmh / 1.609344)} mph` : `${int(kmh)} km/h`),
     distNum: (km, d = km < 10 ? 1 : 0) => num(u.dist === 'NM' ? km / 1.852 : u.dist === 'mi' ? km / 1.609344 : km, d),
     distUnit: u.dist,
-    vrate: (fpm) => (u.alt === 'm' ? `${num(Math.abs(fpm) * 0.00508, 1)} m/s` : `${int(Math.abs(fpm))} ft/min`),
+    vrate: (fpm) => {
+      const v = Math.abs(fpm);
+      return vr === 'ms' ? `${num(v * 0.00508, 1)} m/s` : vr === 'mmin' ? `${int(v * 0.3048)} m/min` : `${int(v)} ft/min`;
+    },
   };
 }
 
@@ -67,7 +73,7 @@ export function flights(el, mod, ctx, region) {
   const full = region === 'fullscreen';
   const display = s.display === 'nearest' || s.display === 'both' ? s.display : 'map';
   const spotOnly = display === 'nearest';
-  const u = unitFmt(s.units, locale, t);
+  const u = unitFmt(s.units, locale, t, s.altUnit, s.vrateUnit);
   const trailMax = display === 'map' ? 0 : s.trailLength ?? 20;
   // Height: 0 = take the free height of the region; a number = preferred height that still
   // shrinks when the region is smaller (old configs used to be clipped at the bottom).
@@ -245,7 +251,9 @@ export function flights(el, mod, ctx, region) {
       return;
     }
     spotEl.classList.remove('empty');
-    const sub = [a.airline, a.desc || a.type, a.reg].filter(Boolean).map(esc).join(' · ');
+    const type = s.showType === false ? a.type : a.desc || a.type;
+    const year = s.showYear && a.year ? t('built {year}', { year: a.year }) : '';
+    const sub = [a.airline, type, a.reg, year].filter(Boolean).map(esc).join(' · ');
     head.innerHTML = `<div class="fl-id"><div class="fl-cs">${esc(a.flight)}</div>${sub ? `<div class="fl-sub">${sub}</div>` : ''}</div><div class="fl-dist">${arrow(a.bearing)}<div><span class="fl-dnum">${u.distNum(a.dist)}</span> <span class="fl-dunit">${u.distUnit}</span><div class="fl-dir dim small">${t('direction {dir}', { dir: t(compass(a.bearing)) })}</div></div></div>`;
     const r = a.route;
     route.innerHTML = r ? `${airportHtml(r.from)}<span class="fl-route-line">${plane('currentColor', 90)}</span>${airportHtml(r.to)}${r.plausible === false ? '<span class="fl-unsure" title="?">?</span>' : ''}` : '';

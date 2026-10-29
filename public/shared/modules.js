@@ -332,6 +332,15 @@ export const MODULE_TYPES = {
         { value: 'ft_kmh', label: 'ft, km/h, km' }, { value: 'metric', label: 'm, km/h, km' },
         { value: 'aviation', label: 'ft, kt, NM' }, { value: 'imperial', label: 'ft, mph, mi' },
       ] },
+      { key: 'altUnit', label: 'Altitude in', type: 'select', default: 'auto', options: [
+        { value: 'auto', label: 'As in "Units"' }, { value: 'ft', label: 'Feet (ft)' }, { value: 'm', label: 'Metres (m)' }, { value: 'km', label: 'Kilometres (km)' },
+      ] },
+      { key: 'vrateUnit', label: 'Climb / descent rate in', type: 'select', default: 'auto', options: [
+        { value: 'auto', label: 'As in "Units"' }, { value: 'fpm', label: 'ft/min' }, { value: 'ms', label: 'm/s' }, { value: 'mmin', label: 'm/min' },
+      ] },
+      { key: 'showType', label: 'Aircraft type in plain text (e.g. Boeing 777-300ER)', type: 'bool', default: true },
+      { key: 'showYear', label: 'Nearest aircraft: year of manufacture (when known)', type: 'bool', default: false,
+        help: 'From the open tar1090 aircraft database (downloaded once, ~8 MB). Mostly known for US-registered aircraft.' },
       { key: 'spotAirborneOnly', label: 'Nearest aircraft: only airborne', type: 'bool', default: true },
       { key: 'spotMinAltitudeFt', label: 'Nearest aircraft: min. altitude (ft, 0 = any)', type: 'number', default: 0, min: 0, max: 40000 },
       { key: 'spotRequireCallsign', label: 'Nearest aircraft: ignore aircraft without callsign', type: 'bool', default: false },

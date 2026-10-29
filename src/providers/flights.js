@@ -1,4 +1,5 @@
 import { cached, fetchJson, haversineKm } from '../util.js';
+import { typeName, aircraftDetails } from './aircraft-db.js';
 import { resolveLocation } from '../../public/shared/modules.js';
 
 // Minimum seconds between calls to the free online APIs (daily request limits).
@@ -164,7 +165,8 @@ export function normalizeAircraft(list, loc) {
         callsign,
         reg: a.r || '',
         type: a.t || '',
-        desc: prettyType(a.desc),
+        desc: prettyType(a.desc || typeName(a.t)),
+        year: Number.isFinite(Number(a.year)) && Number(a.year) > 1900 ? Number(a.year) : null,
         ownOp: a.ownOp || '',
         lat: a.lat,
         lon: a.lon,
@@ -222,6 +224,12 @@ export async function flights(settings, cfg, mod) {
       settings.showPhoto === false ? null : photoFor(pick),
     ]);
     result.spotlight = { ...pick, airline: airlineFor(pick.callsign, pick.ownOp), route, photo };
+    // build year: from the feed (own receiver with database) or the tar1090 database
+    if (settings.showYear && !pick.year) {
+      const d = aircraftDetails(pick.hex);
+      if (d?.year) result.spotlight.year = d.year;
+      if (d?.desc && !pick.desc) result.spotlight.desc = prettyType(d.desc);
+    }
   } else {
     result.spotlight = null;
   }

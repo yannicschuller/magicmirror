@@ -150,3 +150,11 @@ test('great circle between two airports passes through sensible points', async (
   assert.deepEqual(pts[4].map((v) => +v.toFixed(2)), [52.37, 13.5]);
   assert.ok(pts[2][0] > 50.6 && pts[2][0] < 51.0 && pts[2][1] > 10.1 && pts[2][1] < 10.6, String(pts[2])); // midpoint near Thuringia
 });
+
+test('aircraft type names from the bundled table and tar1090 database lines', async () => {
+  const { typeName, parseDbLine } = await import('../src/providers/aircraft-db.js');
+  assert.equal(typeName('b77w'), 'BOEING 777-300ER');
+  assert.equal(typeName('XX9Q'), '');
+  assert.deepEqual(parseDbLine('A1B2C3;N12345;C172;00;CESSNA 172 Skyhawk;1978;JOHN DOE;'), { hex: 'a1b2c3', desc: 'CESSNA 172 Skyhawk', year: 1978 });
+  assert.equal(parseDbLine('06A062;A7-BAC;B77W;00;BOEING 777-300ER;;;').year, null);
+});

@@ -28,6 +28,13 @@ export default function render(el, mod, ctx) {
   let lastHtml = '';
 
   const span = (e) => eventSpan(e, dk);
+  // "Tomorrow · Friday": relative labels (tomorrow, day after) also name the weekday
+  const dayName = (key, long = false) => {
+    const label = ctx.fmt.dayLabel(key, { long });
+    const diff = ctx.fmt.keyDiff(dk(new Date()), key);
+    if (diff !== 1 && diff !== 2) return label;
+    return `${label} · ${long ? ctx.fmt.weekdayLong(key) : ctx.fmt.weekdayShort(key)}`;
+  };
   const iconFor = (e) => {
     if (e.kind) return e.icon || 'flag';
     if (e.birthday) return 'cake';
@@ -87,7 +94,7 @@ export default function render(el, mod, ctx) {
     const cls = `cal-ev style-${s.style}${running ? ' running' : ''}${soon ? ' soon' : ''}${e.kind ? ` kind-${e.kind}` : ''}`;
     const style = `--c:${esc(e.color)}${opacity < 1 ? `;opacity:${opacity.toFixed(2)}` : ''}`;
     const time = e.allDay ? t('all day') : running ? t('now') : timeText(e, now, today);
-    const dayPart = withDay ? `${esc(ctx.fmt.dayLabel(span(e).first < today ? today : span(e).first))} ` : '';
+    const dayPart = withDay ? `${esc(dayName(span(e).first < today ? today : span(e).first))} ` : '';
     const multi = s.multiDayLabel ? dayOfSpan(e, day, dk) : null;
     const extras = [
       s.showLocation && e.location ? e.location : '',
@@ -115,7 +122,7 @@ export default function render(el, mod, ctx) {
     if (s.groupByDay) {
       let html = '';
       for (const [k, evs] of groupByDay(events, today, dk)) {
-        html += `<div class="cal-day"><div class="cal-dh">${esc(ctx.fmt.dayLabel(k, { long: true }))}</div>${evs.map((e) => row(e, opts(e, { withDay: false, day: k }))).join('')}</div>`;
+        html += `<div class="cal-day"><div class="cal-dh">${esc(dayName(k, true))}</div>${evs.map((e) => row(e, opts(e, { withDay: false, day: k }))).join('')}</div>`;
       }
       return html;
     }
