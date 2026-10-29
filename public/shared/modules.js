@@ -543,6 +543,7 @@ export function defaultModule(type, extra = {}, locale = DEFAULT_LOCALE) {
     order: 0,
     height: 'auto',
     onlyWithContent: false,
+    placements: {},
     insteadOf: '',
     schedule: normalizeSchedule(null),
     settings: applyDefaults(t.fields, {}, tr),
@@ -585,6 +586,22 @@ function migrateSettings(settings) {
   if (!settings || typeof settings !== 'object' || !('useGlobalLocation' in settings)) return settings || {};
   const { useGlobalLocation, ...rest } = settings;
   return useGlobalLocation === false ? rest : { ...rest, location: null };
+}
+
+function normalizePlacements(p, pageIds) {
+  const out = {};
+  if (!p || typeof p !== 'object') return out;
+  for (const [page, v] of Object.entries(p)) {
+    if (!pageIds.has(page) || !v || !REGION_IDS.has(v.region)) continue;
+    out[page] = { region: v.region, order: Number.isFinite(Number(v.order)) ? Number(v.order) : 0 };
+  }
+  return out;
+}
+
+// Where a module sits on a page: its own position there, else its default position.
+export function placementOn(m, pageId) {
+  const p = m.placements?.[pageId];
+  return p ? { region: p.region, order: p.order } : { region: m.region, order: m.order };
 }
 
 export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
@@ -631,6 +648,8 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
         pages: mp,
         region: REGION_IDS.has(m.region) ? m.region : t.defaultRegion,
         order: Number.isFinite(Number(m.order)) ? Number(m.order) : i,
+        // own position per page ({ pageId: { region, order } }); other pages use region/order
+        placements: normalizePlacements(m.placements, pageIds),
         // "fill" = take all free space in its column (extends into empty areas below/above)
         height: m.height === 'fill' ? 'fill' : 'auto',
         // "only show when …" (see ./conditions.js)

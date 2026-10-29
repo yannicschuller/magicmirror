@@ -1,4 +1,4 @@
-import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
+import { REGIONS, MODULE_TYPES, placementOn } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
 import { translator, langOf } from '/shared/i18n.js';
 import { scheduleActive, activePages, onDisplay } from '/shared/schedule.js';
@@ -80,7 +80,8 @@ function build() {
     wrap.className = `module mod-${mod.type}${mod.height === 'fill' ? ' fill' : ''} off`;
     wrap.dataset.id = mod.id;
     wrap.innerHTML = `${mod.title ? `<header class="mod-title">${esc(mod.title)}</header>` : ''}<div class="mod-body"><div class="dim small loading">${ctx.fmt.t('Loading …')}</div></div>`;
-    region.append(wrap);
+    wrap.dataset.order = String(mod.order);
+    region.append(wrap); // default position; moved per page in place()
     const body = wrap.querySelector('.mod-body');
     let api;
     try {
@@ -227,12 +228,12 @@ const COLUMNS = { left: 1, center: 2, right: 3 };
 const ROWS = ['top', 'middle', 'bottom'];
 function layoutFill() {
   // modules that currently show nothing (e.g. no weather hints → class "empty") don't occupy their area
-  const visible = (region) => instances.some((i) => i.visible && i.mod.region === region && !i.wrap.classList.contains('empty') && !i.wrap.classList.contains('no-content'));
+  const visible = (region) => instances.some((i) => i.visible && regionOf(i) === region && !i.wrap.classList.contains('empty') && !i.wrap.classList.contains('no-content'));
   for (const [col, colIndex] of Object.entries(COLUMNS)) {
     const regions = ROWS.map((row) => grid.querySelector(`.region[data-region="${row}_${col}"]`));
     regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = el.style.paddingTop = el.style.paddingBottom = ''));
     ROWS.forEach((row, r) => {
-      const fills = instances.some((i) => i.visible && i.mod.region === `${row}_${col}` && i.mod.height === 'fill');
+      const fills = instances.some((i) => i.visible && regionOf(i) === `${row}_${col}` && i.mod.height === 'fill');
       if (!fills) return;
       let start = r;
       let end = r;
@@ -264,15 +265,37 @@ function layoutFill() {
 // the fade-out (or was prefetched already).
 const FADE_OUT = 350;
 let layoutTimer = null;
+// Position of a module on a page (own position there or its default) – see placementOn.
+function misplaced(inst, page) {
+  const { region, order } = placementOn(inst.mod, page.id);
+  return inst.wrap.parentElement?.dataset.region !== region || Number(inst.wrap.dataset.order) !== order;
+}
+
+function place(inst, page) {
+  if (!misplaced(inst, page)) return;
+  const { region, order } = placementOn(inst.mod, page.id);
+  const target = grid.querySelector(`.region[data-region="${region}"]`);
+  if (!target) return;
+  inst.wrap.dataset.order = String(order);
+  const before = [...target.children].find((c) => c !== inst.wrap && Number(c.dataset.order) > order);
+  target.insertBefore(inst.wrap, before || null);
+}
+
+// The area a module is in right now (its position on the current page).
+const regionOf = (inst) => (pages[pageIndex] ? placementOn(inst.mod, pages[pageIndex].id).region : inst.mod.region);
+
 function applyVisibility(immediate = false) {
   const page = pages[pageIndex];
   if (!page) return;
   const animate = !immediate && config.general.transition !== 'none';
-  const changes = instances.filter((inst) => onPage(inst.mod, page) !== inst.visible);
+  // modules that stay but sit somewhere else on this page move (fade out → move → fade in)
+  const moves = (inst) => inst.visible && onPage(inst.mod, page) && misplaced(inst, page);
+  const changes = instances.filter((inst) => onPage(inst.mod, page) !== inst.visible || moves(inst));
   const leaving = animate && changes.some((inst) => inst.visible);
   const delay = leaving ? FADE_OUT : 0;
   for (const inst of changes) {
-    const want = !inst.visible;
+    const moving = moves(inst);
+    const want = moving || !inst.visible;
     inst.visible = want;
     // Timers (not requestAnimationFrame – paused in hidden tabs); always cancel the
     // other direction so fast page switches never leave a module half-faded.
@@ -285,6 +308,7 @@ function applyVisibility(immediate = false) {
         loadData(inst);
       }
       const enter = () => {
+        place(inst, page);
         cls.remove('off', 'leaving');
         if (animate) {
           cls.add('entering');
@@ -295,7 +319,7 @@ function applyVisibility(immediate = false) {
         inst.api.tick?.();
       };
       if (delay) {
-        cls.add('off');
+        cls.add(moving ? 'leaving' : 'off'); // a moving module fades out where it was
         inst.fadeTimer = setTimeout(enter, delay);
       } else enter();
     } else {

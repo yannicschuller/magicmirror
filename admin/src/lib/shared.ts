@@ -72,6 +72,8 @@ export type Module = {
   onlyWithContent?: boolean;
   /** shown only while this other module is hidden */
   insteadOf?: string;
+  /** own position per page; other pages use region/order */
+  placements?: Record<string, { region: string; order: number }>;
   schedule?: Schedule;
   settings: Values;
 };

@@ -266,6 +266,28 @@ function ModuleEditor({ m }: { m: Module }) {
                 touch();
               }}
             />
+            {Object.keys(m.placements || {}).length > 0 && (
+              <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                <span>{t('Own position on:')}</span>
+                {Object.entries(m.placements!).map(([pid, pl]) => (
+                  <span key={pid} className="flex items-center gap-1.5">
+                    <b className="font-medium text-foreground">{cfg.pages.find((p) => p.id === pid)?.name || pid}</b> → {regionLabel(pl.region, t)}
+                    <button
+                      type="button"
+                      className="rounded px-1 hover:bg-accent hover:text-foreground"
+                      title={t('Use the default position on this page')}
+                      onClick={() => {
+                        delete m.placements![pid];
+                        touch();
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <span>{t('Other pages use the position above. Drag the module in "Pages & layout" to move it on one page only.')}</span>
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="m-order" className="text-xs font-medium text-muted-foreground">

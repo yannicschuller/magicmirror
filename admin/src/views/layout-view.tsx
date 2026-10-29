@@ -17,7 +17,7 @@ import { IconButton } from '@/components/icon-button';
 import { PageOptions } from '@/components/page-options';
 import { api, clone, errorMessage } from '@/lib/api';
 import { REGIONS, uid, type Module, type Page } from '@/lib/shared';
-import { moduleName, onPage, pagesSummary, typeLabel } from '@/lib/helpers';
+import { moduleName, onPage, pagesSummary, placement, setPlacement, typeLabel } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
 // Same arrangement as the mirror's screen grid.
@@ -279,7 +279,9 @@ function Zone({ region, label, page }: { region: string; label: string; page: Pa
   const { cfg, touch } = useStore();
   const [over, setOver] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const mods = cfg.modules.filter((m) => m.region === region && m.enabled && onPage(m, page.id)).sort((a, b) => a.order - b.order);
+  const mods = cfg.modules
+    .filter((m) => placement(m, page.id).region === region && m.enabled && onPage(m, page.id))
+    .sort((a, b) => placement(a, page.id).order - placement(b, page.id).order);
 
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -290,12 +292,13 @@ function Zone({ region, label, page }: { region: string; label: string; page: Pa
     const after = items.findIndex((c) => e.clientY < c.getBoundingClientRect().top + c.offsetHeight / 2);
     const order = items.map((c) => c.dataset.chip!);
     order.splice(after === -1 ? order.length : after, 0, m.id);
-    m.region = region;
     m.enabled = true;
     if (!onPage(m, page.id)) m.pages.push(page.id);
+    // only this page changes – the module keeps its position on its other pages
+    const allPages = cfg.pages.map((p) => p.id);
     order.forEach((id, i) => {
       const x = cfg.modules.find((y) => y.id === id);
-      if (x) x.order = i;
+      if (x) setPlacement(x, page.id, region, i, allPages);
     });
     touch();
   };
@@ -411,11 +414,8 @@ function ModuleChip({ m, page, outside = false }: { m: Module; page: Page; outsi
           onClick={(e) => {
             e.stopPropagation();
             if (m.pages.includes('*')) m.pages = cfg.pages.map((p) => p.id);
-            m.pages = m.pages.filter((id) => id !== page.id);
-            if (!m.pages.length) {
-              m.pages = [page.id];
-              m.enabled = false;
-            }
+            m.pages = m.pages.filter((id) => id !== page.id); // no page left = waits in the list
+            if (m.placements) delete m.placements[page.id];
             touch();
           }}
         >

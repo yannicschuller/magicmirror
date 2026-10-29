@@ -1,5 +1,8 @@
 // Admin: module height and schedule.
 export default {
+  "Own position on:": "Eigene Position auf:",
+  "Use the default position on this page": "Auf dieser Seite die Standardposition verwenden",
+  "Other pages use the position above. Drag the module in \"Pages & layout\" to move it on one page only.": "Andere Seiten nutzen die Position oben. Zieh das Modul unter „Seiten & Layout“, um es nur auf einer Seite zu verschieben.",
   "Available modules": "Verfügbare Module",
   "Drag a module onto an area to show it on this page as well – it stays on its other pages.": "Zieh ein Modul auf eine Fläche, um es auch auf dieser Seite zu zeigen – auf seinen anderen Seiten bleibt es.",
   "Not on any page yet": "Noch auf keiner Seite",

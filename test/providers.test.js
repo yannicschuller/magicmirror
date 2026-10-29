@@ -347,3 +347,15 @@ test('module health: failures after a grace period, partial errors, recovery', a
   recordSuccess('h1', {});
   assert.deepEqual(healthReport(cfg, Date.now() + 11 * 60000).map((x) => x.id), ['h2']);
 });
+
+test('modules: own position per page (placements)', async () => {
+  const { normalizeConfig, placementOn } = await import('../public/shared/modules.js');
+  const cfg = normalizeConfig({
+    pages: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }],
+    modules: [{ id: 'c', type: 'clock', region: 'top_left', order: 0, pages: ['*'], placements: { b: { region: 'bottom_right', order: 2 }, gone: { region: 'top_left' }, a: { region: 'nowhere' } } }],
+  });
+  const m = cfg.modules[0];
+  assert.deepEqual(m.placements, { b: { region: 'bottom_right', order: 2 } });
+  assert.deepEqual(placementOn(m, 'a'), { region: 'top_left', order: 0 });
+  assert.deepEqual(placementOn(m, 'b'), { region: 'bottom_right', order: 2 });
+});
