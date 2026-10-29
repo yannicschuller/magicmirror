@@ -70,6 +70,8 @@ export function normalizePageOptions(p) {
     skipEmpty: p.skipEmpty !== false,
     // only rotate while this module has something to show (its "only show when …" condition)
     showWhen: typeof p.showWhen === 'string' ? p.showWhen : '',
+    // only on these mirrors (general.displays ids); empty = every mirror
+    displays: Array.isArray(p.displays) ? p.displays.filter((d) => typeof d === 'string' && d) : [],
     // animated background with the current weather: off / subtle / full
     ambient: ['subtle', 'full'].includes(p.ambient) ? p.ambient : 'off',
   };
@@ -78,9 +80,12 @@ export function normalizePageOptions(p) {
 // Pages that should rotate right now.
 // hiddenByContent(module) → true while the module's "only show when …" condition is not met;
 // hasContent(moduleId) → whether that module currently has something to show (page "showWhen").
-export function activePages(config, date = new Date(), hiddenByContent = () => false, hasContent = () => true) {
+// display: id of this mirror (?display=…) – pages limited to other mirrors are left out.
+export const onDisplay = (page, display) => !display || !page.displays?.length || page.displays.includes(display);
+
+export function activePages(config, date = new Date(), hiddenByContent = () => false, hasContent = () => true, display = '') {
   const tz = config.general.timezone;
-  const enabled = config.pages.filter((p) => p.enabled);
+  const enabled = config.pages.filter((p) => p.enabled && onDisplay(p, display));
   const emptyPage = (p) => {
     const own = config.modules.filter((m) => m.enabled && !m.pages.includes('*') && m.pages.includes(p.id));
     return own.length > 0 && !own.some((m) => scheduleActive(m.schedule, date, tz) && !hiddenByContent(m));
@@ -88,6 +93,7 @@ export function activePages(config, date = new Date(), hiddenByContent = () => f
   let list = enabled.filter((p) => scheduleActive(p.schedule, date, tz) && dateRangeActive(p.dateFrom, p.dateTo, date, tz) && !(p.skipEmpty && emptyPage(p)) && (!p.showWhen || hasContent(p.showWhen)));
   const exclusive = list.filter((p) => p.exclusive);
   if (exclusive.length) list = exclusive;
-  if (!list.length) list = (enabled.length ? enabled : config.pages).slice(0, 1);
+  const mine = config.pages.filter((p) => onDisplay(p, display));
+  if (!list.length) list = (enabled.length ? enabled : mine.length ? mine : config.pages).slice(0, 1);
   return list;
 }

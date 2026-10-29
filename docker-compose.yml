@@ -50,6 +50,7 @@ services:
     environment:
       MIRROR_URL: ${KIOSK_URL:-http://magicmirror:8080/}
       KIOSK_FLAGS: ${KIOSK_FLAGS:-}
+      KIOSK_CEC: ${KIOSK_CEC:-auto}
     volumes:
       - /run/udev:/run/udev:ro
     tmpfs:

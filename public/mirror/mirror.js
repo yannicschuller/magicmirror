@@ -1,7 +1,7 @@
 import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
 import { translator, langOf } from '/shared/i18n.js';
-import { scheduleActive, activePages } from '/shared/schedule.js';
+import { scheduleActive, activePages, onDisplay } from '/shared/schedule.js';
 import { displayState } from '/shared/night.js';
 import { moduleHasContent } from '/shared/conditions.js';
 import { setAmbient } from './ambient.js';
@@ -11,6 +11,8 @@ const pinnedPage = params.get('page');
 // ?preview=1: admin preview – gets the unsaved config from the admin page (postMessage)
 // and loads module data for exactly those settings.
 const preview = params.has('preview');
+// ?display=<id>: this mirror's name when several mirrors show different pages
+const display = params.get('display') || '';
 const stage = document.getElementById('stage');
 const grid = document.getElementById('grid');
 const indicator = document.getElementById('indicator');
@@ -94,7 +96,7 @@ function build() {
     if (watched(inst)) loadData(inst); // needed to decide whether its page rotates
   }
   // ?page=<id> pins a page regardless of its schedule.
-  pages = pinnedPage && config.pages.some((p) => p.id === pinnedPage) ? config.pages : activePages(config, new Date(), hiddenByContent, hasContent);
+  pages = pinnedPage && config.pages.some((p) => p.id === pinnedPage) ? config.pages : activePages(config, new Date(), hiddenByContent, hasContent, display);
   const pinned = pages.findIndex((p) => p.id === pinnedPage);
   showPage(pinned >= 0 ? pinned : Math.min(pageIndex, pages.length - 1), true);
 }
@@ -204,7 +206,7 @@ function hiddenByContent(mod) {
 let pagesTimer = null;
 function updatePages() {
   if (!config || pinnedPage) return false;
-  const next = activePages(config, new Date(), hiddenByContent, hasContent);
+  const next = activePages(config, new Date(), hiddenByContent, hasContent, display);
   if (next.map((p) => p.id).join() === pages.map((p) => p.id).join()) return false;
   const current = pages[pageIndex]?.id;
   pages = next;
@@ -493,7 +495,7 @@ function connectEvents() {
     // (switched off, outside their schedule …): shown once, then rotation continues.
     if (i < 0) {
       const extra = config.pages.find((p) => p.id === page);
-      if (!extra) return;
+      if (!extra || !onDisplay(extra, display)) return; // page belongs to another mirror
       pages = [...pages, extra];
       i = pages.length - 1;
     }

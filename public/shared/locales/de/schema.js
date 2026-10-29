@@ -1,5 +1,9 @@
 // Module schema: labels, options, descriptions and default content.
 export default {
+  "Mirrors (several screens with their own pages)": "Spiegel (mehrere Bildschirme mit eigenen Seiten)",
+  "Mirror": "Spiegel",
+  "URL name": "URL-Name",
+  "Open a mirror as http://<server>:8080/?display=<URL name> (kiosk: MIRROR_URL in .env). Each page can then be limited to some mirrors; without a URL name a mirror shows all pages.": "Öffne einen Spiegel als http://<server>:8080/?display=<URL-Name> (Kiosk: MIRROR_URL in der .env). Jede Seite lässt sich dann auf einzelne Spiegel beschränken; ohne URL-Name zeigt ein Spiegel alle Seiten.",
   "Basics": "Grundlagen",
   "Appearance": "Darstellung",
   "Page rotation": "Seitenwechsel",

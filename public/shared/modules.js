@@ -424,6 +424,10 @@ export const GENERAL_FIELDS = [
   { group: 'basics', key: 'name', label: 'Mirror name', type: 'text', default: 'Magic Mirror' },
   { group: 'basics', key: 'location', label: 'Location (weather, flights, …)', type: 'location', default: { name: 'Berlin', lat: 52.52, lon: 13.405 } },
   { group: 'basics', key: 'timezone', label: 'Time zone', type: 'text', default: 'Europe/Berlin' },
+  { group: 'basics', key: 'displays', label: 'Mirrors (several screens with their own pages)', type: 'list', itemLabel: 'Mirror', default: [], fields: [
+    { key: 'name', label: 'Name', type: 'text', default: '', placeholder: 'Flur' },
+    { key: 'id', label: 'URL name', type: 'text', default: '', placeholder: 'flur' },
+  ], help: 'Open a mirror as http://<server>:8080/?display=<URL name> (kiosk: MIRROR_URL in .env). Each page can then be limited to some mirrors; without a URL name a mirror shows all pages.' },
   { group: 'basics', key: 'locale', label: 'Language & format', type: 'select', default: DEFAULT_LOCALE, options: [
     { value: 'de-DE', label: 'Deutsch (Deutschland)' }, { value: 'de-AT', label: 'Deutsch (Österreich)' }, { value: 'de-CH', label: 'Deutsch (Schweiz)' }, { value: 'en-GB', label: 'English (UK)' }, { value: 'en-US', label: 'English (US)' },
   ] },
@@ -579,6 +583,12 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
   const d = defaultConfig(c.general?.locale || fallbackLocale);
   const tr = translator(langOf(d.general.locale));
   const general = applyDefaults(GENERAL_FIELDS, { ...d.general, ...(c.general || {}) }, tr);
+  // mirrors: URL names become slugs ("Bad oben" → "bad-oben"), unique
+  const slug = (s) => String(s || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const displayIds = new Set();
+  general.displays = general.displays
+    .map((x) => ({ name: String(x.name || ''), id: slug(x.id || x.name) }))
+    .filter((x) => x.id && !displayIds.has(x.id) && displayIds.add(x.id));
 
   const seen = new Set();
   let pages = (Array.isArray(c.pages) && c.pages.length ? c.pages : d.pages)

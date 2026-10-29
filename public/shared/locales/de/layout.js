@@ -1,5 +1,7 @@
 // Admin: module height and schedule.
 export default {
+  "Show on these mirrors": "Auf diesen Spiegeln anzeigen",
+  "All mirrors": "Alle Spiegel",
   "Only show when a parcel is on its way": "Nur anzeigen, wenn ein Paket unterwegs ist",
   "Only show when pollen reaches the threshold or air quality is moderate or worse": "Nur anzeigen, wenn Pollen den Schwellenwert erreichen oder die Luftqualität mäßig oder schlechter ist",
   "Only show when the ISS is visible soon or tonight": "Nur anzeigen, wenn die ISS bald oder heute Nacht zu sehen ist",

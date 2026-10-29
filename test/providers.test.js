@@ -317,3 +317,18 @@ test('activePages: page shown only while a module has content (showWhen / skipEm
   assert.deepEqual(ids([], []), ['home', 'todo']);
   assert.deepEqual(ids(['m_f1'], ['m_t']), ['home', 'f1']);
 });
+
+test('activePages: pages limited to some mirrors (?display=…)', async () => {
+  const { activePages } = await import('../public/shared/schedule.js');
+  const { normalizeConfig } = await import('../public/shared/modules.js');
+  const cfg = normalizeConfig({
+    general: { displays: [{ name: 'Flur' }, { name: 'Bad oben', id: '' }] },
+    pages: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B', displays: ['flur'] }, { id: 'c', name: 'C', displays: ['bad-oben'] }],
+    modules: [],
+  });
+  assert.deepEqual(cfg.general.displays.map((d) => d.id), ['flur', 'bad-oben']);
+  const ids = (display) => activePages(cfg, new Date(), () => false, () => true, display).map((p) => p.id);
+  assert.deepEqual(ids(''), ['a', 'b', 'c']);
+  assert.deepEqual(ids('flur'), ['a', 'b']);
+  assert.deepEqual(ids('bad-oben'), ['a', 'c']);
+});

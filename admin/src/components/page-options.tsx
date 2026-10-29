@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { OptionSelect } from '@/components/fields';
+import { CheckChip, OptionSelect } from '@/components/fields';
 import { ScheduleEditor } from '@/components/schedule-editor';
 import type { Page } from '@/lib/shared';
 import { useStore } from '@/lib/store';
@@ -89,6 +89,25 @@ export function PageOptions({ p }: { p: Page }) {
           {cond ? t(CONDITIONS[cond.type]!.label) : t('e.g. an F1 page only on race weekends, a flights page only while an aircraft is nearby, a to-do page only with open tasks. The module does not have to be on this page.')}
         </p>
       </div>
+      {(cfg.general.displays as { id: string; name: string }[] | undefined)?.length ? (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm">{t('Show on these mirrors')}</span>
+          <div className="flex flex-wrap gap-1.5">
+            <CheckChip checked={!p.displays?.length} onChange={(c) => c && set({ displays: [] })}>
+              {t('All mirrors')}
+            </CheckChip>
+            {(cfg.general.displays as { id: string; name: string }[]).map((d) => (
+              <CheckChip
+                key={d.id}
+                checked={!!p.displays?.includes(d.id)}
+                onChange={(c) => set({ displays: c ? [...(p.displays || []), d.id] : (p.displays || []).filter((x) => x !== d.id) })}
+              >
+                {d.name || d.id}
+              </CheckChip>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <label className="flex cursor-pointer items-start gap-3 text-sm">
         <Switch className="mt-0.5" checked={!!p.exclusive} onCheckedChange={(c) => set({ exclusive: c })} />
         <span>

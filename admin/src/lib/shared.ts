@@ -52,6 +52,8 @@ export type Page = {
   skipEmpty?: boolean;
   /** only rotate while this module has something to show */
   showWhen?: string;
+  /** only on these mirrors (general.displays ids), empty = all */
+  displays?: string[];
   /** animated background with the current weather */
   ambient?: 'off' | 'subtle' | 'full';
 };
