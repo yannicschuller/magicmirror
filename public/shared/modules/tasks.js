@@ -47,6 +47,11 @@ export default {
       { value: 'priority', label: 'By priority' },
       { value: 'source', label: 'As in the source' },
     ] },
+    { key: 'layout', label: 'Layout', type: 'select', default: 'list', options: [
+      { value: 'list', label: 'List (one below the other)' },
+      { value: 'columns', label: 'Columns (side by side, as many as fit)' },
+      { value: 'inline', label: 'Flowing (one after another, line by line)' },
+    ] },
     { key: 'listStyle', label: 'List style', type: 'select', default: 'checkbox', options: [
       { value: 'checkbox', label: 'Checkboxes' },
       { value: 'bullet', label: 'Bullets' },

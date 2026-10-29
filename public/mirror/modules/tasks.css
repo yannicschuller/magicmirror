@@ -17,3 +17,12 @@
 .mod-tasks .tasks-item.p1 .tasks-mark { color: var(--accent); }
 .mod-tasks .tasks-list.style-plain .tasks-item.p3 .tasks-title { font-weight: 400; }
 .mod-tasks .tasks-more { margin-top: .35em; }
+/* columns: as many columns as fit (each at least ~9em wide) */
+.mod-tasks .tasks-list.layout-columns { display: grid; grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); gap: .3em 1.2em; }
+/* flowing: entries one after another, wrapping line by line */
+.mod-tasks .tasks-list.layout-inline { flex-direction: row; flex-wrap: wrap; gap: .3em 1.1em; }
+.region[data-region$='right'] .mod-tasks .tasks-list.layout-inline { justify-content: flex-end; }
+.region[data-region$='center'] .mod-tasks .tasks-list.layout-inline, .region[data-region$='bar'] .mod-tasks .tasks-list.layout-inline { justify-content: center; }
+.mod-tasks .tasks-list.layout-inline .tasks-item { max-width: 100%; }
+.mod-tasks .tasks-list.layout-inline .tasks-title { flex: 0 1 auto; }
+.mod-tasks .tasks-list.layout-inline .tasks-mark { margin-right: -.15em; }

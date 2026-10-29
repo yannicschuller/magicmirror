@@ -44,7 +44,7 @@ export default function render(el, mod, ctx) {
       })
       .join('');
     const more = s.showCount && d.total > d.items.length ? `<div class="tasks-more dim small">${esc(t('+ {n} more', { n: d.total - d.items.length }))}</div>` : '';
-    el.innerHTML = `<ul class="tasks-list style-${esc(s.listStyle)}">${rows}</ul>${more}${staleNote}`;
+    el.innerHTML = `<ul class="tasks-list style-${esc(s.listStyle)} layout-${esc(s.layout || 'list')}">${rows}</ul>${more}${staleNote}`;
   };
 
   return {
