@@ -266,7 +266,11 @@ admin.get('/status', (req, res) => res.json({ clients: clientCount(), go2rtc: go
 app.use('/api/push', pushRouter(getConfig, (id) => broadcast('refresh', { module: id })));
 app.use('/api/admin', requireAdmin({ api: true }), admin);
 app.use('/login', express.static(path.join(root, 'public/login'), { index: 'index.html' }));
-app.use('/admin', requireAdmin(), express.static(path.join(root, 'public/admin'), { index: 'index.html' }));
+// index.html must never be cached (it names the current, hashed bundles); the bundles may be.
+app.use('/admin', requireAdmin(), express.static(path.join(root, 'public/admin'), {
+  index: 'index.html',
+  setHeaders: (res, file) => res.setHeader('Cache-Control', file.endsWith('.html') ? 'no-cache' : 'public, max-age=31536000, immutable'),
+}));
 
 app.use((err, req, res, next) => {
   console.error('[http]', err);

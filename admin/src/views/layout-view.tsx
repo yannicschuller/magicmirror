@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
-import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, MonitorPlay, SlidersHorizontal, Star, MoveVertical, Plus, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, Eye, Replace, MonitorPlay, SlidersHorizontal, Star, MoveVertical, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useConfirm } from '@/components/confirm';
 import { NumberInput, noPlus } from '@/components/fields';
+import { CONDITIONS as CONDITIONS_JS } from '../../../public/shared/conditions.js';
+
+const CONDITIONS = CONDITIONS_JS as Record<string, { label: string } | undefined>;
 import { IconButton } from '@/components/icon-button';
 import { PageOptions } from '@/components/page-options';
 import { api, clone, errorMessage } from '@/lib/api';
@@ -329,7 +332,10 @@ function ModuleChip({ m, page, outside = false }: { m: Module; page: Page; outsi
   const { cfg, t, touch, setModule, setView } = useStore();
   const [dragging, setDragging] = useState(false);
   const all = m.pages.includes('*');
-  const meta = [typeLabel(m, t), all && t('all pages'), !m.enabled && t('off'), outside && pagesSummary(m, cfg, t)].filter(Boolean).join(' · ');
+  const insteadOf = m.insteadOf ? cfg.modules.find((x) => x.id === m.insteadOf) : undefined;
+  const meta = [insteadOf ? t('instead of {name}', { name: moduleName(insteadOf, t) }) : typeLabel(m, t), all && t('all pages'), !m.enabled && t('off'), outside && pagesSummary(m, cfg, t)]
+    .filter(Boolean)
+    .join(' · ');
   return (
     <div
       data-chip={m.id}
@@ -364,6 +370,16 @@ function ModuleChip({ m, page, outside = false }: { m: Module; page: Page; outsi
         {m.schedule?.enabled && (
           <span title={t('Only shown {from}–{to}', { from: m.schedule.from, to: m.schedule.to })}>
             <Clock className="size-3 shrink-0 text-primary" />
+          </span>
+        )}
+        {m.onlyWithContent && CONDITIONS[m.type] && (
+          <span title={t(CONDITIONS[m.type]!.label)}>
+            <Eye className="size-3 shrink-0 text-primary" />
+          </span>
+        )}
+        {insteadOf && (
+          <span title={t('Shown instead of "{name}" while it is hidden', { name: moduleName(insteadOf, t) })}>
+            <Replace className="size-3 shrink-0 text-primary" />
           </span>
         )}
       </span>

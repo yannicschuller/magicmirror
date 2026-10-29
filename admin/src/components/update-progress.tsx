@@ -91,7 +91,7 @@ export function UpdateIndicator() {
         title={t('Update')}
       >
         {running ? <Loader2 className="animate-spin" /> : failed ? <CircleAlert /> : <ArrowUpCircle />}
-        <span className="truncate max-lg:sr-only">{label}</span>
+        <span className="truncate max-2xl:sr-only">{label}</span>
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent className="data-[size=default]:max-w-[calc(100%-2rem)] data-[size=default]:sm:max-w-md">

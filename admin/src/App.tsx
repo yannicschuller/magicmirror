@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExternalLink, FileDiff, Loader2, LogOut, Save, Undo2, UserRound } from 'lucide-react';
+import { ExternalLink, Loader2, LogOut, Save, Undo2, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -7,11 +7,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ConfirmProvider } from '@/components/confirm';
@@ -60,29 +61,55 @@ function Brand({ build }: { build?: Build }) {
     <div className="flex shrink-0 items-center gap-2.5 text-[15px] font-semibold">
       <img src="/brand/logo.svg" alt="" className="size-7 drop-shadow-[0_0_8px_rgb(167_139_250/0.35)]" />
       <span>Magic Mirror</span>
-      {build && <VersionBadge build={build} className="max-sm:hidden" />}
+      {build && <VersionBadge build={build} className="max-xl:hidden" />}
     </div>
   );
 }
 
-function LanguageSwitch() {
-  const { t, lang, pickLang } = useT();
+
+function UserMenu() {
+  const { t, me } = useStore();
+  const { lang, pickLang } = useT();
   return (
-    <ToggleGroup
-      type="single"
-      size="sm"
-      spacing={0}
-      value={lang}
-      aria-label={t('Language')}
-      onValueChange={(v) => v && pickLang(v)}
-      className="rounded-lg border"
-    >
-      {LANGUAGES.map((l) => (
-        <ToggleGroupItem key={l.value} value={l.value} title={l.label} className="px-2 text-xs font-semibold data-[state=on]:bg-secondary data-[state=on]:text-foreground">
-          {l.value.toUpperCase()}
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="size-8 rounded-full text-muted-foreground" title={me.name}>
+          <UserRound />
+          <span className="sr-only">{me.name}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-52">
+        <DropdownMenuLabel className="truncate">{me.name}</DropdownMenuLabel>
+        {me.build && (
+          <DropdownMenuLabel className="py-0 text-xs font-normal text-muted-foreground">
+            v{me.build.version}
+            {me.build.shortCommit && ` · ${me.build.shortCommit}`}
+          </DropdownMenuLabel>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">{t('Language')}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={lang} onValueChange={pickLang}>
+          {LANGUAGES.map((l) => (
+            <DropdownMenuRadioItem key={l.value} value={l.value}>
+              {l.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <a href="/" target="_blank" rel="noopener">
+            <ExternalLink />
+            {t('Open mirror')}
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href="/auth/logout">
+            <LogOut />
+            {t('Sign out')}
+          </a>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -92,9 +119,10 @@ function Shell() {
   return (
     <Tabs value={view} onValueChange={(v) => setView(v as View)} className="min-h-screen gap-0">
       <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1700px] flex-wrap items-center gap-x-5 gap-y-2 px-3 py-2.5 sm:px-5">
+        <div className="mx-auto flex max-w-[1700px] flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 sm:px-5 md:flex-nowrap">
           <Brand build={me.build} />
-          <div className="order-last -mx-3 w-[calc(100%+1.5rem)] overflow-x-auto px-3 [scrollbar-width:none] sm:order-none sm:mx-0 sm:w-auto sm:px-0 [&::-webkit-scrollbar]:hidden">
+          {/* on phones the tabs get their own row (scrollable); from md on everything fits in one */}
+          <div className="order-last -mx-3 w-[calc(100%+1.5rem)] min-w-0 overflow-x-auto px-3 [scrollbar-width:none] sm:-mx-5 sm:w-[calc(100%+2.5rem)] sm:px-5 md:order-none md:mx-0 md:w-auto md:flex-1 md:px-0 [&::-webkit-scrollbar]:hidden">
             <TabsList className="h-9">
               {VIEWS.map((v) => (
                 <TabsTrigger key={v} value={v} className="px-3">
@@ -103,62 +131,38 @@ function Shell() {
               ))}
             </TabsList>
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <UpdateIndicator />
             {dirty && (
               <>
-                <Button variant="outline" size="sm" className="border-warning/40 text-warning hover:text-warning" onClick={() => setShowChanges(true)} title={t('Show changes')}>
-                  <FileDiff />
-                  <span className="max-md:sr-only">{t('Unsaved changes')}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-warning hover:text-warning"
+                  onClick={() => setShowChanges(true)}
+                  title={t('Show changes')}
+                >
+                  <span className="size-2 rounded-full bg-warning" />
+                  <span className="max-xl:sr-only">{t('Unsaved changes')}</span>
                 </Button>
-                <Button variant="ghost" size="sm" onClick={discard}>
+                <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" onClick={discard} title={t('Discard')}>
                   <Undo2 />
-                  <span className="max-sm:sr-only">{t('Discard')}</span>
+                  <span className="sr-only">{t('Discard')}</span>
                 </Button>
               </>
             )}
             <ChangesDialog open={showChanges && dirty} onOpenChange={setShowChanges} />
-            <Button size="sm" onClick={save} disabled={!dirty || saving} title={dirty ? t('Unsaved changes') : undefined}>
+            <Button size="sm" onClick={save} disabled={!dirty || saving}>
               {saving ? <Loader2 className="animate-spin" /> : <Save />}
-              {t('Save')}
+              <span className="max-sm:sr-only">{t('Save')}</span>
             </Button>
-            <Button variant="outline" size="sm" asChild className="max-sm:hidden">
+            <Button variant="ghost" size="icon" asChild className="size-8 text-muted-foreground max-sm:hidden" title={t('Open mirror')}>
               <a href="/" target="_blank" rel="noopener">
-                {t('Open mirror')}
                 <ExternalLink />
+                <span className="sr-only">{t('Open mirror')}</span>
               </a>
             </Button>
-            <LanguageSwitch />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="max-w-40 text-muted-foreground">
-                  <UserRound />
-                  <span className="truncate max-md:sr-only">{me.name}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-48">
-                <DropdownMenuLabel className="truncate">{me.name}</DropdownMenuLabel>
-                {me.build && (
-                  <DropdownMenuLabel className="py-0 text-xs font-normal text-muted-foreground sm:hidden">
-                    v{me.build.version}
-                    {me.build.shortCommit && ` · ${me.build.shortCommit}`}
-                  </DropdownMenuLabel>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="sm:hidden">
-                  <a href="/" target="_blank" rel="noopener">
-                    <ExternalLink />
-                    {t('Open mirror')}
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a href="/auth/logout">
-                    <LogOut />
-                    {t('Sign out')}
-                  </a>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserMenu />
           </div>
         </div>
       </header>

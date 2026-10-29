@@ -1,5 +1,7 @@
 // Admin: module height and schedule.
 export default {
+  "instead of {name}": "statt {name}",
+  "Shown instead of \"{name}\" while it is hidden": "Wird statt „{name}“ angezeigt, solange es ausgeblendet ist",
   "Show on these mirrors": "Auf diesen Spiegeln anzeigen",
   "All mirrors": "Alle Spiegel",
   "Only show when a parcel is on its way": "Nur anzeigen, wenn ein Paket unterwegs ist",
