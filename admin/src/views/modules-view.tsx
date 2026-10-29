@@ -41,7 +41,7 @@ export function ModulesView() {
 }
 
 function ModuleList({ selected }: { selected?: string }) {
-  const { cfg, t, touch, page, setModule } = useStore();
+  const { cfg, t, touch, setModule } = useStore();
   const issues = useHealth();
   const confirm = useConfirm();
   // Deactivated modules can be deleted right from the list.
@@ -149,7 +149,7 @@ function ModuleList({ selected }: { selected?: string }) {
         <OptionSelect value={addType} options={types} onValue={setAddType} className="min-w-0 flex-1" />
         <Button
           onClick={() => {
-            const m = defaultModule(addType, { pages: [page || cfg.pages[0].id] }, cfg.general.locale);
+            const m = defaultModule(addType, { pages: [] }, cfg.general.locale); // placed on a page later
             m.order = cfg.modules.filter((x) => x.region === m.region).length;
             cfg.modules.push(m);
             setModule(m.id);
@@ -167,21 +167,20 @@ function ModuleList({ selected }: { selected?: string }) {
 }
 
 function ModuleEditor({ m }: { m: Module }) {
-  const { cfg, t, mt, touch, page, setModule, lang } = useStore();
+  const { cfg, t, mt, touch, setModule, lang } = useStore();
   const issue = useHealth().find((x) => x.id === m.id);
   const confirm = useConfirm();
   const type = MODULE_TYPES[m.type];
   const all = m.pages.includes('*');
 
   const togglePage = (id: string, checked: boolean) => {
-    if (id === '*') m.pages = checked ? ['*'] : [page || cfg.pages[0].id];
+    if (id === '*') m.pages = checked ? ['*'] : [];
     else {
       const sel = new Set(m.pages.filter((p) => p !== '*'));
       if (checked) sel.add(id);
       else sel.delete(id);
       m.pages = cfg.pages.map((p) => p.id).filter((p) => sel.has(p));
     }
-    if (!m.pages.length) m.pages = [cfg.pages[0].id];
     touch();
   };
 
@@ -345,6 +344,9 @@ function ModuleEditor({ m }: { m: Module }) {
                 </CheckChip>
               ))}
             </div>
+            {!m.pages.length && (
+              <p className="text-xs text-warning">{t('Not on any page yet – drag it onto an area in "Pages & layout" or pick pages above.')}</p>
+            )}
           </div>
         </div>
         <Separator />

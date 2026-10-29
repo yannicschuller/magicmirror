@@ -128,7 +128,7 @@ test('normalizeConfig repairs broken input and keeps modules valid', () => {
   assert.equal(cfg.pages[0].duration, 5);
   assert.equal(cfg.modules.length, 2);
   assert.equal(cfg.modules[0].region, 'top_left');
-  assert.deepEqual(cfg.modules[0].pages, ['a']);
+  assert.deepEqual(cfg.modules[0].pages, []); // unknown page → not placed (waits in the list)
   assert.equal(cfg.modules[0].settings.showSeconds, true);
   assert.notEqual(cfg.modules[0].id, cfg.modules[1].id);
   assert.deepEqual(cfg.modules[1].pages, ['*']);

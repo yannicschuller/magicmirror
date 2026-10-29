@@ -1,5 +1,7 @@
 // Admin: module height and schedule.
 export default {
+  "Not on any page yet": "Noch auf keiner Seite",
+  "Not on any page yet – drag it onto an area in \"Pages & layout\" or pick pages above.": "Noch auf keiner Seite – zieh es unter „Seiten & Layout“ auf eine Fläche oder wähle oben Seiten aus.",
   "instead of {name}": "statt {name}",
   "Shown instead of \"{name}\" while it is hidden": "Wird statt „{name}“ angezeigt, solange es ausgeblendet ist",
   "Show on these mirrors": "Auf diesen Spiegeln anzeigen",

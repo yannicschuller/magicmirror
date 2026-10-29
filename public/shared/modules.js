@@ -622,7 +622,7 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
       seenMods.add(id);
       let mp = Array.isArray(m.pages) ? m.pages.filter((p) => p === '*' || pageIds.has(p)) : ['*'];
       if (mp.includes('*')) mp = ['*'];
-      if (!mp.length) mp = [pages[0].id];
+      // no page (yet) is fine: the module waits in the list until it is placed on a page
       return {
         id,
         type: m.type,

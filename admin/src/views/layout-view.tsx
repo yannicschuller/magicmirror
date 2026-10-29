@@ -114,11 +114,7 @@ function PageRow({ p, i, active }: { p: Page; i: number; active: boolean }) {
     if (idx < 0) return;
     cfg.pages.splice(idx, 1);
     for (const m of cfg.modules) {
-      m.pages = m.pages.filter((id) => id !== p.id);
-      if (!m.pages.length) {
-        m.pages = [cfg.pages[0].id];
-        m.enabled = false;
-      }
+      m.pages = m.pages.filter((id) => id !== p.id); // modules only on this page wait in the list
     }
     if (page === p.id) setPage(cfg.pages[0].id);
     touch();

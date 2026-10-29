@@ -7,6 +7,7 @@ export const regionLabel = (id: string, t: Translate) => t(REGIONS.find((r) => r
 
 export function pagesSummary(m: Module, cfg: Config, t: Translate) {
   if (m.pages.includes('*')) return t('All pages');
+  if (!m.pages.length) return t('Not on any page yet');
   return m.pages.map((id) => cfg.pages.find((p) => p.id === id)?.name || id).join(', ');
 }
 
@@ -14,6 +15,7 @@ export function pagesSummary(m: Module, cfg: Config, t: Translate) {
 export function duplicateGroups(modules: Module[]): Module[][] {
   const groups = new Map<string, Module[]>();
   for (const m of modules) {
+    if (!m.pages.length) continue; // not placed yet (e.g. just added with default settings)
     const { id, pages, order, ...rest } = m;
     const key = JSON.stringify(rest);
     groups.set(key, [...(groups.get(key) || []), m]);
