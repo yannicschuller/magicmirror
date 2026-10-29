@@ -138,7 +138,7 @@ function isVisible(field: Field, values: Values) {
   if (!field.showIf) return true;
   return Object.entries(field.showIf).every(([k, v]) => {
     if (k === '_transitCustom') return values.provider === 'hafas' || values.efaPreset === 'custom';
-    return values[k] === v;
+    return Array.isArray(v) ? v.includes(values[k]) : values[k] === v;
   });
 }
 

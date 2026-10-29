@@ -1,8 +1,8 @@
 /* ---- news / rss ---- */
 .mod-news .news-list { display: flex; flex-direction: column; gap: .55em; max-width: 46em; }
-.mod-news .news-title { font-weight: 300; line-height: 1.25; }
+.mod-news .news-title { font-weight: var(--weight, 300); line-height: 1.25; }
 .mod-news .news-meta { margin-top: .1em; font-variant-numeric: tabular-nums; }
-.mod-news .news-desc { margin-top: .15em; line-height: 1.3; font-weight: 300; }
+.mod-news .news-desc { margin-top: .15em; line-height: 1.3; font-weight: var(--weight, 300); }
 .mod-news .news-src { color: var(--accent); }
 .mod-news .news-sep { opacity: .6; }
 .region[data-region$='right'] .mod-news .news-list { margin-left: auto; }

@@ -1,0 +1,80 @@
+{
+  "transit": {
+    "shipments": [
+      {
+        "id": "00340434161094042557",
+        "service": "parcel-de",
+        "origin": { "address": { "countryCode": "DE", "addressLocality": "Bremen" } },
+        "destination": { "address": { "countryCode": "DE", "addressLocality": "Leipzig" } },
+        "status": {
+          "timestamp": "2026-10-28T21:14:00",
+          "location": { "address": { "addressLocality": "Radefeld" } },
+          "statusCode": "transit",
+          "status": "Die Sendung wurde im Paketzentrum bearbeitet.",
+          "description": "Die Sendung wurde im Start-Paketzentrum bearbeitet."
+        },
+        "estimatedTimeOfDelivery": "2026-10-30T09:00:00",
+        "estimatedDeliveryTimeFrame": { "estimatedFrom": "2026-10-30T09:00:00", "estimatedThrough": "2026-10-30T10:30:00" },
+        "estimatedTimeOfDeliveryRemark": "Voraussichtliches Zustellzeitfenster",
+        "details": { "product": { "productName": "DHL PAKET (Inland)" }, "totalNumberOfPieces": 1, "pieceIds": ["00340434161094042557"] },
+        "events": [
+          { "timestamp": "2026-10-28T21:14:00", "location": { "address": { "addressLocality": "Radefeld" } }, "statusCode": "transit", "status": "Die Sendung wurde im Paketzentrum bearbeitet.", "description": "Die Sendung wurde im Start-Paketzentrum bearbeitet." },
+          { "timestamp": "2026-10-28T14:02:00", "statusCode": "pre-transit", "status": "Die Sendung wurde elektronisch angekündigt.", "description": "Die Auftragsdaten zu dieser Sendung wurden vom Absender elektronisch an DHL übermittelt." }
+        ]
+      }
+    ],
+    "possibleAdditionalShipmentsUrl": ["/track/shipments?trackingNumber=00340434161094042557&service=express"]
+  },
+  "outForDelivery": {
+    "shipments": [
+      {
+        "id": "00340434161094042557",
+        "service": "parcel-de",
+        "status": {
+          "timestamp": "2026-10-29T07:48:00",
+          "location": { "address": { "addressLocality": "Leipzig" } },
+          "statusCode": "transit",
+          "status": "Die Sendung wurde in das Zustellfahrzeug geladen.",
+          "description": "Die Sendung wurde in das Zustellfahrzeug geladen. Die Zustellung erfolgt voraussichtlich heute."
+        },
+        "estimatedDeliveryTimeFrame": { "estimatedFrom": "2026-10-29T11:00:00", "estimatedThrough": "2026-10-29T13:00:00" },
+        "events": []
+      }
+    ]
+  },
+  "latePreTransit": {
+    "shipments": [
+      {
+        "id": "JJD000390007880288432",
+        "service": "parcel-de",
+        "status": { "timestamp": "2026-10-29T08:00:00", "statusCode": "pre-transit", "status": "VA", "description": "Die Sendung wurde elektronisch angekündigt." },
+        "events": [
+          { "timestamp": "2026-10-29T08:00:00", "statusCode": "pre-transit", "status": "VA", "description": "Die Sendung wurde elektronisch angekündigt." },
+          { "timestamp": "2026-10-28T19:30:00", "location": { "address": { "addressLocality": "Leipzig" } }, "statusCode": "delivered", "status": "Die Sendung wurde erfolgreich zugestellt.", "description": "Die Sendung wurde erfolgreich zugestellt." }
+        ]
+      }
+    ]
+  },
+  "expressFailure": {
+    "shipments": [
+      {
+        "id": "1234567890",
+        "service": "express",
+        "status": {
+          "timestamp": "2026-10-28T16:12:00+02:00",
+          "location": { "address": { "addressLocality": "LEIPZIG - GERMANY" } },
+          "statusCode": "failure",
+          "status": "Delivery attempted; recipient not home",
+          "description": "Delivery attempted; recipient not home"
+        },
+        "estimatedTimeOfDelivery": "2026-10-28T18:00:00+02:00",
+        "events": []
+      }
+    ]
+  },
+  "notFound": {
+    "title": "No result found",
+    "status": 404,
+    "detail": "No shipment with given tracking number found."
+  }
+}

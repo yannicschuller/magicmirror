@@ -20,8 +20,8 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--fg);
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 300;
+  font-family: var(--font, 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
+  font-weight: var(--weight, 300);
   font-size: calc(var(--scale) * 1.9vmin);
   line-height: 1.35;
   -webkit-font-smoothing: antialiased;
@@ -113,12 +113,12 @@ td:last-child { padding-right: 0; }
 
 /* ---- clock ---- */
 .clock-time { font-weight: 200; line-height: 1; letter-spacing: -.02em; }
-.clock .sec { font-size: .38em; margin-left: .15em; vertical-align: top; color: var(--dim); font-weight: 300; }
+.clock .sec { font-size: .38em; margin-left: .15em; vertical-align: top; color: var(--dim); font-weight: var(--weight, 300); }
 .clock.size-small .clock-time { font-size: 2.4em; }
 .clock.size-medium .clock-time { font-size: 3.6em; }
 .clock.size-large .clock-time { font-size: 5em; }
 .clock.size-huge .clock-time { font-size: 7.5em; }
-.clock-date { font-size: 1.25em; margin-top: .3em; font-weight: 300; }
+.clock-date { font-size: 1.25em; margin-top: .3em; font-weight: var(--weight, 300); }
 .clock-week { font-size: .85em; margin-top: .15em; }
 /* analog */
 .clock-analog { display: block; width: 14em; height: 14em; overflow: visible; }
@@ -127,7 +127,7 @@ td:last-child { padding-right: 0; }
 .clock.size-huge .clock-analog { width: 20em; height: 20em; }
 .ac-tick { stroke: var(--dim); stroke-width: 1.2; stroke-linecap: round; }
 .ac-tick.big { stroke: var(--fg); stroke-width: 3; }
-.ac-num { fill: var(--fg); font-size: 15px; font-weight: 300; text-anchor: middle; dominant-baseline: central; }
+.ac-num { fill: var(--fg); font-size: 15px; font-weight: var(--weight, 300); text-anchor: middle; dominant-baseline: central; }
 .ac-hand line { stroke: var(--fg); stroke-linecap: round; }
 .ac-hr line { stroke-width: 6; }
 .ac-min line { stroke-width: 3.5; }
@@ -461,7 +461,7 @@ td:last-child { padding-right: 0; }
 .go-style-row tr.go-run td { background: color-mix(in srgb, var(--go-run) 26%, transparent); }
 .go-style-row tr.go-go .tm, .go-style-dot tr.go-go .tm { color: var(--go-go); }
 .go-style-row tr.go-run .tm, .go-style-dot tr.go-run .tm { color: var(--go-run); }
-.go-banner { display: flex; align-items: center; gap: .5em; font-size: 1.35em; font-weight: 300; margin: .1em 0 .45em; line-height: 1.2; }
+.go-banner { display: flex; align-items: center; gap: .5em; font-size: 1.35em; font-weight: var(--weight, 300); margin: .1em 0 .45em; line-height: 1.2; }
 .go-banner .go-dot { width: .75em; height: .75em; flex: none; }
 .go-banner.go-relaxed b { color: var(--go-relaxed); }
 .go-banner.go-go b { color: var(--go-go); }
@@ -501,7 +501,7 @@ td:last-child { padding-right: 0; }
 .flights .fl-sub { color: var(--dim); margin-top: .15em; }
 .flights .fl-dist { display: flex; align-items: center; gap: .45em; text-align: right; white-space: nowrap; }
 .flights .fl-arrow { width: 1.9em; height: 1.9em; color: var(--accent); flex: none; }
-.flights .fl-dnum { font-size: 1.85em; font-weight: 300; line-height: 1; }
+.flights .fl-dnum { font-size: 1.85em; font-weight: var(--weight, 300); line-height: 1; }
 .flights .fl-dunit { color: var(--dim); }
 .flights .fl-route { display: flex; align-items: center; gap: .6em; margin: .4em 0 0; }
 .flights .fl-route:empty { display: none; }
@@ -601,7 +601,10 @@ td:last-child { padding-right: 0; }
 #progress[hidden] { display: none; }
 #status { position: absolute; right: 2vmin; bottom: 1.5vmin; font-size: .7em; color: var(--warn); z-index: 3; }
 #status[hidden] { display: none; }
-#dim { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 2s; z-index: 10; }
+#dim { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 20s; z-index: 10; }
+#dim.quick { transition-duration: 1s; }
+/* night mode "clock only": everything except clocks fades away */
+body.night-clock .module:not(.mod-clock), body.night-clock #dots, body.night-clock #progress { display: none !important; }
 .loading { animation: blink 1.6s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: .4; } }
 

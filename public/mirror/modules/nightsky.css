@@ -1,0 +1,29 @@
+/* ---- night sky & ISS ---- */
+.mod-nightsky .ns { display: flex; flex-direction: column; gap: .7em; font-variant-numeric: tabular-nums; }
+.region[data-region$='right'] .mod-nightsky .ns { align-items: flex-end; text-align: right; }
+.region[data-region$='center'] .mod-nightsky .ns, .region[data-region$='bar'] .mod-nightsky .ns { align-items: center; text-align: center; }
+
+.mod-nightsky .ns-sec { display: flex; flex-direction: column; gap: .35em; align-items: inherit; }
+.mod-nightsky .ns-head { font-size: .72em; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); }
+.mod-nightsky .ns-note, .mod-nightsky .ns-sub, .mod-nightsky .ns-path { color: var(--dim); font-size: .78em; }
+.mod-nightsky .ns-in { color: var(--dim); font-size: .85em; }
+
+.mod-nightsky .ns-pass.ns-tonight .ns-when { color: var(--accent); }
+.mod-nightsky .ns-pass.ns-invisible { opacity: .5; }
+.mod-nightsky .ns-when.ns-tonight { color: var(--accent); }
+
+.mod-nightsky .ns-now { color: var(--accent); font-size: 1.15em; }
+.mod-nightsky .ns-now-el { color: var(--dim); font-size: .8em; }
+
+.mod-nightsky .ns-table { border-collapse: collapse; }
+.mod-nightsky .ns-table td { padding: .08em 0; }
+.mod-nightsky .ns-name { text-align: left; padding-right: 1em; }
+.mod-nightsky .ns-time { text-align: right; padding-right: .9em; }
+.mod-nightsky .ns-dir { text-align: right; color: var(--dim); font-size: .85em; }
+
+.mod-nightsky .ns-ev { font-size: .9em; }
+.mod-nightsky .ns-ev-when { color: var(--dim); }
+
+.mod-nightsky .ns-compact { gap: .3em; }
+.mod-nightsky .ns-lbl { display: inline-block; min-width: 4.2em; font-size: .72em; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
+.region[data-region$='right'] .mod-nightsky .ns-lbl, .region[data-region$='center'] .mod-nightsky .ns-lbl, .region[data-region$='bar'] .mod-nightsky .ns-lbl { min-width: 0; margin-right: .3em; }

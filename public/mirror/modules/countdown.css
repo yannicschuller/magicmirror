@@ -1,0 +1,41 @@
+/* ---- countdown ---- */
+.mod-countdown { --cd-color: var(--fg); }
+.mod-countdown .cd-icon { flex: none; color: var(--cd-color); line-height: 1; }
+.mod-countdown .cd-meta { font-size: .72em; color: var(--dim); font-variant-numeric: tabular-nums; margin-top: .1em; }
+.mod-countdown .past { opacity: .55; }
+
+/* list */
+.mod-countdown .cd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .45em; max-width: 30em; }
+.mod-countdown .cd-item { display: flex; align-items: baseline; gap: .6em; min-width: 0; }
+.mod-countdown .cd-item .cd-icon { width: 1.3em; text-align: center; }
+.mod-countdown .cd-main { flex: 1 1 auto; min-width: 0; }
+.mod-countdown .cd-name { font-weight: var(--weight, 300); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mod-countdown .cd-left { flex: none; color: var(--cd-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mod-countdown .cd-item:not(.soon) .cd-left { opacity: .85; }
+.mod-countdown .soon .cd-left { color: var(--accent); }
+.region[data-region$='right'] .mod-countdown .cd-list { margin-left: auto; }
+.region[data-region$='right'] .mod-countdown .cd-item { flex-direction: row-reverse; text-align: right; }
+.region[data-region$='center'] .mod-countdown .cd-list, .region[data-region$='bar'] .mod-countdown .cd-list { margin: 0 auto; }
+
+/* one large "next event" */
+.mod-countdown .cd-big { display: flex; flex-direction: column; align-items: flex-start; }
+.region[data-region$='right'] .mod-countdown .cd-big { align-items: flex-end; text-align: right; }
+.region[data-region$='center'] .mod-countdown .cd-big, .region[data-region$='bar'] .mod-countdown .cd-big { align-items: center; text-align: center; }
+.mod-countdown .cd-big .cd-icon { font-size: 2em; margin-bottom: .1em; }
+.mod-countdown .cd-big-num { display: flex; align-items: baseline; gap: .25em; line-height: 1; }
+.mod-countdown .cd-num { font-size: 4.2em; font-weight: 200; color: var(--cd-color); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.mod-countdown .cd-unit { font-size: 1.1em; color: var(--dim); font-weight: var(--weight, 300); }
+.mod-countdown .cd-big-word { font-size: 2.8em; font-weight: 200; line-height: 1.05; color: var(--cd-color); }
+.mod-countdown .cd-big.soon .cd-big-word { color: var(--accent); }
+.mod-countdown .cd-big-name { font-size: 1.25em; font-weight: var(--weight, 300); margin-top: .15em; }
+.mod-countdown .cd-big .cd-meta { font-size: .8em; }
+.mod-countdown .cd-rest { margin-top: .9em; font-size: .85em; }
+
+/* compact: one flowing line */
+.mod-countdown .cd-compact { display: flex; flex-wrap: wrap; gap: .25em 1.2em; }
+.mod-countdown .cd-chip { display: inline-flex; align-items: baseline; gap: .35em; white-space: nowrap; }
+.mod-countdown .cd-chip .cd-name { overflow: visible; }
+.mod-countdown .cd-chip .cd-left { color: var(--dim); }
+.mod-countdown .cd-chip.soon .cd-left { color: var(--accent); }
+.region[data-region$='right'] .mod-countdown .cd-compact { justify-content: flex-end; }
+.region[data-region$='center'] .mod-countdown .cd-compact, .region[data-region$='bar'] .mod-countdown .cd-compact { justify-content: center; }

@@ -37,6 +37,40 @@ export function ChangesDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="mm-scroll -mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+          <DiffList entries={entries} />
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('Close')}</AlertDialogCancel>
+          <Button
+            variant="outline"
+            onClick={() => {
+              discard();
+              onOpenChange(false);
+            }}
+          >
+            <Undo2 />
+            {t('Discard')}
+          </Button>
+          <Button
+            disabled={saving}
+            onClick={async () => {
+              await save();
+              onOpenChange(false);
+            }}
+          >
+            {saving ? <Loader2 className="animate-spin" /> : <Save />}
+            {t('Save')}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+/** The grouped list of differences (general / pages / modules), old → new per field. */
+export function DiffList({ entries }: { entries: DiffEntry[] }) {
+  const { t } = useStore();
+  return (
           <div className="flex flex-col gap-5">
             {SECTIONS.map((s) => {
               const list = entries.filter((e) => e.section === s.id);
@@ -77,31 +111,5 @@ export function ChangesDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               );
             })}
           </div>
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{t('Close')}</AlertDialogCancel>
-          <Button
-            variant="outline"
-            onClick={() => {
-              discard();
-              onOpenChange(false);
-            }}
-          >
-            <Undo2 />
-            {t('Discard')}
-          </Button>
-          <Button
-            disabled={saving}
-            onClick={async () => {
-              await save();
-              onOpenChange(false);
-            }}
-          >
-            {saving ? <Loader2 className="animate-spin" /> : <Save />}
-            {t('Save')}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   );
 }

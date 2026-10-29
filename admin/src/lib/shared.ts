@@ -21,6 +21,8 @@ export type Field = {
   placeholder?: string;
   secret?: boolean;
   showIf?: Record<string, unknown>;
+  /** tab in the admin's General view */
+  group?: string;
   fields?: Field[];
   itemLabel?: string;
 };
@@ -95,6 +97,7 @@ export type Me = { name: string; email?: string; method: 'local' | 'oidc'; versi
 
 export const MODULE_TYPES = modules.MODULE_TYPES as unknown as Record<string, ModuleType>;
 export const GENERAL_FIELDS = modules.GENERAL_FIELDS as unknown as Field[];
+export const GENERAL_GROUPS = modules.GENERAL_GROUPS as unknown as { id: string; label: string }[];
 export const REGIONS = modules.REGIONS as unknown as Region[];
 
 export const defaultModule = modules.defaultModule as unknown as (

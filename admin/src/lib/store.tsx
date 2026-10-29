@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { api, errorMessage } from './api';
 import { LANGUAGES, langOf, translator, type Config, type Me, type Translate } from './shared';
 
-export const VIEWS = ['layout', 'modules', 'general', 'backup'] as const;
+export const VIEWS = ['layout', 'modules', 'general', 'remote', 'backup'] as const;
 export type View = (typeof VIEWS)[number];
 const isView = (v: string): v is View => (VIEWS as readonly string[]).includes(v);
 

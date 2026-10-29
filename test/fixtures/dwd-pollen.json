@@ -1,0 +1,312 @@
+{
+ "legend": {
+  "id5_desc": "mittlere Belastung",
+  "id1": "0",
+  "id2": "0-1",
+  "id3_desc": "geringe Belastung",
+  "id4": "1-2",
+  "id7": "3",
+  "id1_desc": "keine Belastung",
+  "id5": "2",
+  "id6_desc": "mittlere bis hohe Belastung",
+  "id2_desc": "keine bis geringe Belastung",
+  "id4_desc": "geringe bis mittlere Belastung",
+  "id6": "2-3",
+  "id3": "1",
+  "id7_desc": "hohe Belastung"
+ },
+ "next_update": "2026-04-15 11:00 Uhr",
+ "sender": "Deutscher Wetterdienst - Medizin-Meteorologie",
+ "content": [
+  {
+   "partregion_name": "Inseln und Marschen",
+   "Pollen": {
+    "Erle": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Beifuss": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Graeser": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Ambrosia": {
+     "today": "0",
+     "dayafter_to": "0",
+     "tomorrow": "0"
+    },
+    "Hasel": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Birke": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Esche": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    },
+    "Roggen": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    }
+   },
+   "region_name": "Schleswig-Holstein und Hamburg",
+   "region_id": 10,
+   "partregion_id": 11
+  },
+  {
+   "partregion_id": -1,
+   "region_id": 20,
+   "Pollen": {
+    "Roggen": {
+     "today": "0",
+     "dayafter_to": "0",
+     "tomorrow": "0"
+    },
+    "Esche": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    },
+    "Hasel": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Birke": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Ambrosia": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Erle": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Graeser": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Beifuss": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    }
+   },
+   "region_name": "Mecklenburg-Vorpommern",
+   "partregion_name": ""
+  },
+  {
+   "partregion_name": "",
+   "region_name": "Brandenburg und Berlin",
+   "Pollen": {
+    "Esche": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Roggen": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Hasel": {
+     "today": "0",
+     "dayafter_to": "0",
+     "tomorrow": "0"
+    },
+    "Birke": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    },
+    "Ambrosia": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Erle": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    },
+    "Beifuss": {
+     "today": "0",
+     "dayafter_to": "0",
+     "tomorrow": "0"
+    },
+    "Graeser": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    }
+   },
+   "partregion_id": -1,
+   "region_id": 50
+  },
+  {
+   "partregion_name": "Tiefland Sachsen",
+   "region_name": "Sachsen",
+   "Pollen": {
+    "Beifuss": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Graeser": {
+     "today": "0-1",
+     "tomorrow": "1",
+     "dayafter_to": "1"
+    },
+    "Erle": {
+     "today": "0-1",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    },
+    "Ambrosia": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Hasel": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "-1"
+    },
+    "Birke": {
+     "today": "2-3",
+     "tomorrow": "3",
+     "dayafter_to": "2"
+    },
+    "Roggen": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    },
+    "Esche": {
+     "today": "1-2",
+     "tomorrow": "1",
+     "dayafter_to": "0-1"
+    }
+   },
+   "region_id": 80,
+   "partregion_id": 81
+  },
+  {
+   "partregion_name": "Mittelgebirge Sachsen",
+   "Pollen": {
+    "Roggen": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Esche": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Birke": {
+     "today": "1",
+     "tomorrow": "1-2",
+     "dayafter_to": "2"
+    },
+    "Hasel": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Ambrosia": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Beifuss": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Graeser": {
+     "today": "0",
+     "dayafter_to": "0",
+     "tomorrow": "0"
+    },
+    "Erle": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    }
+   },
+   "region_name": "Sachsen",
+   "region_id": 80,
+   "partregion_id": 82
+  },
+  {
+   "Pollen": {
+    "Graeser": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    },
+    "Beifuss": {
+     "today": "0",
+     "tomorrow": "0",
+     "dayafter_to": "0"
+    },
+    "Erle": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Ambrosia": {
+     "today": "0",
+     "dayafter_to": "0",
+     "tomorrow": "0"
+    },
+    "Hasel": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Birke": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Roggen": {
+     "dayafter_to": "0",
+     "tomorrow": "0",
+     "today": "0"
+    },
+    "Esche": {
+     "tomorrow": "0",
+     "dayafter_to": "0",
+     "today": "0"
+    }
+   },
+   "region_name": "Bayern",
+   "partregion_id": 121,
+   "region_id": 120,
+   "partregion_name": "Allgäu/Oberbayern/Bay. Wald"
+  }
+ ],
+ "last_update": "2026-04-14 11:00 Uhr",
+ "name": "Pollenflug-Gefahrenindex für Deutschland ausgegeben vom Deutschen Wetterdienst"
+}

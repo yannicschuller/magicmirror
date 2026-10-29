@@ -1,0 +1,39 @@
+/* ---- bike & scooter sharing ---- */
+.mod-bikes .bikes { display: flex; flex-direction: column; gap: .7em; max-width: 30em; font-variant-numeric: tabular-nums; }
+.mod-bikes .bk-list { display: grid; grid-template-columns: auto minmax(0, auto); column-gap: .7em; row-gap: .45em; align-items: baseline; }
+.mod-bikes .bk-row { display: contents; }
+.mod-bikes .bk-counts { display: inline-flex; gap: .55em; white-space: nowrap; }
+.mod-bikes .bk-c { display: inline-flex; align-items: baseline; gap: .15em; }
+.mod-bikes .bk-c .ico { width: 1.25em; height: 1.25em; vertical-align: -.25em; align-self: center; }
+.mod-bikes .bk-n { font-size: 1.15em; font-weight: var(--weight, 300); }
+.mod-bikes .bk-ebike .ico, .mod-bikes .bk-scooter .ico, .mod-bikes .bk-moped .ico { color: var(--accent); }
+.mod-bikes .bk-zero { color: var(--dim); }
+.mod-bikes .bk-st { min-width: 0; }
+.mod-bikes .bk-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 18em; }
+.mod-bikes .bk-sub { font-size: .72em; color: var(--dim); white-space: nowrap; }
+.mod-bikes .bk-dir { display: inline-block; margin-right: .2em; line-height: 0; }
+.mod-bikes .bk-dir .ico { width: 1.1em; height: 1.1em; vertical-align: -.2em; }
+.mod-bikes .bk-off { color: var(--warn); }
+.mod-bikes .bk-empty, .mod-bikes .bk-empty .ico { color: var(--dim); }
+.mod-bikes .bk-empty .bk-name { opacity: .75; }
+.mod-bikes .bk-fleets { display: flex; flex-direction: column; gap: .3em; }
+.mod-bikes .bk-fleet { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mod-bikes .bk-fleet .bk-counts { min-width: 0; }
+.mod-bikes .bk-op { color: var(--fg); }
+.mod-bikes .bk-empty .bk-op { color: var(--dim); }
+
+/* compact: one line per station */
+.mod-bikes .compact .bk-list { grid-template-columns: auto minmax(0, auto) auto; row-gap: .2em; }
+.mod-bikes .compact .bk-name { max-width: 13em; }
+
+/* alignment per region */
+.region[data-region$='right'] .mod-bikes .bikes { margin-left: auto; align-items: flex-end; }
+/* mirrored columns: counts on the outer (right) edge */
+.region[data-region$='right'] .mod-bikes .bk-list { grid-template-columns: minmax(0, auto) auto; grid-auto-flow: row dense; text-align: right; }
+.region[data-region$='right'] .mod-bikes .bk-list .bk-counts { grid-column: 2; justify-content: flex-end; }
+.region[data-region$='right'] .mod-bikes .bk-list .bk-st { grid-column: 1; }
+.region[data-region$='right'] .mod-bikes .compact .bk-list { grid-template-columns: auto minmax(0, auto) auto; }
+.region[data-region$='right'] .mod-bikes .compact .bk-list .bk-counts { grid-column: 3; }
+.region[data-region$='right'] .mod-bikes .compact .bk-list .bk-name { grid-column: 2; }
+.region[data-region$='right'] .mod-bikes .compact .bk-list .bk-sub { grid-column: 1; }
+.region[data-region$='center'] .mod-bikes .bikes, .region[data-region$='bar'] .mod-bikes .bikes { margin: 0 auto; align-items: center; }

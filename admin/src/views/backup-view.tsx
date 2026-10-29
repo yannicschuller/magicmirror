@@ -12,8 +12,8 @@ import { api, errorMessage } from '@/lib/api';
 import { moduleName } from '@/lib/helpers';
 import type { Config, Module, Page } from '@/lib/shared';
 import { useStore } from '@/lib/store';
-import { SystemCard } from './system-card';
 import { UpdateCard } from './update-card';
+import { HistoryCard } from './history-card';
 
 /** Renders the only markup our messages use (<b>…</b>) without innerHTML. */
 function Rich({ text }: { text: string }) {
@@ -29,9 +29,9 @@ export function BackupView() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <BackupCard />
+      <HistoryCard />
       <UpdateCard />
       <AccountCard />
-      <SystemCard />
     </div>
   );
 }

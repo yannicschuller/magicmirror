@@ -1,0 +1,79 @@
+{
+  "accepted": {
+    "code": 0,
+    "data": {
+      "accepted": [
+        {
+          "number": "09445440123456",
+          "carrier": 100035,
+          "param": null,
+          "tag": "",
+          "track_info": {
+            "shipping_info": { "shipper_address": { "country": "DE" }, "recipient_address": { "country": "DE", "city": "Leipzig", "postal_code": null } },
+            "latest_status": { "status": "InTransit", "sub_status": "InTransit_Other", "sub_status_descr": null },
+            "latest_event": {
+              "time_iso": "2026-10-28T18:45:00+01:00",
+              "time_utc": "2026-10-28T17:45:00Z",
+              "time_raw": { "date": "2026-10-28", "time": "18:45:00", "timezone": "+01:00" },
+              "description": "Die Sendung ist im Hermes Verteilzentrum angekommen.",
+              "description_translation": null,
+              "location": "Graben",
+              "stage": "InTransit",
+              "sub_status": "InTransit_Other",
+              "address": { "country": "DE", "city": "Graben" }
+            },
+            "time_metrics": {
+              "days_after_order": 2,
+              "days_of_transit": 1,
+              "days_of_transit_done": 1,
+              "days_after_last_update": 0,
+              "estimated_delivery_date": { "source": "Official", "from": "2026-10-30T00:00:00+01:00", "to": "2026-10-31T00:00:00+01:00" }
+            },
+            "milestone": [],
+            "misc_info": {},
+            "tracking": {
+              "providers_hash": 1234567,
+              "providers": [
+                {
+                  "provider": { "key": 100035, "name": "Hermes (DE)", "alias": "Hermes", "tel": "", "homepage": "https://www.myhermes.de", "country": "DE" },
+                  "service_type": null,
+                  "latest_sync_status": "Success",
+                  "latest_sync_time": "2026-10-28T18:50:00Z",
+                  "events_hash": 765432,
+                  "events": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "number": "LX123456789DE",
+          "carrier": 7041,
+          "track_info": {
+            "latest_status": { "status": "AvailableForPickup", "sub_status": "AvailableForPickup_Other" },
+            "latest_event": { "time_iso": "2026-10-29T09:10:00+01:00", "time_utc": "2026-10-29T08:10:00Z", "description": "Parcel is ready for pickup at the Packstation", "location": "Leipzig" },
+            "time_metrics": { "estimated_delivery_date": { "source": null, "from": null, "to": null } },
+            "tracking": { "providers": [] }
+          }
+        }
+      ],
+      "rejected": []
+    }
+  },
+  "notRegistered": {
+    "code": 0,
+    "data": {
+      "accepted": [],
+      "rejected": [
+        { "number": "09445440123456", "error": { "code": -18019902, "message": "The tracking number '09445440123456' does not register, please register first." } }
+      ]
+    }
+  },
+  "registered": {
+    "code": 0,
+    "data": {
+      "accepted": [{ "origin": 1, "number": "09445440123456", "carrier": 100035 }],
+      "rejected": []
+    }
+  }
+}

@@ -24,6 +24,6 @@
 .mod-football .fb-table .fb-logo { margin-left: 0; }
 .mod-football .fb-logo.gray { filter: grayscale(1) brightness(1.15); opacity: .75; }
 
-.mod-football .fb-team-name { font-size: 1.5em; font-weight: 300; line-height: 1.15; }
+.mod-football .fb-team-name { font-size: 1.5em; font-weight: var(--weight, 300); line-height: 1.15; }
 .mod-football .fb-team-name .fb-logo { margin-left: 0; }
 .mod-football .fb-team-facts { margin-bottom: .2em; }

@@ -411,36 +411,65 @@ export const MODULE_TYPES = {
 
 for (const { type, ...schema } of PLUGIN_MODULES) MODULE_TYPES[type] = schema;
 
+// `group` = tab in the admin's "General" view (see GENERAL_GROUPS).
+export const GENERAL_GROUPS = [
+  { id: 'basics', label: 'Basics' },
+  { id: 'look', label: 'Appearance' },
+  { id: 'pages', label: 'Page rotation' },
+  { id: 'night', label: 'Night mode' },
+  { id: 'system', label: 'System' },
+];
+
 export const GENERAL_FIELDS = [
-  { key: 'name', label: 'Mirror name', type: 'text', default: 'Magic Mirror' },
-  { key: 'location', label: 'Location (weather, flights, …)', type: 'location', default: { name: 'Berlin', lat: 52.52, lon: 13.405 } },
-  { key: 'timezone', label: 'Time zone', type: 'text', default: 'Europe/Berlin' },
-  { key: 'locale', label: 'Language & format', type: 'select', default: DEFAULT_LOCALE, options: [
+  { group: 'basics', key: 'name', label: 'Mirror name', type: 'text', default: 'Magic Mirror' },
+  { group: 'basics', key: 'location', label: 'Location (weather, flights, …)', type: 'location', default: { name: 'Berlin', lat: 52.52, lon: 13.405 } },
+  { group: 'basics', key: 'timezone', label: 'Time zone', type: 'text', default: 'Europe/Berlin' },
+  { group: 'basics', key: 'locale', label: 'Language & format', type: 'select', default: DEFAULT_LOCALE, options: [
     { value: 'de-DE', label: 'Deutsch (Deutschland)' }, { value: 'de-AT', label: 'Deutsch (Österreich)' }, { value: 'de-CH', label: 'Deutsch (Schweiz)' }, { value: 'en-GB', label: 'English (UK)' }, { value: 'en-US', label: 'English (US)' },
   ] },
-  { key: 'rotatePages', label: 'Rotate pages automatically', type: 'bool', default: true },
-  { key: 'pageIndicator', label: 'Show page indicator', type: 'bool', default: true },
-  { key: 'indicatorStyle', label: 'Page indicator style', type: 'select', default: 'dots', options: [
-    { value: 'dots', label: 'Dots' }, { value: 'bar', label: 'Progress bar until the next page' }, { value: 'both', label: 'Dots and progress bar' },
-  ], showIf: { pageIndicator: true } },
-  { key: 'transition', label: 'Page transition', type: 'select', default: 'fade', options: [
-    { value: 'fade', label: 'Fade' }, { value: 'slide', label: 'Slide' }, { value: 'none', label: 'None' },
+
+  { group: 'look', key: 'fontScale', label: 'Font size (factor)', type: 'number', default: 1, min: 0.5, max: 3, step: 0.05,
+    help: 'About 1 for reading from 1 m, 1.3–1.5 from 2 m.' },
+  { group: 'look', key: 'fontFamily', label: 'Font', type: 'select', default: 'inter', options: [
+    { value: 'inter', label: 'Inter (modern, default)' }, { value: 'system', label: 'System font' }, { value: 'serif', label: 'Serif' }, { value: 'mono', label: 'Monospace' },
   ] },
-  { key: 'background', label: 'Background', type: 'color', default: '#000000' },
-  { key: 'textColor', label: 'Text color', type: 'color', default: '#ffffff' },
-  { key: 'accentColor', label: 'Accent color', type: 'color', default: '#7dd3fc' },
-  { key: 'fontScale', label: 'Font size (factor)', type: 'number', default: 1, min: 0.5, max: 3, step: 0.05 },
-  { key: 'padding', label: 'Margin (% of screen size)', type: 'number', default: 3, min: 0, max: 15, step: 0.5 },
-  { key: 'rotation', label: 'Rotate screen', type: 'select', default: '0', options: [
+  { group: 'look', key: 'fontWeight', label: 'Font weight', type: 'select', default: '300', options: [
+    { value: '200', label: 'Thin' }, { value: '300', label: 'Light (default)' }, { value: '400', label: 'Regular' }, { value: '500', label: 'Medium' },
+  ] },
+  { group: 'look', key: 'textColor', label: 'Text color', type: 'color', default: '#ffffff' },
+  { group: 'look', key: 'accentColor', label: 'Accent color', type: 'color', default: '#7dd3fc' },
+  { group: 'look', key: 'background', label: 'Background', type: 'color', default: '#000000' },
+  { group: 'look', key: 'padding', label: 'Margin (% of screen size)', type: 'number', default: 3, min: 0, max: 15, step: 0.5 },
+  { group: 'look', key: 'rotation', label: 'Rotate screen', type: 'select', default: '0', options: [
     { value: '0', label: '0°' }, { value: '90', label: '90° (portrait)' }, { value: '180', label: '180°' }, { value: '270', label: '270° (portrait)' },
   ] },
-  { key: 'showTitles', label: 'Show module titles', type: 'bool', default: true },
-  { key: 'hideCursor', label: 'Hide mouse cursor', type: 'bool', default: true },
-  { key: 'dimEnabled', label: 'Night mode (dimming)', type: 'bool', default: false },
-  { key: 'dimFrom', label: 'Dim from', type: 'time', default: '23:00', showIf: { dimEnabled: true } },
-  { key: 'dimTo', label: 'Dim until', type: 'time', default: '06:00', showIf: { dimEnabled: true } },
-  { key: 'dimBrightness', label: 'Brightness at night (%)', type: 'number', default: 30, min: 0, max: 100, showIf: { dimEnabled: true } },
-  { key: 'autoReloadHours', label: 'Reload page automatically every x hours (0 = never)', type: 'number', default: 12, min: 0, max: 168 },
+  { group: 'look', key: 'showTitles', label: 'Show module titles', type: 'bool', default: true },
+  { group: 'look', key: 'hideCursor', label: 'Hide mouse cursor', type: 'bool', default: true },
+
+  { group: 'pages', key: 'rotatePages', label: 'Rotate pages automatically', type: 'bool', default: true },
+  { group: 'pages', key: 'transition', label: 'Page transition', type: 'select', default: 'fade', options: [
+    { value: 'fade', label: 'Fade' }, { value: 'slide', label: 'Slide' }, { value: 'none', label: 'None' },
+  ] },
+  { group: 'pages', key: 'pageIndicator', label: 'Show page indicator', type: 'bool', default: true },
+  { group: 'pages', key: 'indicatorStyle', label: 'Page indicator style', type: 'select', default: 'dots', options: [
+    { value: 'dots', label: 'Dots' }, { value: 'bar', label: 'Progress bar until the next page' }, { value: 'both', label: 'Dots and progress bar' },
+  ], showIf: { pageIndicator: true } },
+
+  { group: 'night', key: 'dimEnabled', label: 'Night mode', type: 'bool', default: false },
+  { group: 'night', key: 'nightTrigger', label: 'Night begins', type: 'select', default: 'time', options: [
+    { value: 'time', label: 'At fixed times' }, { value: 'sun', label: 'At sunset (until sunrise)' },
+  ], showIf: { dimEnabled: true } },
+  { group: 'night', key: 'dimFrom', label: 'Dim from', type: 'time', default: '23:00', showIf: { dimEnabled: true, nightTrigger: 'time' } },
+  { group: 'night', key: 'dimTo', label: 'Dim until', type: 'time', default: '06:00', showIf: { dimEnabled: true, nightTrigger: 'time' } },
+  { group: 'night', key: 'nightOffset', label: 'Minutes after sunset / before sunrise', type: 'number', default: 0, min: -180, max: 180, showIf: { dimEnabled: true, nightTrigger: 'sun' },
+    help: 'Negative values start the night before sunset.' },
+  { group: 'night', key: 'nightMode', label: 'At night', type: 'select', default: 'dim', options: [
+    { value: 'dim', label: 'Dim everything' }, { value: 'clock', label: 'Show only the clock (dimmed)' }, { value: 'off', label: 'Switch the screen off' },
+  ], showIf: { dimEnabled: true },
+    help: '"Switch the screen off" turns the screen black; a TV or monitor with HDMI-CEC also goes to standby (kiosk on the Pi).' },
+  { group: 'night', key: 'dimBrightness', label: 'Brightness at night (%)', type: 'number', default: 30, min: 0, max: 100, showIf: { dimEnabled: true, nightMode: ['dim', 'clock'] } },
+
+  { group: 'system', key: 'autoReloadHours', label: 'Reload page automatically every x hours (0 = never)', type: 'number', default: 12, min: 0, max: 168 },
 ];
 
 export function uid(prefix = 'm') {

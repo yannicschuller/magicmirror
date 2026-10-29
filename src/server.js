@@ -4,10 +4,11 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
+import { getDisplay, setDisplayOverride } from './display.js';
 import { pushRouter } from './push.js';
 import { searchPlaces } from './providers/route.js';
 import { langOf } from '../public/shared/i18n.js';
-import { loadConfig, getConfig, saveConfig, onConfigChange, DEFAULT_LOCALE_ENV } from './config.js';
+import { loadConfig, getConfig, saveConfig, onConfigChange, listHistory, readHistory, DEFAULT_LOCALE_ENV } from './config.js';
 import { setupAuth, requireAdmin, changePassword, oidcEnabled, localEnabled } from './auth.js';
 import { sseHandler, broadcast, clientCount } from './events.js';
 import { mountGo2rtc, syncStreams, streamName, go2rtcStatus } from './go2rtc.js';
@@ -20,6 +21,13 @@ import { provider as tasks } from './providers/tasks.js';
 import { provider as fuel } from './providers/fuel.js';
 import { provider as football } from './providers/football.js';
 import { calendar } from './providers/calendar.js';
+import { provider as countdown } from './providers/countdown.js';
+import { provider as parcels } from './providers/parcels.js';
+import { provider as airpollen } from './providers/airpollen.js';
+import { provider as bikes } from './providers/bikes.js';
+import { provider as nightsky } from './providers/nightsky.js';
+import { provider as pistatus } from './providers/pistatus.js';
+import { provider as network } from './providers/network.js';
 import { waste, wasteAdminRouter } from './providers/waste.js';
 import { f1 } from './providers/f1.js';
 import { transit, searchStops } from './providers/transit.js';
@@ -36,6 +44,13 @@ const providers = {
   tasks,
   fuel,
   football,
+  countdown,
+  parcels,
+  airpollen,
+  bikes,
+  nightsky,
+  pistatus,
+  network,
   calendar,
   waste,
   f1,
@@ -66,6 +81,8 @@ app.use('/shared', express.static(path.join(root, 'public/shared')));
 app.use('/brand', express.static(path.join(root, 'public/brand'), { maxAge: '7d' }));
 app.get('/favicon.ico', (req, res) => res.redirect(301, '/brand/favicon.svg'));
 app.use('/', express.static(path.join(root, 'public/mirror'), { index: 'index.html' }));
+
+app.get('/api/display', (req, res) => res.set('Cache-Control', 'no-store').json(getDisplay(getConfig())));
 
 app.get('/api/ambient', async (req, res) => {
   try {
@@ -105,6 +122,21 @@ admin.put('/config', async (req, res) => {
   if (!req.body || !Array.isArray(req.body.modules)) return res.status(400).json({ error: 'Invalid configuration' });
   try {
     res.json(await saveConfig(req.body));
+  } catch (err) {
+    res.status(500).json({ error: `Saving failed: ${err.message}` });
+  }
+});
+
+admin.get('/history', async (req, res) => res.json(await listHistory()));
+admin.get('/history/:id', async (req, res) => {
+  const cfg = await readHistory(req.params.id);
+  return cfg ? res.json(cfg) : res.status(404).json({ error: 'Not found' });
+});
+admin.post('/history/:id/restore', async (req, res) => {
+  const cfg = await readHistory(req.params.id);
+  if (!cfg) return res.status(404).json({ error: 'Not found' });
+  try {
+    res.json(await saveConfig(cfg));
   } catch (err) {
     res.status(500).json({ error: `Saving failed: ${err.message}` });
   }
@@ -169,10 +201,18 @@ admin.post('/transit/search', async (req, res) => {
   }
 });
 
+admin.get('/display', (req, res) => res.json(getDisplay(getConfig())));
+admin.post('/display', (req, res) => {
+  const { mode = null, minutes = 0 } = req.body || {};
+  setDisplayOverride(mode, Math.min(24 * 60, Math.max(0, Number(minutes) || 0)));
+  res.json(getDisplay(getConfig()));
+});
+
 admin.post('/command', (req, res) => {
   const { type, page } = req.body || {};
   if (type === 'reload') broadcast('reload');
   else if (type === 'page') broadcast('page', { page });
+  else if (['next', 'prev', 'hold', 'resume'].includes(type)) broadcast('nav', { action: type, minutes: Math.min(24 * 60, Math.max(0, Number(req.body.minutes) || 0)) });
   else return res.status(400).json({ error: 'Unknown command' });
   res.json({ ok: true, clients: clientCount() });
 });

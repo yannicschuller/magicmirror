@@ -1,11 +1,46 @@
 // "Only show when …": per module type, decides from the module's data whether there
 // is something worth showing right now. Used by the mirror (hide/show) and the admin
 // (which modules offer the option + its label). Pure functions – tested in Node.
+import { hasUpcoming } from './countdown.js';
 
 const dayKey = (d, tz) => new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 const HOUR = 3600 * 1000;
 
 export const CONDITIONS = {
+  countdown: {
+    label: 'Only show when an event is coming up (within "show events from … days before")',
+    test: (d, now, tz) => hasUpcoming(d, now, tz),
+  },
+  parcels: {
+    label: 'Only show when a parcel is on its way',
+    test: (d) => (d.parcels || []).some((p) => p.status !== 'delivered'),
+  },
+  airpollen: {
+    label: 'Only show when pollen reaches the threshold or air quality is moderate or worse',
+    test: (d) => !!(d.pollenAlert || d.airAlert),
+  },
+  bikes: {
+    label: 'Only show when a vehicle is available nearby',
+    test: (d) => !d.needsSetup && ((d.stations || []).some((s) => s.available > 0) || (d.vehicles || []).some((v) => v.total > 0)),
+  },
+  nightsky: {
+    label: 'Only show when the ISS is visible soon or tonight',
+    test: (d, now) => (d.iss?.passes || []).some((p) => {
+      if (!p.visible) return false;
+      const start = Date.parse(p.start);
+      const t = now.getTime();
+      if (Date.parse(p.end) < t) return false;
+      return start - t <= (d.soonHours || 6) * HOUR || (!!d.night && p.start < d.night.end);
+    }),
+  },
+  pistatus: {
+    label: 'Only show when there is a warning (temperature, memory, disk, power supply)',
+    test: (d) => (d.warnings?.length || 0) > 0,
+  },
+  network: {
+    label: 'Only show when the internet is down or slow',
+    test: (d) => !!d.level && d.level !== 'ok',
+  },
   tasks: {
     label: 'Only show when there are open tasks',
     test: (d) => (d.items?.length || 0) > 0,

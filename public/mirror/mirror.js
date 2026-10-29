@@ -2,6 +2,7 @@ import { REGIONS, MODULE_TYPES } from '/shared/modules.js';
 import { renderers, makeFmt, esc } from './renderers.js';
 import { translator, langOf } from '/shared/i18n.js';
 import { scheduleActive, activePages } from '/shared/schedule.js';
+import { displayState } from '/shared/night.js';
 import { moduleHasContent } from '/shared/conditions.js';
 import { setAmbient } from './ambient.js';
 
@@ -27,12 +28,21 @@ async function fetchConfig() {
   return res.json();
 }
 
+const FONTS = {
+  inter: "'Inter', system-ui, sans-serif",
+  system: "system-ui, -apple-system, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif",
+  serif: "Georgia, 'DejaVu Serif', 'Times New Roman', serif",
+  mono: "ui-monospace, 'DejaVu Sans Mono', Menlo, monospace",
+};
+
 function applyTheme(g) {
   const root = document.documentElement.style;
   root.setProperty('--bg', g.background);
   root.setProperty('--fg', g.textColor);
   root.setProperty('--accent', g.accentColor);
   root.setProperty('--scale', g.fontScale);
+  root.setProperty('--font', FONTS[g.fontFamily] || FONTS.inter);
+  root.setProperty('--weight', g.fontWeight || '300');
   root.setProperty('--pad', `${g.padding}vmin`);
   document.body.classList.toggle('hide-cursor', g.hideCursor);
   document.body.classList.toggle('no-titles', !g.showTitles);
@@ -311,6 +321,16 @@ function prefetch(page) {
   }
 }
 
+// Remote control "hold": keep the current page (until resumed or the time runs out).
+let holdUntil = 0;
+let holdTimer = null;
+function hold(minutes) {
+  clearTimeout(holdTimer);
+  holdUntil = minutes > 0 ? Date.now() + minutes * 60000 : 0;
+  if (holdUntil) holdTimer = setTimeout(() => hold(0), minutes * 60000);
+  showPage(pageIndex, true);
+}
+
 function showPage(index, immediate = false) {
   clearTimeout(pageTimer);
   if (!pages.length) return;
@@ -319,7 +339,7 @@ function showPage(index, immediate = false) {
   applyVisibility(immediate);
   setAmbient(page.ambient);
   clearTimeout(prefetchTimer);
-  const rotating = config.general.rotatePages && pages.length > 1 && !pinnedPage;
+  const rotating = config.general.rotatePages && pages.length > 1 && !pinnedPage && !holdUntil;
   renderIndicator(rotating ? page.duration : 0);
   if (rotating) {
     pageTimer = setTimeout(() => showPage(pageIndex + 1), page.duration * 1000);
@@ -347,24 +367,17 @@ function renderIndicator(seconds) {
   } else fill.style.transform = 'scaleX(1)'; // not rotating: full bar
 }
 
-// ---- night dimming & housekeeping ----------------------------------------------------
-function minutes(hhmm) {
-  const [h, m] = String(hhmm).split(':').map(Number);
-  return (h || 0) * 60 + (m || 0);
-}
+// ---- night mode & housekeeping ------------------------------------------------------
+// Remote override from the admin / remote page ("screen off for 1 h", "night now" …).
+let displayOverride = null;
 
 function updateDim() {
   const g = config?.general;
-  if (!g || !g.dimEnabled) {
-    dimLayer.style.opacity = 0;
-    return;
-  }
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: g.timezone, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
-  const now = minutes(parts);
-  const from = minutes(g.dimFrom);
-  const to = minutes(g.dimTo);
-  const active = from <= to ? now >= from && now < to : now >= from || now < to;
-  dimLayer.style.opacity = active ? 1 - g.dimBrightness / 100 : 0;
+  if (!g) return;
+  const state = displayState(g, new Date(), displayOverride);
+  dimLayer.style.opacity = String(1 - state.brightness);
+  document.body.classList.toggle('night-clock', state.mode === 'clock');
+  document.body.classList.toggle('screen-off', state.mode === 'off');
 }
 
 let reloadTimer = null;
@@ -375,6 +388,10 @@ function scheduleReload() {
 }
 
 async function init() {
+  fetch('/api/display', { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+    displayOverride = d.override || null;
+    updateDim();
+  }).catch(() => {});
   try {
     config = await fetchConfig();
     statusEl.hidden = true;
@@ -419,6 +436,12 @@ function connectEvents() {
     serverVersion = version;
   });
   es.addEventListener('reload', () => location.reload());
+  es.addEventListener('display', (e) => {
+    displayOverride = JSON.parse(e.data).override || null;
+    dimLayer.classList.add('quick');
+    updateDim();
+    setTimeout(() => dimLayer.classList.remove('quick'), 1500);
+  });
   // New data was pushed for a module (e.g. Apple Reminders) – fetch it now.
   es.addEventListener('refresh', (e) => {
     const { module } = JSON.parse(e.data);
@@ -426,6 +449,13 @@ function connectEvents() {
       if (inst.visible || watched(inst)) loadData(inst);
       else inst.stale = true;
     }
+  });
+  es.addEventListener('nav', (e) => {
+    const { action, minutes } = JSON.parse(e.data);
+    if (action === 'next') showPage(pageIndex + 1);
+    else if (action === 'prev') showPage(pageIndex - 1);
+    else if (action === 'hold') hold(minutes || 60);
+    else if (action === 'resume') hold(0);
   });
   es.addEventListener('page', (e) => {
     const { page } = JSON.parse(e.data);

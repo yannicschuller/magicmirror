@@ -5,7 +5,7 @@
 .mod-tasks .tasks-mark { flex: none; display: inline-flex; align-self: center; color: var(--dim); }
 .mod-tasks .tasks-box { width: 1.05em; height: 1.05em; }
 .mod-tasks .tasks-dot { width: .4em; height: .4em; margin: 0 .3em; border-radius: 50%; background: currentColor; }
-.mod-tasks .tasks-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; }
+.mod-tasks .tasks-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--weight, 300); }
 .region[data-region$='right'] .mod-tasks .tasks-title { text-align: right; }
 .mod-tasks .tasks-due { flex: none; font-size: .78em; color: var(--dim); font-variant-numeric: tabular-nums; }
 .mod-tasks .tasks-due.today { color: var(--accent); }

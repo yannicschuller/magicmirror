@@ -1,0 +1,45 @@
+/* ---- device status ---- */
+.mod-pistatus .ps { font-variant-numeric: tabular-nums; }
+.mod-pistatus .ps-l { color: var(--dim); }
+.mod-pistatus .lvl-warn, .mod-pistatus .lvl-warn .ps-l { color: var(--warn); }
+.mod-pistatus .lvl-severe, .mod-pistatus .lvl-severe .ps-l { color: var(--severe); }
+.mod-pistatus .ps-trend { font-size: .8em; color: var(--dim); }
+
+/* compact line (also the "rest" line of the sparkline layout) */
+.mod-pistatus .ps-line { line-height: 1.5; }
+.mod-pistatus .ps-line .ps-i { white-space: nowrap; }
+.mod-pistatus .ps-line .ps-l { font-size: .78em; }
+.mod-pistatus .ps-sep { color: var(--dim); }
+
+/* tiles – inline-grid follows the region's text-align (left/center/right) */
+.mod-pistatus .ps-tiles {
+  display: inline-grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(5.2em, auto));
+  gap: .7em 1.1em;
+  text-align: left;
+}
+.region[data-region$='right'] .mod-pistatus .ps-tiles { text-align: right; }
+.region[data-region$='center'] .mod-pistatus .ps-tiles, .region[data-region$='bar'] .mod-pistatus .ps-tiles { text-align: center; }
+.mod-pistatus .ps-tile .ps-l { font-size: .68em; text-transform: uppercase; letter-spacing: .1em; }
+.mod-pistatus .ps-tile .ps-v { font-size: 1.25em; font-weight: var(--weight, 300); white-space: nowrap; line-height: 1.2; }
+.mod-pistatus .ps-tile .ps-sub { font-size: .66em; color: var(--dim); white-space: nowrap; }
+.mod-pistatus .ps-bar { height: .22em; margin: .25em 0 .2em; border-radius: .11em; background: var(--faint); overflow: hidden; }
+.mod-pistatus .ps-bar i { display: block; height: 100%; background: var(--fg); opacity: .75; }
+.region[data-region$='right'] .mod-pistatus .ps-bar i { margin-left: auto; }
+.mod-pistatus .lvl-warn .ps-bar i { background: var(--warn); opacity: 1; }
+.mod-pistatus .lvl-severe .ps-bar i { background: var(--severe); opacity: 1; }
+
+/* sparklines */
+.mod-pistatus .ps-sparks { display: inline-grid; grid-template-columns: auto 7em auto; gap: .3em .6em; align-items: center; }
+.mod-pistatus .ps-srow { display: contents; }
+.mod-pistatus .ps-srow .ps-l { font-size: .78em; text-align: left; }
+.mod-pistatus .ps-srow .ps-v { text-align: right; white-space: nowrap; }
+.mod-pistatus .ps-spark { display: block; width: 7em; height: 1.4em; }
+.mod-pistatus .ps-spark polyline { fill: none; stroke: var(--accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.mod-pistatus .lvl-warn .ps-spark polyline { stroke: var(--warn); }
+.mod-pistatus .lvl-severe .ps-spark polyline { stroke: var(--severe); }
+.mod-pistatus .ps-sparks + .ps-line { margin-top: .35em; }
+
+/* warnings */
+.mod-pistatus .ps-warns { margin-top: .45em; font-size: .85em; }
+.mod-pistatus .ps-line + .ps-warns { margin-top: .2em; }

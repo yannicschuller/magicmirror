@@ -25,11 +25,13 @@ import { BackupView } from '@/views/backup-view';
 import { GeneralView } from '@/views/general-view';
 import { LayoutView } from '@/views/layout-view';
 import { ModulesView } from '@/views/modules-view';
+import { RemoteView } from '@/views/remote-view';
 
 const TAB_LABELS: Record<View, string> = {
   layout: 'Pages & layout',
   modules: 'Modules',
   general: 'General',
+  remote: 'Remote',
   backup: 'Import / Export',
 };
 
@@ -165,6 +167,9 @@ function Shell() {
         </TabsContent>
         <TabsContent value="general">
           <GeneralView />
+        </TabsContent>
+        <TabsContent value="remote">
+          <RemoteView />
         </TabsContent>
         <TabsContent value="backup">
           <BackupView />

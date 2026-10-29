@@ -11,7 +11,7 @@
 .mod-sky .sky-moon { width: 4.6em; height: 4.6em; flex: none; }
 .mod-sky .sky-moon-dark { fill: color-mix(in srgb, var(--fg) 9%, transparent); stroke: var(--faint); stroke-width: 1; }
 .mod-sky .sky-moon-lit { fill: var(--moon); }
-.mod-sky .sky-phase { font-size: 1.3em; font-weight: 300; line-height: 1.15; }
+.mod-sky .sky-phase { font-size: 1.3em; font-weight: var(--weight, 300); line-height: 1.15; }
 .mod-sky .sky-next { margin-top: .2em; font-variant-numeric: tabular-nums; }
 .mod-sky .sky-dot { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-right: .35em; vertical-align: -.05em; }
 .mod-sky .sky-dot.full { background: var(--moon); }

@@ -1,0 +1,51 @@
+/* ---- internet & network ---- */
+.mod-network { font-variant-numeric: tabular-nums; }
+.mod-network .net-dot { display: inline-block; width: .5em; height: .5em; border-radius: 50%; background: currentColor; margin-right: .4em; vertical-align: .1em; flex: none; }
+.mod-network .net-dot.big { width: .6em; height: .6em; }
+.mod-network .lvl-ok .net-dot { color: var(--ok); }
+.mod-network .lvl-warn .net-dot { color: var(--warn); }
+.mod-network .lvl-severe .net-dot { color: var(--severe); }
+.mod-network .lvl-severe .net-state, .mod-network .net-status.lvl-severe { color: var(--severe); }
+
+.mod-network .net-head { display: flex; align-items: baseline; gap: .5em; font-size: 1.15em; }
+.mod-network .net-head .net-lat { font-weight: var(--weight, 300); font-size: 1.2em; }
+.mod-network .net-head.lvl-warn .net-lat { color: var(--warn); }
+.mod-network .net-head.lvl-severe .net-lat { color: var(--severe); }
+.mod-network .net-sub, .mod-network .net-when, .mod-network .net-ip, .mod-network .net-targets { font-size: .72em; color: var(--dim); }
+.mod-network .net-targets { display: flex; flex-wrap: wrap; gap: .2em .9em; }
+.mod-network .net-targets .down { color: var(--severe); }
+.mod-network .net-spark { display: block; margin: .4em 0 .2em; overflow: visible; }
+.mod-network .net-line { fill: none; stroke: var(--fg); stroke-width: 1.2; opacity: .8; }
+.mod-network .net-line circle { fill: var(--fg); stroke: none; }
+.mod-network .net-warn-line { stroke: var(--warn); stroke-width: .6; stroke-dasharray: 2 3; opacity: .6; }
+.mod-network .net-gap { fill: var(--severe); }
+.mod-network .net-speed { margin-top: .3em; }
+.mod-network .net-speed .net-rate { font-weight: var(--weight, 300); }
+.mod-network .net-ip { margin-top: .2em; }
+.mod-network .net-err { margin-top: .3em; font-size: .72em; color: var(--warn); }
+
+.mod-network .net-devices { display: flex; flex-wrap: wrap; gap: .25em 1em; margin-top: .45em; }
+.mod-network .net-dev { white-space: nowrap; color: var(--dim); }
+.mod-network .net-dev .net-dot { background: transparent; border: 1px solid currentColor; box-sizing: border-box; }
+.mod-network .net-dev.home { color: var(--fg); }
+.mod-network .net-dev.home .net-dot { background: var(--ok); border-color: var(--ok); }
+.mod-network .net-where { font-size: .8em; }
+
+.mod-network .net-compact { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2em .5em; }
+.mod-network .net-compact .net-devices { margin-top: 0; margin-left: .5em; }
+.mod-network .net-sep { color: var(--dim); }
+.mod-network .net-compact .net-speed { margin-top: 0; }
+
+/* alignment per region */
+.region[data-region$='right'] .mod-network .net-head,
+.region[data-region$='right'] .mod-network .net-compact,
+.region[data-region$='right'] .mod-network .net-devices,
+.region[data-region$='right'] .mod-network .net-targets { justify-content: flex-end; }
+.region[data-region$='right'] .mod-network .net-detailed { text-align: right; }
+.region[data-region$='right'] .mod-network .net-spark { margin-left: auto; }
+.region[data-region$='center'] .mod-network .net-head, .region[data-region$='bar'] .mod-network .net-head,
+.region[data-region$='center'] .mod-network .net-compact, .region[data-region$='bar'] .mod-network .net-compact,
+.region[data-region$='center'] .mod-network .net-devices, .region[data-region$='bar'] .mod-network .net-devices,
+.region[data-region$='center'] .mod-network .net-targets, .region[data-region$='bar'] .mod-network .net-targets { justify-content: center; }
+.region[data-region$='center'] .mod-network .net-detailed, .region[data-region$='bar'] .mod-network .net-detailed { text-align: center; }
+.region[data-region$='center'] .mod-network .net-spark, .region[data-region$='bar'] .mod-network .net-spark { margin-left: auto; margin-right: auto; }

@@ -1,0 +1,67 @@
+/* ---- pollen & air quality ---- */
+.mod-airpollen {
+  --ap-none: var(--faint);
+  --ap-low: #4ade80;
+  --ap-mid: #fde047;
+  --ap-high: #f87171;
+}
+.mod-airpollen .ap-section + .ap-section { margin-top: .7em; }
+.mod-airpollen .ap-msg { font-size: .85em; }
+
+/* list with level bars */
+.mod-airpollen .ap-list {
+  display: inline-grid;
+  grid-template-columns: auto repeat(var(--n, 2), auto);
+  column-gap: 1em;
+  row-gap: .3em;
+  align-items: center;
+}
+.mod-airpollen .ap-day { font-size: .68em; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); text-align: center; }
+.mod-airpollen .ap-name { text-align: left; white-space: nowrap; }
+.mod-airpollen .ap-cell { text-align: center; }
+.mod-airpollen .ap-lvl { font-size: .8em; color: var(--dim); white-space: nowrap; text-align: left; }
+.mod-airpollen .ap-bar { display: inline-flex; gap: .15em; vertical-align: middle; }
+.mod-airpollen .ap-bar i { width: .9em; height: .42em; border-radius: .1em; background: var(--faint); }
+.mod-airpollen .ap-bar i.f { background: var(--lvl); }
+.mod-airpollen .ap-bar i.h { background: linear-gradient(90deg, var(--lvl) 50%, var(--faint) 50%); }
+
+.mod-airpollen .lvl-na, .mod-airpollen .lvl-none { --lvl: var(--ap-none); }
+.mod-airpollen .lvl-low { --lvl: var(--ap-low); }
+.mod-airpollen .lvl-mid { --lvl: var(--ap-mid); }
+.mod-airpollen .lvl-high { --lvl: var(--ap-high); }
+.mod-airpollen .ap-lvl.lvl-mid, .mod-airpollen .ap-lvl.lvl-high { color: var(--lvl); }
+
+/* compact chips */
+.mod-airpollen .ap-chips { display: flex; flex-wrap: wrap; gap: .35em .45em; }
+.mod-airpollen .ap-chip {
+  display: inline-flex; align-items: center; gap: .4em;
+  padding: .12em .55em; border-radius: 1em; font-size: .85em; white-space: nowrap;
+  border: 1px solid var(--lvl);
+}
+.mod-airpollen .ap-chip.lvl-none, .mod-airpollen .ap-chip.lvl-na { color: var(--dim); }
+.mod-airpollen .ap-dots { display: inline-flex; gap: .2em; }
+.mod-airpollen .ap-dots i { width: .4em; height: .4em; border-radius: 50%; background: var(--lvl); }
+
+/* air quality */
+.mod-airpollen .aqi-na { --lvl: var(--dim); }
+.mod-airpollen .aqi-good { --lvl: #5eead4; } .mod-airpollen .aqi-fair { --lvl: #4ade80; } .mod-airpollen .aqi-moderate { --lvl: #fde047; }
+.mod-airpollen .aqi-poor { --lvl: #fb923c; } .mod-airpollen .aqi-very-poor { --lvl: #f87171; } .mod-airpollen .aqi-extremely-poor { --lvl: #c084fc; }
+.mod-airpollen .ap-aqi { white-space: nowrap; }
+.mod-airpollen .ap-dot { display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: var(--lvl); margin-right: .45em; vertical-align: .08em; }
+.mod-airpollen .ap-aqi-label { color: var(--dim); }
+.mod-airpollen .ap-aqi-text { color: var(--lvl); }
+.mod-airpollen .ap-aqi-val { font-size: .75em; color: var(--dim); font-variant-numeric: tabular-nums; }
+.mod-airpollen .ap-pol { display: flex; flex-wrap: wrap; gap: .1em .9em; margin-top: .25em; font-size: .8em; font-variant-numeric: tabular-nums; }
+.mod-airpollen .ap-pol > span { white-space: nowrap; }
+.mod-airpollen .ap-pol-k { color: var(--lvl); }
+.mod-airpollen .ap-peak { margin-top: .2em; font-size: .75em; color: var(--dim); }
+.mod-airpollen .ap-attr { margin-top: .8em; font-size: .62em; color: var(--dim); }
+
+/* alignment */
+.region[data-region$='right'] .mod-airpollen .airpollen { text-align: right; }
+.region[data-region$='right'] .mod-airpollen .ap-chips,
+.region[data-region$='right'] .mod-airpollen .ap-pol { justify-content: flex-end; }
+.region[data-region$='center'] .mod-airpollen .airpollen,
+.region[data-region$='bar'] .mod-airpollen .airpollen { text-align: center; }
+.region[data-region$='center'] .mod-airpollen .ap-chips, .region[data-region$='bar'] .mod-airpollen .ap-chips,
+.region[data-region$='center'] .mod-airpollen .ap-pol, .region[data-region$='bar'] .mod-airpollen .ap-pol { justify-content: center; }

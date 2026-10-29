@@ -45,6 +45,36 @@ run_chromium() {
   rm -rf /tmp/chromium/Singleton*
 }
 
+# Night mode "screen off" / remote control: put an HDMI-CEC screen into standby and wake it
+# again. Needs /dev/cec0 (Pi with the vc4 KMS driver) and a TV/monitor with CEC; without
+# it the mirror just shows black. KIOSK_CEC=off disables it.
+display_api="$(echo "$URL" | sed -E 's#(https?://[^/]+).*#\1#')/api/display"
+cec_loop() {
+  [ "${KIOSK_CEC:-auto}" = off ] && return 0
+  dev=/dev/cec0
+  [ -e "$dev" ] || { log "no $dev – screen standby via HDMI-CEC unavailable"; return 0; }
+  cec-ctl -d "$dev" --playback --osd-name "MagicMirror" >/dev/null 2>&1 || { log "CEC setup failed"; return 0; }
+  log "HDMI-CEC ready"
+  last=""
+  while true; do
+    mode="$(curl -fsS "$display_api" 2>/dev/null | sed -nE 's/.*"mode":"([a-z]+)".*/\1/p')"
+    if [ -n "$mode" ]; then
+      want=on
+      [ "$mode" = off ] && want=off
+      if [ "$want" != "$last" ]; then
+        if [ "$want" = off ]; then
+          cec-ctl -d "$dev" --to 0 --standby >/dev/null 2>&1 && log "screen → standby (CEC)"
+        else
+          cec-ctl -d "$dev" --to 0 --image-view-on >/dev/null 2>&1 && log "screen → on (CEC)"
+        fi
+        last="$want"
+      fi
+    fi
+    sleep 20
+  done
+}
+cec_loop &
+
 while true; do
   log "starting $BROWSER → $URL"
   case "$BROWSER" in

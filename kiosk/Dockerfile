@@ -19,7 +19,7 @@ RUN set -eu; \
     esac; \
     apt-get update; \
     apt-get install -y --no-install-recommends $pkgs \
-      ca-certificates curl tini libgl1-mesa-dri libegl1 libgles2 \
+      ca-certificates curl tini libgl1-mesa-dri libegl1 libgles2 v4l-utils \
       fonts-dejavu-core fonts-noto-color-emoji; \
     rm -rf /var/lib/apt/lists/*; \
     useradd --create-home --shell /usr/sbin/nologin kiosk

@@ -1,5 +1,9 @@
 // Admin: module height and schedule.
 export default {
+  "Only show when a parcel is on its way": "Nur anzeigen, wenn ein Paket unterwegs ist",
+  "Only show when pollen reaches the threshold or air quality is moderate or worse": "Nur anzeigen, wenn Pollen den Schwellenwert erreichen oder die Luftqualität mäßig oder schlechter ist",
+  "Only show when the ISS is visible soon or tonight": "Nur anzeigen, wenn die ISS bald oder heute Nacht zu sehen ist",
+  "Only show when there is a warning (temperature, memory, disk, power supply)": "Nur anzeigen, wenn es eine Warnung gibt (Temperatur, Arbeitsspeicher, Speicherplatz, Stromversorgung)",
   "Only show on match days (a match today or live)": "Nur an Spieltagen anzeigen (heute ein Spiel oder gerade live)",
   "Only show on race weekends (from 2 days before the first session)": "Nur an Rennwochenenden anzeigen (ab 2 Tage vor der ersten Session)",
   "Only show when there is a hint": "Nur anzeigen, wenn es einen Hinweis gibt",

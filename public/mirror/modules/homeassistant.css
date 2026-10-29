@@ -5,7 +5,7 @@
 .mod-homeassistant .ha-list .ha-value { text-align: right; font-size: 1.15em; font-weight: 400; white-space: nowrap; }
 .mod-homeassistant .ha-ico { color: var(--dim); display: inline-flex; align-self: center; }
 .mod-homeassistant .ha-ico .ico { width: 1.3em; height: 1.3em; vertical-align: 0; }
-.mod-homeassistant .ha-unit { font-size: .75em; color: var(--dim); font-weight: 300; }
+.mod-homeassistant .ha-unit { font-size: .75em; color: var(--dim); font-weight: var(--weight, 300); }
 
 .mod-homeassistant .ha-grid { display: grid; grid-template-columns: repeat(var(--ha-cols, 3), minmax(0, max-content)); gap: 1.2em 1.8em; max-width: 100%; justify-content: start; }
 .region[data-region$='right'] .mod-homeassistant .ha-grid { justify-content: end; }
@@ -13,14 +13,14 @@
 .region[data-region$='bar'] .mod-homeassistant .ha-grid { justify-content: center; }
 .mod-homeassistant .ha-grid .ha-item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .15em; min-width: 0; }
 .mod-homeassistant .ha-grid .ha-ico .ico { width: 2em; height: 2em; stroke-width: 1.2; }
-.mod-homeassistant .ha-grid .ha-value { font-size: 1.5em; font-weight: 300; line-height: 1.1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.mod-homeassistant .ha-grid .ha-value { font-size: 1.5em; font-weight: var(--weight, 300); line-height: 1.1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .mod-homeassistant .ha-grid .ha-item.text .ha-value { font-size: 1.1em; line-height: 1.5; }
 .mod-homeassistant .ha-grid .ha-label { font-size: .8em; color: var(--dim); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .mod-homeassistant .ha-item.active .ha-ico,
 .mod-homeassistant .ha-item.active .ha-value { color: var(--accent); }
 .mod-homeassistant .ha-item.unavailable .ha-value,
-.mod-homeassistant .ha-item.missing .ha-value { color: var(--dim); font-size: 1em; font-weight: 300; }
+.mod-homeassistant .ha-item.missing .ha-value { color: var(--dim); font-size: 1em; font-weight: var(--weight, 300); }
 .mod-homeassistant .ha-item.missing .ha-label { text-decoration: line-through; }
 .mod-homeassistant .ha-item.warn .ha-ico,
 .mod-homeassistant .ha-item.warn .ha-value,

@@ -32,8 +32,46 @@ export function getConfig() {
   return current;
 }
 
+// ---- history: the previous states, newest first (data/history/<time>.json) -----------------
+const HISTORY_DIR = path.join(DATA_DIR, 'history');
+const HISTORY_MAX = 20;
+
+async function remember(prev) {
+  if (!prev) return;
+  await fs.mkdir(HISTORY_DIR, { recursive: true });
+  const id = (prev.updatedAt || new Date().toISOString()).replace(/[:.]/g, '-');
+  await fs.writeFile(path.join(HISTORY_DIR, `${id}.json`), JSON.stringify(prev));
+  const files = (await fs.readdir(HISTORY_DIR)).filter((f) => f.endsWith('.json')).sort().reverse();
+  await Promise.all(files.slice(HISTORY_MAX).map((f) => fs.rm(path.join(HISTORY_DIR, f), { force: true })));
+}
+
+export async function listHistory() {
+  const files = await fs.readdir(HISTORY_DIR).catch(() => []);
+  const out = [];
+  for (const f of files.filter((x) => x.endsWith('.json')).sort().reverse()) {
+    try {
+      const c = JSON.parse(await fs.readFile(path.join(HISTORY_DIR, f), 'utf8'));
+      out.push({ id: f.slice(0, -5), savedAt: c.updatedAt || null, pages: c.pages?.length || 0, modules: c.modules?.length || 0 });
+    } catch {
+      // unreadable entry – skip
+    }
+  }
+  return out;
+}
+
+export async function readHistory(id) {
+  if (!/^[\w-]+$/.test(id)) return null;
+  try {
+    return JSON.parse(await fs.readFile(path.join(HISTORY_DIR, `${id}.json`), 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 export async function saveConfig(cfg) {
   const next = normalizeConfig(cfg, DEFAULT_LOCALE_ENV);
+  // keep the state being replaced (not the very first default config)
+  await remember(current).catch((err) => console.warn(`[config] history: ${err.message}`));
   next.updatedAt = new Date().toISOString();
   const tmp = `${FILE}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(next, null, 2));
