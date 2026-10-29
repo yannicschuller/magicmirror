@@ -128,12 +128,36 @@ update() {
   set_state "done" "done"
 }
 
+# ---- lock: a directory with the PID of the running update -----------------------------------
+LOCK="$STATE_DIR/lock"
+lock_pid() { cat "$LOCK/pid" 2>/dev/null || true; }
+# true while an update process really runs; removes a lock left behind by an interrupted
+# update (container restart, reboot, killed process) – otherwise no update could ever start again.
+lock_active() {
+  [ -d "$LOCK" ] || return 1
+  pid="$(lock_pid)"
+  if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then return 0; fi
+  # no PID yet: only trust a lock that was created a moment ago
+  if [ -z "$pid" ] && [ $(( $(date +%s) - $(stat -c %Y "$LOCK" 2>/dev/null || echo 0) )) -lt 10 ]; then return 0; fi
+  log "removing a stale lock (update process ${pid:-?} is gone)"
+  rm -rf "$LOCK"
+  if [ "$(jq -r '.state // ""' "$STATE" 2>/dev/null)" = running ]; then set_state error interrupted "update was interrupted"; fi
+  return 1
+}
+
 run_update() {
-  if ! mkdir "$STATE_DIR/lock" 2>/dev/null; then
-    log "an update is already running"
-    return 1
+  lock_active || true
+  if ! mkdir "$LOCK" 2>/dev/null; then
+    log "an update is already running (PID $(lock_pid)) – following its log, Ctrl+C stops only the output"
+    # show what the running update does instead of silently returning
+    tail -n +1 -f "$LOG" &
+    tailpid=$!
+    while lock_active; do sleep 2; done
+    kill "$tailpid" 2>/dev/null || true
+    return 0
   fi
-  trap 'rmdir "$STATE_DIR/lock" 2>/dev/null || true' EXIT
+  echo $$ > "$LOCK/pid"
+  trap 'rm -rf "$LOCK"' EXIT
   if ! update >> "$LOG" 2>&1; then
     set_state error failed "$(tail -n 1 "$LOG")"
     log "update failed" >> "$LOG"
@@ -160,7 +184,7 @@ case "${1:-}" in
   --cgi-status) status_json; exit 0 ;;
   --cgi-check) check; exit 0 ;;
   --cgi-run)
-    if [ -d "$STATE_DIR/lock" ]; then echo '{"ok":false,"error":"already running"}'; exit 0; fi
+    if lock_active; then echo '{"ok":false,"error":"already running"}'; exit 0; fi
     # Detach so the HTTP request returns immediately; progress via status.
     setsid /usr/local/bin/mm-update --now >/dev/null 2>&1 < /dev/null &
     echo '{"ok":true}'
@@ -168,6 +192,7 @@ case "${1:-}" in
 esac
 
 [ -f "$STATE" ] || set_state idle none
+lock_active || true # the container was restarted mid-update
 serve
 log "HTTP API on :8099 · mode: $UPDATE_MODE · git: $UPDATE_GIT · schedule: $UPDATE_TIME"
 
@@ -184,6 +209,7 @@ if [ "$UPDATE_TIME" = off ]; then
 fi
 while true; do
   sleep "$(seconds_until "$UPDATE_TIME")"
-  run_update >/dev/null || true
+  # own process: its EXIT trap removes the lock (in this long-running shell it never would)
+  /usr/local/bin/mm-update --now >/dev/null 2>&1 || true
   sleep 60
 done
