@@ -3,7 +3,7 @@
 # ---- Stage 1: build the admin panel (React + Vite) --------------------------------------
 # Runs on the build host's native platform only: the output is plain static files,
 # so multi-arch builds (buildx + QEMU) don't have to emulate the JS build per target.
-FROM --platform=$BUILDPLATFORM node:22-bookworm-slim AS admin
+FROM --platform=$BUILDPLATFORM node:26-bookworm-slim AS admin
 WORKDIR /build/admin
 COPY admin/package.json admin/package-lock.json ./
 RUN npm ci --no-audit --no-fund
@@ -13,7 +13,7 @@ COPY public/shared ../public/shared
 RUN npm run build
 
 # ---- Stage 2: runtime ---------------------------------------------------------------------
-FROM node:22-bookworm-slim
+FROM node:26-bookworm-slim
 
 LABEL org.opencontainers.image.source=https://github.com/yannicschuller/magicmirror \
       org.opencontainers.image.description="Modular smart mirror with admin panel" \
