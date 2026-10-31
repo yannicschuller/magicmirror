@@ -59,6 +59,7 @@
 | **ISS & night sky** | Visible ISS passes with direction and brightness, planets tonight, moon, conjunctions and meteor showers | [CelesTrak](https://celestrak.org) orbit data, computed locally |
 | **Device status** | CPU temperature, load, RAM, disk, uptime, Raspberry Pi under-voltage/throttling | local |
 | **Internet & network** | Online status, latency, optional speed test and public IP, who is home (device probe or Home Assistant) | local, Cloudflare |
+| **GitHub** | Repo stats with star history, releases (also of projects you follow), commits, CI status and running workflows, activity, new stargazers/followers; with a token also your PRs, review requests, issues, contribution graph & streak, Dependabot alerts | GitHub API (works without a token, frugally; token optional) |
 
 Each module can be added several times (two departure boards, for example). Each copy has its own settings and one of 12 positions, including a full-screen background.
 

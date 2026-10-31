@@ -37,6 +37,10 @@ export const CONDITIONS = {
     label: 'Only show when there is a warning (temperature, memory, disk, power supply)',
     test: (d) => (d.warnings?.length || 0) > 0,
   },
+  github: {
+    label: 'Only show when a build failed',
+    test: (d) => (d.failedBuilds || 0) > 0,
+  },
   network: {
     label: 'Only show when the internet is down or slow',
     test: (d) => !!d.level && d.level !== 'ok',

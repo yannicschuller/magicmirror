@@ -1,5 +1,6 @@
 // Admin: module height and schedule.
 export default {
+  "Only show when a build failed": "Nur anzeigen, wenn ein Build fehlgeschlagen ist",
   "Own position on:": "Eigene Position auf:",
   "Use the default position on this page": "Auf dieser Seite die Standardposition verwenden",
   "Other pages use the position above. Drag the module in \"Pages & layout\" to move it on one page only.": "Andere Seiten nutzen die Position oben. Zieh das Modul unter „Seiten & Layout“, um es nur auf einer Seite zu verschieben.",

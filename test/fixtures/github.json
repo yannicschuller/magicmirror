@@ -1,0 +1,87 @@
+{
+  "repo": {
+    "id": 1296269, "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5", "name": "hello-world", "full_name": "octocat/hello-world", "private": false,
+    "owner": { "login": "octocat", "id": 1, "type": "User" },
+    "html_url": "https://github.com/octocat/hello-world", "description": "This your first repo!", "fork": false,
+    "created_at": "2011-01-26T19:01:12Z", "updated_at": "2026-10-30T18:11:02Z", "pushed_at": "2026-10-31T09:12:44Z",
+    "stargazers_count": 42, "watchers_count": 42, "forks_count": 5, "open_issues_count": 7, "default_branch": "main",
+    "archived": false, "disabled": false, "visibility": "public", "topics": ["octocat", "api"], "license": { "key": "mit", "name": "MIT License" }
+  },
+  "runs": {
+    "total_count": 5,
+    "workflow_runs": [
+      { "id": 905, "name": "CI", "display_title": "Fix the flux capacitor", "head_branch": "main", "path": ".github/workflows/ci.yml", "event": "push", "status": "in_progress", "conclusion": null, "workflow_id": 159038, "run_number": 312, "created_at": "2026-10-31T09:12:50Z", "updated_at": "2026-10-31T09:14:10Z", "run_started_at": "2026-10-31T09:12:52Z" },
+      { "id": 904, "name": "CI", "display_title": "Add feature", "head_branch": "feature-x", "path": ".github/workflows/ci.yml", "event": "pull_request", "status": "queued", "conclusion": null, "workflow_id": 159038, "run_number": 311, "created_at": "2026-10-31T08:59:00Z", "updated_at": "2026-10-31T08:59:00Z", "run_started_at": "2026-10-31T08:59:00Z" },
+      { "id": 903, "name": "Deploy", "display_title": "Release v1.2.0", "head_branch": "main", "path": ".github/workflows/deploy.yml", "event": "push", "status": "completed", "conclusion": "failure", "workflow_id": 159040, "run_number": 77, "created_at": "2026-10-30T20:00:00Z", "updated_at": "2026-10-30T20:04:30Z", "run_started_at": "2026-10-30T20:00:05Z" },
+      { "id": 902, "name": "CI", "display_title": "Older commit", "head_branch": "main", "path": ".github/workflows/ci.yml", "event": "push", "status": "completed", "conclusion": "success", "workflow_id": 159038, "run_number": 310, "created_at": "2026-10-30T19:00:00Z", "updated_at": "2026-10-30T19:03:20Z", "run_started_at": "2026-10-30T19:00:00Z" },
+      { "id": 901, "name": "CodeQL", "display_title": "Weekly scan", "head_branch": "main", "path": ".github/workflows/codeql.yml", "event": "schedule", "status": "completed", "conclusion": "cancelled", "workflow_id": 159041, "run_number": 12, "created_at": "2026-10-29T03:00:00Z", "updated_at": "2026-10-29T03:10:00Z", "run_started_at": "2026-10-29T03:00:10Z" }
+    ]
+  },
+  "jobs": {
+    "total_count": 2,
+    "jobs": [
+      { "id": 1, "run_id": 905, "name": "lint", "status": "completed", "conclusion": "success", "steps": [
+        { "name": "Set up job", "status": "completed", "conclusion": "success", "number": 1 },
+        { "name": "Run lint", "status": "completed", "conclusion": "success", "number": 2 }
+      ] },
+      { "id": 2, "run_id": 905, "name": "test", "status": "in_progress", "conclusion": null, "steps": [
+        { "name": "Set up job", "status": "completed", "conclusion": "success", "number": 1 },
+        { "name": "Run tests", "status": "in_progress", "conclusion": null, "number": 2 },
+        { "name": "Upload coverage", "status": "queued", "conclusion": null, "number": 3 }
+      ] }
+    ]
+  },
+  "releases": [
+    { "id": 3, "tag_name": "v1.3.0", "name": "v1.3.0", "draft": true, "prerelease": false, "created_at": "2026-10-31T08:00:00Z", "published_at": null },
+    { "id": 2, "tag_name": "v1.3.0-rc.1", "name": "Release candidate", "draft": false, "prerelease": true, "created_at": "2026-10-30T08:00:00Z", "published_at": "2026-10-30T08:05:00Z" },
+    { "id": 1, "tag_name": "v1.2.0", "name": "Spooky release", "draft": false, "prerelease": false, "created_at": "2026-10-28T10:00:00Z", "published_at": "2026-10-28T10:30:00Z" }
+  ],
+  "commits": [
+    { "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e", "commit": { "author": { "name": "Monalisa Octocat", "email": "support@github.com", "date": "2026-10-31T09:12:00Z" }, "committer": { "name": "GitHub", "date": "2026-10-31T09:12:30Z" }, "message": "Fix the flux capacitor\n\nLonger description here." }, "author": { "login": "octocat", "id": 1 } },
+    { "sha": "7638417db6d59f3c431d3e1f261cc637155684cd", "commit": { "author": { "name": "Jane Doe", "date": "2026-10-30T12:00:00Z" }, "message": "Update README" }, "author": null }
+  ],
+  "events": [
+    { "id": "1", "type": "WatchEvent", "actor": { "login": "hubot", "display_login": "hubot" }, "repo": { "name": "octocat/hello-world" }, "payload": { "action": "started" }, "created_at": "2026-10-31T09:00:00Z" },
+    { "id": "2", "type": "PullRequestEvent", "actor": { "login": "octocat", "display_login": "octocat" }, "payload": { "action": "closed", "number": 12, "pull_request": { "number": 12, "title": "Add dark mode", "merged": true } }, "created_at": "2026-10-31T08:00:00Z" },
+    { "id": "3", "type": "IssuesEvent", "actor": { "login": "jane" }, "payload": { "action": "opened", "issue": { "number": 13, "title": "Crash on start" } }, "created_at": "2026-10-31T07:00:00Z" },
+    { "id": "4", "type": "IssueCommentEvent", "actor": { "login": "joe" }, "payload": { "action": "created", "issue": { "number": 12, "title": "Add dark mode", "pull_request": { "url": "x" } }, "comment": { "body": "LGTM" } }, "created_at": "2026-10-31T06:00:00Z" },
+    { "id": "5", "type": "PushEvent", "actor": { "login": "octocat" }, "payload": { "repository_id": 1296269, "push_id": 1, "ref": "refs/heads/main", "head": "6dcb09b", "before": "7638417" }, "created_at": "2026-10-31T05:00:00Z" },
+    { "id": "6", "type": "ReleaseEvent", "actor": { "login": "octocat" }, "payload": { "action": "published", "release": { "tag_name": "v1.2.0" } }, "created_at": "2026-10-28T10:30:00Z" },
+    { "id": "7", "type": "PullRequestReviewEvent", "actor": { "login": "joe" }, "payload": { "action": "created", "review": { "state": "approved" }, "pull_request": { "number": 12, "title": "Add dark mode" } }, "created_at": "2026-10-30T10:00:00Z" },
+    { "id": "8", "type": "MemberEvent", "actor": { "login": "octocat" }, "payload": { "action": "added" }, "created_at": "2026-10-29T10:00:00Z" },
+    { "id": "9", "type": "PushEvent", "actor": { "login": "octocat" }, "payload": { "ref": "refs/heads/dev", "size": 3, "distinct_size": 3 }, "created_at": "2026-10-29T09:00:00Z" }
+  ],
+  "stargazers": [
+    { "starred_at": "2026-09-01T10:00:00Z", "user": { "login": "alice", "id": 10 } },
+    { "starred_at": "2026-10-25T10:00:00Z", "user": { "login": "bob", "id": 11 } },
+    { "starred_at": "2026-10-31T07:00:00Z", "user": { "login": "carol", "id": 12 } }
+  ],
+  "dependabot": [
+    { "number": 1, "state": "open", "security_advisory": { "severity": "critical" }, "security_vulnerability": { "severity": "critical" } },
+    { "number": 2, "state": "open", "security_advisory": { "severity": "high" }, "security_vulnerability": { "severity": "high" } },
+    { "number": 3, "state": "open", "security_advisory": { "severity": "medium" }, "security_vulnerability": { "severity": "medium" } },
+    { "number": 4, "state": "open", "security_advisory": { "severity": "medium" } },
+    { "number": 5, "state": "open", "security_vulnerability": { "severity": "low" } }
+  ],
+  "gqlRepos": {
+    "data": {
+      "r0": { "nameWithOwner": "octocat/hello-world", "stargazerCount": 42, "forkCount": 5, "pushedAt": "2026-10-31T09:12:44Z", "isArchived": false, "defaultBranchRef": { "name": "main" }, "issues": { "totalCount": 4 }, "pullRequests": { "totalCount": 3 } },
+      "r1": null
+    },
+    "errors": [{ "type": "NOT_FOUND", "path": ["r1"], "message": "Could not resolve to a Repository with the name 'octocat/missing'." }]
+  },
+  "gqlWork": {
+    "data": {
+      "myPrs": { "issueCount": 2, "nodes": [
+        { "number": 12, "title": "Add dark mode", "isDraft": false, "createdAt": "2026-10-29T10:00:00Z", "updatedAt": "2026-10-31T08:00:00Z", "reviewDecision": "APPROVED", "repository": { "nameWithOwner": "octocat/hello-world" }, "commits": { "nodes": [{ "commit": { "statusCheckRollup": { "state": "SUCCESS" } } }] } },
+        { "number": 7, "title": "WIP: refactor", "isDraft": true, "createdAt": "2026-10-20T10:00:00Z", "updatedAt": "2026-10-30T08:00:00Z", "reviewDecision": "REVIEW_REQUIRED", "repository": { "nameWithOwner": "octocat/spoon-knife" }, "commits": { "nodes": [{ "commit": { "statusCheckRollup": null } }] } }
+      ] },
+      "reviews": { "issueCount": 1, "nodes": [
+        { "number": 99, "title": "Bump deps", "isDraft": false, "createdAt": "2026-10-30T10:00:00Z", "updatedAt": "2026-10-30T11:00:00Z", "reviewDecision": "CHANGES_REQUESTED", "repository": { "nameWithOwner": "home-assistant/core" }, "commits": { "nodes": [{ "commit": { "statusCheckRollup": { "state": "FAILURE" } } }] } }
+      ] },
+      "issues": { "issueCount": 1, "nodes": [
+        { "number": 13, "title": "Crash on start", "createdAt": "2026-10-31T07:00:00Z", "repository": { "nameWithOwner": "octocat/hello-world" }, "labels": { "nodes": [{ "name": "bug", "color": "d73a4a" }, { "name": "help wanted", "color": "008672" }] } }
+      ] }
+    }
+  }
+}

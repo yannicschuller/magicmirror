@@ -31,6 +31,7 @@ import { provider as bikes } from './providers/bikes.js';
 import { provider as nightsky } from './providers/nightsky.js';
 import { provider as pistatus } from './providers/pistatus.js';
 import { provider as network } from './providers/network.js';
+import { provider as github } from './providers/github.js';
 import { waste, wasteAdminRouter } from './providers/waste.js';
 import { f1 } from './providers/f1.js';
 import { transit, searchStops } from './providers/transit.js';
@@ -54,6 +55,7 @@ const providers = {
   nightsky,
   pistatus,
   network,
+  github,
   calendar,
   waste,
   f1,
