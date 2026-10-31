@@ -190,7 +190,12 @@ export default function render(el, mod, ctx) {
     const state = ms <= 0 ? 'late' : ms <= WARN_MS ? 'warn' : '';
     return `<span class="cal-tv-cd${state ? ` ${state}` : ''}">${esc(ms <= 0 ? nowText : relative(ms))}</span>`;
   };
-  const head = (icon, text, cd, extra = '') => `<div class="cal-tv-head"><span class="cal-tv-ico">${icon}</span><span class="cal-tv-leave">${esc(text)}</span>${extra}${cd}</div>`;
+  // The time never gets cut off: only the words around it shrink with an ellipsis.
+  const head = (icon, key, time, cd, extra = '') => {
+    const [pre, post = ''] = t(key, { time: '\u0000' }).split('\u0000');
+    const part = (x) => (x.trim() ? `<span class="cal-tv-lbl">${esc(x)}</span>` : '');
+    return `<div class="cal-tv-head"><span class="cal-tv-ico">${icon}</span><span class="cal-tv-leave">${part(pre)}<span class="cal-tv-time">${esc(time)}</span>${part(post)}</span>${extra}${cd}</div>`;
+  };
   // One-line card ("mini"): the first ride next to the leave time.
   const firstRide = (x) => {
     const l = x.legs.find((y) => !y.walk);
@@ -217,7 +222,7 @@ export default function render(el, mod, ctx) {
     if (x.mode === 'transit') {
       const changes = x.interchanges > 0 ? t('{n}× change', { n: x.interchanges }) : t('no change');
       const sub = t('{duration} to {place}', { duration: duration(x.durationMin * 60000), place: '\u0000' });
-      return head(TRANSIT_ICON, t('Leave by {time}', { time: ctx.fmt.time(leave) }), countdown(x, now, t('Go now!')), firstRide(x))
+      return head(TRANSIT_ICON, 'Leave by {time}', ctx.fmt.time(leave), countdown(x, now, t('Go now!')), firstRide(x))
         + `<div class="cal-tv-sub">${toTitle(sub, x.title)}<span class="dim"> · ${esc(changes)}</span></div>`
         + `<div class="cal-tv-legs">${legsHtml(x)}</div>`
         + `<div class="cal-tv-note">${note.map(esc).join(' · ')}</div>`;
@@ -226,7 +231,7 @@ export default function render(el, mod, ctx) {
     const km = x.distanceKm.toLocaleString(ctx.fmt.locale, { maximumFractionDigits: x.distanceKm < 10 ? 1 : 0 });
     const sub = t('{duration} ({km} km) to {place}', { duration: duration(x.durationMin * 60000), km, place: '\u0000' });
     if (x.mode === 'car') note.push(t('without live traffic'));
-    return head(x.mode === 'car' ? calIcons.car : MODE_ICONS[x.mode] || calIcons.car, t(foot ? 'Start walking at {time}' : 'Leave at {time}', { time: ctx.fmt.time(leave) }), countdown(x, now, t(foot ? 'Leave now on foot!' : 'Leave now!')))
+    return head(x.mode === 'car' ? calIcons.car : MODE_ICONS[x.mode] || calIcons.car, foot ? 'Start walking at {time}' : 'Leave at {time}', ctx.fmt.time(leave), countdown(x, now, t(foot ? 'Leave now on foot!' : 'Leave now!')))
       + `<div class="cal-tv-sub">${toTitle(sub, x.title)}</div>`
       + `<div class="cal-tv-note">${note.filter(Boolean).map(esc).join(' · ')}</div>`;
   };
