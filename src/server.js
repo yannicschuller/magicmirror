@@ -252,17 +252,25 @@ async function updater(cmd, timeout = 10000) {
   if (!res.ok) throw new Error(`Updater: HTTP ${res.status}`);
   return res.json();
 }
+// Last answer of the updater: while an update keeps Docker busy the updater can answer late –
+// then the admin panel keeps seeing "running" instead of "no updater".
+let lastUpdaterStatus = null;
 admin.get('/update', async (req, res) => {
   try {
-    res.json({ available: true, version: VERSION, build: BUILD, ...(await updater('status')) });
+    lastUpdaterStatus = { at: Date.now(), status: await updater('status', 4000) };
+    res.json({ available: true, version: VERSION, build: BUILD, ...lastUpdaterStatus.status });
   } catch {
-    res.json({ available: false, version: VERSION, build: BUILD });
+    const recent = lastUpdaterStatus && Date.now() - lastUpdaterStatus.at < 30 * 60000;
+    if (recent) res.json({ available: true, stale: true, version: VERSION, build: BUILD, ...lastUpdaterStatus.status });
+    else res.json({ available: false, version: VERSION, build: BUILD });
   }
 });
 for (const cmd of ['check', 'run']) {
   admin.post(`/update/${cmd}`, async (req, res) => {
     try {
-      res.json(await updater(cmd, cmd === 'check' ? 90000 : 10000));
+      const result = await updater(cmd, cmd === 'check' ? 90000 : 10000);
+      if (cmd === 'run' && result.ok) lastUpdaterStatus = { at: Date.now(), status: { ...(lastUpdaterStatus?.status || {}), state: 'running', phase: 'start', startedAt: new Date().toISOString(), log: [] } };
+      res.json(result);
     } catch {
       res.status(502).json({ error: 'The updater is not reachable' });
     }

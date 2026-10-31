@@ -21,6 +21,17 @@ mkdir -p "$STATE_DIR"
 log() { echo "[updater] $(date '+%F %T') $*"; }
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
+# Status for the admin panel must answer fast even while Docker is busy pulling on a Pi 3 –
+# it only reads files, so it runs before anything that talks to Docker.
+status_json() {
+  jq -n --argjson state "$(cat "$STATE" 2>/dev/null || echo '{"state":"idle"}')" \
+    --argjson check "$(cat "$CHECK" 2>/dev/null || echo 'null')" \
+    --arg log "$(tail -n 40 "$LOG" 2>/dev/null || true)" \
+    --arg mode "$UPDATE_MODE" --arg time "$UPDATE_TIME" \
+    '$state + {check: $check, log: ($log | split("\n") | map(select(. != ""))), mode: $mode, schedule: $time}'
+}
+if [ "${1:-}" = --cgi-status ]; then status_json; exit 0; fi
+
 self="$(hostname)"
 inspect() { docker inspect -f "$1" "$self"; }
 
@@ -54,13 +65,6 @@ set_state() { # state phase [error]
   mv "$STATE.tmp" "$STATE"
 }
 
-status_json() {
-  jq -n --argjson state "$(cat "$STATE" 2>/dev/null || echo '{"state":"idle"}')" \
-    --argjson check "$(cat "$CHECK" 2>/dev/null || echo 'null')" \
-    --arg log "$(tail -n 40 "$LOG" 2>/dev/null || true)" \
-    --arg mode "$UPDATE_MODE" --arg time "$UPDATE_TIME" \
-    '$state + {check: $check, log: ($log | split("\n") | map(select(. != ""))), mode: $mode, schedule: $time}'
-}
 
 # ---- check ------------------------------------------------------------------------------
 check() {
@@ -122,10 +126,32 @@ update() {
   # shellcheck disable=SC2086
   compose up -d --no-build $services
   set_state running cleanup
+  self_update
   docker image prune -f >/dev/null
   rm -f "$CHECK"
   log "done"
   set_state "done" "done"
+}
+
+# The updater updates itself last: a container cannot replace itself while it runs, so a
+# short-lived helper container (same image, Docker socket, project dir) recreates it a few
+# seconds after this update has finished.
+self_update() {
+  [ -n "${SELF_SERVICE:-}" ] || return 0
+  if [ "$UPDATE_MODE" = build ]; then
+    compose build -q "$SELF_SERVICE" >/dev/null 2>&1 || return 0
+  else
+    compose pull -q "$SELF_SERVICE" >/dev/null 2>&1 || return 0
+  fi
+  image="$(compose config --images "$SELF_SERVICE" 2>/dev/null | head -n1)"
+  new_id="$(docker image inspect -f '{{.Id}}' "$image" 2>/dev/null || true)"
+  [ -n "$new_id" ] && [ "$new_id" != "$(inspect '{{.Image}}')" ] || return 0
+  log "updater has a new version – it restarts in a few seconds"
+  docker rm -f mm-updater-restart >/dev/null 2>&1 || true
+  docker run -d --rm --name mm-updater-restart \
+    -v /var/run/docker.sock:/var/run/docker.sock -v "$HOST_DIR:$HOST_DIR" -w "$HOST_DIR" \
+    --entrypoint sh "$image" -c "sleep 8; docker compose -p '${PROJECT:-magicmirror}' up -d --no-deps '$SELF_SERVICE'" >/dev/null \
+    || log "could not restart the updater – it uses the new version after the next reboot"
 }
 
 # ---- lock: a directory with the PID of the running update -----------------------------------
