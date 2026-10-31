@@ -225,7 +225,20 @@ export default function render(el, mod, ctx) {
   }
 
   function eventText(e) {
-    const p = { actor: e.actor, repo: e.repo, n: e.n, tag: e.text, branch: e.branch };
+    const p = { actor: e.actor, repo: e.repo, n: e.n, tag: e.text, branch: e.branch, times: e.times };
+    if (e.times > 1) {
+      // grouped lines (see groupEvents on the server)
+      const actors = e.actors || [e.actor];
+      const who = actors.length > 2 ? t('{names} and {n} more', { names: actors.slice(0, 2).join(', '), n: actors.length - 2 }) : actors.join(', ');
+      if (e.kind === 'push') return e.n ? t('{actor} pushed {times}× to {branch} ({n} commits)', p) : t('{actor} pushed {times}× to {branch}', p);
+      if (e.kind === 'star') return t('{times} new stars on {repo} ({who})', { ...p, who });
+      if (e.kind === 'fork') return t('{times} forks of {repo} ({who})', { ...p, who });
+    }
+    const one = eventTextOne(e, p);
+    return e.times > 1 ? `${one} (${e.times}×)` : one;
+  }
+
+  function eventTextOne(e, p) {
     switch (e.kind) {
       case 'star': return t('{actor} starred {repo}', p);
       case 'fork': return t('{actor} forked {repo}', p);

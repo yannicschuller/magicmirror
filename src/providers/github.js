@@ -453,6 +453,24 @@ export function normJobs(json) {
   };
 }
 
+// Repeated activity in a row (e.g. six pushes to main, three new stars) → one line with a count.
+export function groupEvents(list) {
+  const out = [];
+  for (const e of list) {
+    const anyActor = e.kind === 'star' || e.kind === 'fork';
+    const key = [e.repo, e.kind, e.action || '', e.state || '', e.branch || '', e.kind === 'comment' ? e.n : '', anyActor ? '' : e.actor].join('|');
+    const prev = out[out.length - 1];
+    if (prev && prev.key === key) {
+      prev.times += 1;
+      if (e.kind === 'push' && Number.isFinite(e.n)) prev.n = (prev.n || 0) + e.n;
+      if (anyActor && !prev.actors.includes(e.actor)) prev.actors.push(e.actor);
+      continue;
+    }
+    out.push({ ...e, key, times: 1, actors: [e.actor] });
+  }
+  return out.map(({ key, ...e }) => e);
+}
+
 // Repository events → short activity lines.
 export function normEvents(list, repo) {
   const out = [];
@@ -909,7 +927,8 @@ export async function provider(settings, cfg, mod, opts = {}) {
         }
       }));
       allFailed(res);
-      return res.flatMap((x) => x.list || []).sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, clamp(s.activityCount, 1, 20, 6));
+      const sorted = res.flatMap((x) => x.list || []).sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+      return groupEvents(sorted).slice(0, clamp(s.activityCount, 1, 20, 6));
     }));
   }
 

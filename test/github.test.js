@@ -510,3 +510,16 @@ test('every schema, renderer and provider string has a German translation; keys 
     assert.equal(ph(v), ph(k), k);
   }
 });
+
+test('activity: repeated events in a row are grouped', async () => {
+  const { groupEvents } = await import('../src/providers/github.js');
+  const ev = (kind, actor, extra = {}) => ({ repo: 'MM', kind, actor, at: '2026-10-29T22:00:00Z', ...extra });
+  const out = groupEvents([
+    ev('push', 'a', { branch: 'main', n: 2 }), ev('push', 'a', { branch: 'main', n: 1 }), ev('push', 'a', { branch: 'main', n: null }),
+    ev('star', 'x'), ev('star', 'y'), ev('star', 'x'),
+    ev('push', 'b', { branch: 'main' }),
+  ]);
+  assert.deepEqual(out.map((e) => [e.kind, e.times]), [['push', 3], ['star', 3], ['push', 1]]);
+  assert.equal(out[0].n, 3);
+  assert.deepEqual(out[1].actors, ['x', 'y']);
+});
