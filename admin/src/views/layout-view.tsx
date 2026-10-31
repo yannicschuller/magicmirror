@@ -323,9 +323,13 @@ function Zone({ region, label, page }: { region: string; label: string; page: Pa
       )}
     >
       <div className="truncate text-[10px] font-medium tracking-wider text-[#5d6782] uppercase">{label}</div>
-      {mods.map((m) => (
-        <ModuleChip key={m.id} m={m} page={page} />
-      ))}
+      <div className="flex flex-wrap gap-1.5">
+        {mods.map((m) => (
+          <div key={m.id} className={cn('min-w-0', m.width === 'half' ? 'flex-[1_1_calc(50%-0.375rem)]' : 'flex-[1_1_100%]')}>
+            <ModuleChip m={m} page={page} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -68,6 +68,8 @@ export type Module = {
   order: number;
   /** "fill" = use all free space in its column */
   height?: 'auto' | 'fill';
+  /** half: two modules side by side in their area */
+  width?: 'full' | 'half';
   /** hide while the module has nothing to show (see public/shared/conditions.js) */
   onlyWithContent?: boolean;
   /** shown only while this other module is hidden */

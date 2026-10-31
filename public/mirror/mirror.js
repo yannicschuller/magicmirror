@@ -101,7 +101,7 @@ function build() {
   for (const mod of mods) {
     const region = grid.querySelector(`.region[data-region="${mod.region}"]`);
     const wrap = document.createElement('section');
-    wrap.className = `module mod-${mod.type}${mod.height === 'fill' ? ' fill' : ''} off`;
+    wrap.className = `module mod-${mod.type}${mod.height === 'fill' ? ' fill' : ''}${mod.width === 'half' ? ' half' : ''} off`;
     wrap.dataset.id = mod.id;
     wrap.innerHTML = `${mod.title ? `<header class="mod-title">${esc(mod.title)}</header>` : ''}<div class="mod-body"><div class="dim small loading">${ctx.fmt.t('Loading …')}</div></div>`;
     wrap.dataset.order = String(mod.order);

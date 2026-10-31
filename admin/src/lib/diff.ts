@@ -137,6 +137,7 @@ export function configDiff(savedJson: string, cur: Values, t: Translate): DiffEn
     prop('pages', 'Pages', (v: string[], cfg) => v.map((p) => pageName(p, cfg)).join(', ') || '–');
     prop('height', 'Height', (v) => (v === 'fill' ? t('Use as much space as possible') : t('Automatic')));
     prop('order', 'Order within the area', (v) => String(v));
+    prop('width', 'Width', (v) => (v === 'half' ? t('Half width (two side by side)') : t('Full width of the area')));
     prop('placements', 'Own position on:', (v: Record<string, { region: string }> | undefined, cfg) =>
       Object.entries(v || {}).map(([pid, pl]) => `${pageName(pid, cfg)}: ${regionName(pl.region)}`).join(', ') || '–');
     prop('schedule', 'Only show at certain times', (v) => scheduleText(v, t));

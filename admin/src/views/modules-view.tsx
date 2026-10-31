@@ -321,6 +321,24 @@ function ModuleEditor({ m }: { m: Module }) {
             />
             <p className="text-xs text-muted-foreground">{t('"As much space as possible" also extends into empty areas above and below.')}</p>
           </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="m-width" className="text-xs font-medium text-muted-foreground">
+              {t('Width')}
+            </Label>
+            <OptionSelect
+              id="m-width"
+              value={m.width || 'full'}
+              options={[
+                { value: 'full', label: 'Full width of the area' },
+                { value: 'half', label: 'Half width (two side by side)' },
+              ]}
+              onValue={(v) => {
+                m.width = v as Module['width'];
+                touch();
+              }}
+            />
+            <p className="text-xs text-muted-foreground">{t('Two half-width modules next to each other in the same area share a row; a half-width module on its own uses the full width.')}</p>
+          </div>
           <div className="col-span-full flex flex-col gap-3">
             <ScheduleEditor m={m} />
             {CONDITIONS[m.type] && (

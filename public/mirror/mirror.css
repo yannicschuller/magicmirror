@@ -672,3 +672,16 @@ body.eco .flights .fl-photo img.fl-ph-bg { display: none; }
    transformed parent, so it is not moved). */
 .region:not([data-region='fullscreen']), #progress { transform: translate(var(--shift-x, 0px), var(--shift-y, 0px)); }
 #indicator { transform: translate(calc(-50% + var(--shift-x, 0px)), var(--shift-y, 0px)); }
+
+/* width "half": an area with a visible half-width module lays its modules out in rows –
+   two half modules share a row, full ones take a row of their own, a half module that is
+   alone (its neighbour hidden) grows to the full width. */
+.region:has(> .module.half:not(.off):not(.no-content)) {
+  flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; justify-content: flex-start;
+}
+.region:has(> .module.half:not(.off):not(.no-content)) > .module { flex: 1 1 100%; min-width: 0; }
+.region:has(> .module.half:not(.off):not(.no-content)) > .module.half { flex: 1 1 calc(50% - 1.2vmin); }
+.region[data-region^='middle']:has(> .module.half:not(.off):not(.no-content)) { align-content: safe center; }
+.region[data-region^='bottom']:has(> .module.half:not(.off):not(.no-content)) { align-content: flex-end; }
+.region[data-region$='center']:has(> .module.half:not(.off):not(.no-content)) { justify-content: center; }
+.region[data-region$='right']:has(> .module.half:not(.off):not(.no-content)) { justify-content: flex-end; }

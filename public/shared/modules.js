@@ -548,6 +548,7 @@ export function defaultModule(type, extra = {}, locale = DEFAULT_LOCALE) {
     region: t.defaultRegion,
     order: 0,
     height: 'auto',
+    width: 'full',
     onlyWithContent: false,
     placements: {},
     insteadOf: '',
@@ -658,6 +659,8 @@ export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {
         placements: normalizePlacements(m.placements, pageIds),
         // "fill" = take all free space in its column (extends into empty areas below/above)
         height: m.height === 'fill' ? 'fill' : 'auto',
+        // "half": two such modules sit side by side in their area
+        width: m.width === 'half' ? 'half' : 'full',
         // "only show when …" (see ./conditions.js)
         onlyWithContent: m.onlyWithContent === true,
         // shown only while this other module is hidden (stand-in / fallback)

@@ -1,5 +1,9 @@
 // Admin: module height and schedule.
 export default {
+  "Width": "Breite",
+  "Full width of the area": "Ganze Breite des Bereichs",
+  "Half width (two side by side)": "Halbe Breite (zwei nebeneinander)",
+  "Two half-width modules next to each other in the same area share a row; a half-width module on its own uses the full width.": "Zwei Module mit halber Breite im selben Bereich teilen sich eine Zeile; steht eines allein, nutzt es die ganze Breite.",
   "Only show when a build failed": "Nur anzeigen, wenn ein Build fehlgeschlagen ist",
   "Own position on:": "Eigene Position auf:",
   "Use the default position on this page": "Auf dieser Seite die Standardposition verwenden",
