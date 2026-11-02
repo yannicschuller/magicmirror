@@ -269,16 +269,23 @@ function FieldInput({ field, values, onChange }: { field: Field; values: Values;
     default:
       return (
         <FieldRow field={field} htmlFor={id} wide={field.secret}>
-          <Input
-            id={id}
-            type={field.secret ? 'url' : 'text'}
-            value={v ?? ''}
-            placeholder={field.placeholder ? t(field.placeholder) : undefined}
-            autoComplete={field.secret ? 'off' : undefined}
-            spellCheck={field.secret ? false : undefined}
-            className={field.secret ? 'font-mono text-[13px]' : undefined}
-            onChange={(e) => set(e.target.value)}
-          />
+          <div className="flex gap-2">
+            <Input
+              id={id}
+              type={field.secret ? 'url' : 'text'}
+              value={v ?? ''}
+              placeholder={field.placeholder ? t(field.placeholder) : undefined}
+              autoComplete={field.secret ? 'off' : undefined}
+              spellCheck={field.secret ? false : undefined}
+              className={field.secret ? 'font-mono text-[13px]' : undefined}
+              onChange={(e) => set(e.target.value)}
+            />
+            {field.generate && (
+              <Button type="button" variant="outline" onClick={() => set(Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, '0')).join(''))}>
+                {v ? t('New token') : t('Create token')}
+              </Button>
+            )}
+          </div>
         </FieldRow>
       );
   }

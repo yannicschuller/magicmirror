@@ -489,6 +489,12 @@ export const GENERAL_FIELDS = [
   { group: 'system', key: 'ecoMode', label: 'Power-saving mode (Raspberry Pi 3)', type: 'bool', default: false,
     help: 'Less work for small hardware: aircraft map every 15 s instead of every 5 s, no weather animation, no blur or shadow effects, clocks without seconds, simple page changes, compressed transfers and a memory limit for the server (it restarts briefly when you switch).' },
   { group: 'system', key: 'autoReloadHours', label: 'Reload page automatically every x hours (0 = never)', type: 'number', default: 12, min: 0, max: 168 },
+  { group: 'system', key: 'shutdownAt', label: 'Shut down the Raspberry Pi daily at (empty = never)', type: 'text', default: '', placeholder: '23:30',
+    help: 'Needs the updater (profile "autoupdate"). A Raspberry Pi cannot switch itself back on – it starts again when its power returns, e.g. with a smart plug that switches off a few minutes later and on again in the morning. Usually "screen off" in the night mode is the better choice: it saves almost as much and is back at once.' },
+  { group: 'system', key: 'rebootAt', label: 'Restart the Raspberry Pi daily at (empty = never)', type: 'text', default: '', placeholder: '04:30',
+    help: 'A daily restart keeps a small Pi fresh (memory, browser). Needs the updater.' },
+  { group: 'system', key: 'controlToken', label: 'Token for the control API (Homey, Shortcuts, Home Assistant …)', type: 'text', default: '', secret: true, generate: true,
+    help: 'Switch the screen, change pages or shut down via HTTP: <mirror address>/api/control/… with the header "Authorization: Bearer <this token>" (or ?token=… for tools without headers). Commands: screen/on, screen/off, screen/night, screen/auto (optionally ?minutes=60), page/next, page/prev, page/<page name>, page/hold, page/resume, reload, power/shutdown, power/reboot, status. Empty = API off. Changing the token locks out old automations.' },
 ];
 
 export function uid(prefix = 'm') {
@@ -684,6 +690,7 @@ function stripFields(fields, values) {
 export function publicConfig(cfg) {
   const c = clone(cfg);
   for (const m of c.modules) stripFields(MODULE_TYPES[m.type].fields, m.settings);
+  if (c.general) stripFields(GENERAL_FIELDS, c.general);
   return c;
 }
 

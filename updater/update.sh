@@ -9,6 +9,7 @@
 #   mm-update             daemon: small HTTP API on :8099 (used by the admin panel) + schedule
 #   mm-update --now       run an update now (foreground)
 #   mm-update --check     check for updates, print JSON
+#   mm-update --power shutdown|reboot   shut down / restart the host
 set -eu
 
 UPDATE_TIME="${UPDATE_TIME:-04:00}"
@@ -194,10 +195,23 @@ run_update() {
   cat "$LOG"
 }
 
+# ---- shutdown / restart of the host -------------------------------------------------------
+# A short-lived privileged helper (same image) enters the host's namespaces and asks systemd.
+power() {
+  case "$1" in shutdown) cmd=poweroff ;; reboot) cmd=reboot ;; *) echo '{"ok":false,"error":"unknown action"}'; return 1 ;; esac
+  if lock_active; then echo '{"ok":false,"error":"an update is running – try again later"}'; return 1; fi
+  image="$(inspect '{{.Config.Image}}')"
+  log "host $1 requested"
+  # a few seconds of delay, so the HTTP answer still gets out
+  docker run -d --rm --privileged --pid=host --entrypoint sh "$image" \
+    -c "sleep 3; nsenter -t 1 -m -u -i -n -- systemctl $cmd || nsenter -t 1 -m -u -i -n -- $cmd" >/dev/null \
+    && echo "{\"ok\":true,\"action\":\"$1\"}" || echo '{"ok":false,"error":"could not start the helper container"}'
+}
+
 # ---- HTTP API (busybox httpd + CGI, only reachable inside the compose network) -------------
 serve() {
   mkdir -p /www/cgi-bin
-  for cmd in status check run; do
+  for cmd in status check run power; do
     # CGI headers need CRLF line endings.
     printf '#!/bin/sh\nprintf "Content-Type: application/json\\r\\n\\r\\n"\nexec /usr/local/bin/mm-update --cgi-%s\n' "$cmd" > "/www/cgi-bin/$cmd"
     chmod 755 "/www/cgi-bin/$cmd"
@@ -212,6 +226,11 @@ case "${1:-}" in
   --check) check; exit 0 ;;
   --cgi-status) status_json; exit 0 ;;
   --cgi-check) check; exit 0 ;;
+  --power) power "${2:-}"; exit 0 ;;
+  --cgi-power)
+    action="$(echo "${QUERY_STRING:-}" | sed -n 's/.*action=\([a-z]*\).*/\1/p')"
+    power "$action" || true
+    exit 0 ;;
   --cgi-run)
     if lock_active; then echo '{"ok":false,"error":"already running"}'; exit 0; fi
     # Detach so the HTTP request returns immediately; progress via status.

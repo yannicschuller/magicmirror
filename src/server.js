@@ -11,6 +11,7 @@ import { recordSuccess, recordFailure, healthReport } from './health.js';
 import { rememberData, lastGood, flushLastGood } from './lastgood.js';
 import { createHash } from 'node:crypto';
 import { pushRouter } from './push.js';
+import { controlRouter, startPowerSchedule } from './control.js';
 import { searchPlaces } from './providers/route.js';
 import { langOf } from '../public/shared/i18n.js';
 import { loadConfig, getConfig, saveConfig, onConfigChange, listHistory, readHistory, DEFAULT_LOCALE_ENV } from './config.js';
@@ -286,6 +287,22 @@ for (const cmd of ['check', 'run']) {
 }
 admin.get('/system', async (req, res) => res.json(await systemInfo(getConfig())));
 admin.get('/status', (req, res) => res.json({ clients: clientCount(), go2rtc: go2rtcStatus(), moduleTypes: Object.keys(MODULE_TYPES) }));
+
+// Shutdown / restart of the host – done by the updater (it has the Docker socket).
+async function power(action) {
+  let result;
+  try {
+    result = await updater(`power?action=${action}`, 15000);
+  } catch {
+    throw new Error('The updater is not reachable (profile "autoupdate")');
+  }
+  if (!result.ok) throw new Error(result.error || 'failed');
+  return result;
+}
+startPowerSchedule(getConfig, power);
+
+// Token-authenticated control API (Homey, Shortcuts, Home Assistant …).
+app.use('/api/control', controlRouter({ getConfig, getDisplay, setDisplayOverride, broadcast, clientCount, power }));
 
 // Token-authenticated push API (Apple Shortcuts → tasks module); mirrors refresh at once.
 app.use('/api/push', pushRouter(getConfig, (id) => broadcast('refresh', { module: id })));

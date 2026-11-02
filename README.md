@@ -135,6 +135,28 @@ All of it runs on a Pi 3. The server needs about 60 MB of RAM; the default kiosk
 
 When the internet or a data source is down, the mirror keeps showing each module's last good data with a small note such as *⟲ As of 14:32* (from 10 minutes without fresh data). The server keeps that data in `data/lastgood.json` (written at most every 15 minutes and on shutdown), so this also works right after a reboot without internet. Data older than 48 hours, or data from before a module's settings were changed, is not shown.
 
+## Control API (Homey, Shortcuts, Home Assistant)
+
+Create a token in the admin under *General → System → Token for the control API*. Then any automation can send simple HTTP requests (GET or POST) to the mirror:
+
+| Request | Effect |
+|---|---|
+| `/api/control/screen/off` · `/screen/on` · `/screen/night` | Screen off (HDMI-CEC, everything paused) / on / night mode – optionally `?minutes=60`, otherwise until `screen/auto` |
+| `/api/control/screen/auto` | Back to the normal schedule (night mode) |
+| `/api/control/page/next` · `/page/prev` · `/page/<page name>` | Change pages on all mirrors |
+| `/api/control/page/hold?minutes=30` · `/page/resume` | Pause / resume the page rotation |
+| `/api/control/reload` | Reload all mirrors |
+| `/api/control/power/shutdown` · `/power/reboot` | Shut down / restart the Raspberry Pi (needs the updater) |
+| `/api/control/status` | Current screen state, connected mirrors, pages |
+
+Send the token as the header `Authorization: Bearer <token>`, or for tools without headers as `?token=<token>` (it then ends up in logs – prefer the header).
+
+- **Homey:** Flow → *Then* → *Make an HTTP request* (Homey Pro, or the "HTTP request flow cards" app): `GET http://<mirror>:8080/api/control/screen/off` with the header above.
+- **Apple Shortcuts:** *Get contents of URL* → URL `http://<mirror>:8080/api/control/screen/off`, method GET, header `Authorization` = `Bearer <token>`.
+- **Home Assistant:** a `rest_command` with the same URL and header.
+
+**Switching the Pi on and off:** under *General → System* the Pi can also shut down or restart daily at a set time. A Raspberry Pi cannot switch itself back on, though – it starts when its power returns. For a timed start, combine the shutdown with a smart plug (Homey: shut down via the API, switch the plug off a few minutes later and on again in the morning). Usually *screen off* is the better choice: the mirror pauses all updates and is back at once.
+
 ## Admin login
 
 | Method | How |

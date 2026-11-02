@@ -20,6 +20,8 @@ export type Field = {
   help?: string;
   placeholder?: string;
   secret?: boolean;
+  /** offer a button that fills in a random token */
+  generate?: boolean;
   showIf?: Record<string, unknown>;
   /** tab in the admin's General view */
   group?: string;
