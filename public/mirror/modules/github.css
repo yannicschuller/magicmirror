@@ -32,8 +32,11 @@
 .mod-github .gh-delta { color: var(--ok); margin-left: .25em; font-size: .9em; }
 .mod-github .gh-repo-sub { display: flex; align-items: center; gap: .6em; }
 .mod-github .gh-repo-sub > span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.mod-github .gh-spark { flex: none; display: block; overflow: visible; }
-.mod-github .gh-spark polyline { fill: none; stroke: var(--accent); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.mod-github .gh-chart { margin-top: .3em; }
+.mod-github .gh-chart-svg { display: block; width: 100%; height: 2.4em; overflow: visible; }
+.mod-github .gh-chart-svg polygon { fill: color-mix(in srgb, var(--accent) 18%, transparent); stroke: none; }
+.mod-github .gh-chart-svg polyline { fill: none; stroke: var(--accent); stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.mod-github .gh-chart-axis { display: flex; justify-content: space-between; gap: .6em; margin-top: .15em; font-size: .62em; color: var(--dim); white-space: nowrap; }
 .mod-github .gh-num { font-size: .8em; font-variant-numeric: tabular-nums; }
 
 /* build / workflow status */

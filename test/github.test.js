@@ -252,6 +252,12 @@ test('star snapshots: record, prune, delta and series', () => {
   assert.deepEqual(Object.keys(e.days), ['2027-06-01'], 'old snapshots are pruned');
 });
 
+test('starSeries: a complete history counts days before the first star as 0', () => {
+  const days = { [TODAY]: 5 };
+  assert.deepEqual(starSeries(days, TODAY, 3), [null, null, 5]);
+  assert.deepEqual(starSeries(days, TODAY, 3, true), [0, 0, 5]);
+});
+
 test('seedDays builds cumulative counts from stargazer timestamps', () => {
   const d = seedDays(F.stargazers.map((x) => x.starred_at), TODAY, 'Europe/Berlin', 10);
   assert.equal(Object.keys(d).length, 10);
@@ -324,7 +330,7 @@ test('planTtls: automatic intervals and stretching to the budget', () => {
   const all = settings({ showCommits: true, showActivity: true, showStargazers: true, showFollowers: true });
   const many = planTtls(all, { repos: 10, followed: 5, user: true });
   assert.ok(many.factor > 1);
-  const calls = { repo: 10, pulls: 10, runs: 10, commits: 10, events: 10, releases: 15, stargazers: 10, followers: 2 };
+  const calls = { repo: 10, pulls: 10, runs: 10, commits: 10, events: 10, releases: 15, followers: 2 }; // stargazers need a token
   const effective = Object.entries(calls).reduce((sum, [k, n]) => sum + (n * 3600) / many.ttl[k], 0);
   assert.ok(effective <= 41, `effective ${effective}`);
   // With a token: 5 min, overview via one GraphQL query, no stretching.
@@ -385,8 +391,8 @@ test('provider without token: public sections, frugal, token sections only hinte
   assert.equal(o.stars, 42);
   assert.equal(o.prs, 3);
   assert.equal(o.issues, 4);
-  assert.equal(o.delta, 41, 'seeded from the stargazer timestamps');
-  assert.ok(o.series.length === 56 && o.series.at(-1) === 42);
+  assert.equal(o.delta, null, 'no backfill without a token – only today\'s snapshot');
+  assert.equal(o.series, undefined);
 
   assert.deepEqual(d.builds.map((b) => b.status), ['running', 'failure', 'cancelled']);
   assert.equal(d.failedBuilds, 1);
@@ -397,14 +403,15 @@ test('provider without token: public sections, frugal, token sections only hinte
   assert.deepEqual(d.releases.map((r) => [r.repo, r.tag, r.own]), [['Home Assistant', '2026.10.4', false], ['Hello', 'v1.2.0', true]]);
   assert.equal(d.commits[0].commits[0].msg, 'Fix the flux capacitor');
   assert.equal(d.activity[0].kind, 'star');
-  assert.equal(d.stargazers[0].login, 'carol');
+  assert.equal(d.stargazers, undefined, 'stargazers need a token');
+  assert.ok(reqs.every((r) => !r.path.includes('/stargazers')));
   assert.deepEqual(d.followers, { count: 2, recent: [] });
   assert.equal(JSON.stringify(d).includes('starred_at'), false, 'only trimmed data goes to the mirror');
 
   await flushStore();
   const saved = JSON.parse(fs.readFileSync(file, 'utf8'));
   assert.equal(saved.stars['octocat/hello-world'].days[TODAY], 42);
-  assert.equal(saved.stars['octocat/hello-world'].seeded, true);
+  assert.equal(saved.stars['octocat/hello-world'].seeded, undefined, 'backfilled only with a token');
   assert.deepEqual(saved.followers.octocat.known, ['alice', 'bob']);
 
   // The condition "only show when a build failed".
@@ -436,7 +443,7 @@ test('provider with token: GraphQL overview, PRs, reviews, issues, contributions
   const s = settings({
     token: 'tok-secret-1',
     repos: [{ repo: 'octocat/hello-world', name: 'Hello' }, { repo: 'octocat/missing' }],
-    showSecurity: true, showFollowers: true,
+    showSecurity: true, showFollowers: true, showStargazers: true,
   });
   const d = await provider(s, CFG, { id: 'g3' }, { api, dataFile: tmpFile(), now: NOW });
   const reqs = seen.slice(start);
@@ -449,6 +456,9 @@ test('provider with token: GraphQL overview, PRs, reviews, issues, contributions
 
   assert.equal(d.overview[0].prs, 3);
   assert.equal(d.overview[0].issues, 4);
+  assert.equal(d.overview[0].delta, 41, 'backfilled from the stargazer timestamps');
+  assert.ok(d.overview[0].series.length === 56 && !d.overview[0].series.includes(null) && d.overview[0].series.at(-1) === 42);
+  assert.equal(d.stargazers[0].login, 'carol');
   assert.deepEqual(Object.keys(d.repoErrors), ['missing']);
   assert.deepEqual(d.active[0], { repo: 'Hello', workflow: 'CI', branch: 'main', event: 'push', title: 'Fix the flux capacitor', status: 'running', startedAt: '2026-10-31T09:12:52Z', jobsDone: 1, jobsTotal: 2, stepsDone: 3, stepsTotal: 5, current: 'Run tests' });
   assert.equal(d.refresh, 30);

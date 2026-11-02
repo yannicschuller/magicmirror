@@ -161,7 +161,7 @@ export function planTtls(s, { token = false, repos = 0, followed = 0, user = fal
     commits: s.showCommits ? repos : 0,
     events: s.showActivity ? repos : 0,
     releases: s.showReleases ? repos + followed : 0,
-    stargazers: s.showStargazers ? repos : 0,
+    stargazers: s.showStargazers && token ? repos : 0,
     security: s.showSecurity && token ? repos : 0,
     followers: s.showFollowers && user ? 2 : 0,
   };
@@ -320,10 +320,12 @@ export function starDelta(days, todayKey, back) {
 }
 
 // One value per day for the last n days, carried forward over gaps; null before the first snapshot.
-export function starSeries(days, todayKey, n) {
+// `complete`: the history was built from the full stargazer list, so days before
+// the first star had 0 stars (instead of "unknown").
+export function starSeries(days, todayKey, n, complete = false) {
   const out = [];
   const keys = Object.keys(days || {}).sort();
-  let last = null;
+  let last = complete ? 0 : null;
   const start = shiftKey(todayKey, -(n - 1));
   for (const k of keys) if (k < start) last = days[k];
   for (let i = 0; i < n; i++) {
@@ -666,7 +668,7 @@ export async function provider(settings, cfg, mod, opts = {}) {
   // Without a token running workflows are checked at most every 2 minutes.
   const live = token ? clamp(s.liveSeconds, 15, 300, 30) : Math.max(120, clamp(s.liveSeconds, 15, 300, 30));
 
-  const tokenOnly = ['showMyPrs', 'showReviews', 'showIssues', 'showContrib', 'showStreak', 'showSecurity'].filter((k) => s[k]);
+  const tokenOnly = ['showMyPrs', 'showReviews', 'showIssues', 'showContrib', 'showStreak', 'showStargazers', 'showSecurity'].filter((k) => s[k]);
   const out = { mode: token ? 'token' : 'public', errors: {}, failedBuilds: 0, running: 0, refresh: 0 };
   if (!repos.length && !followed.length && !token && !String(s.username || '').trim()) {
     return { ...out, errors: undefined, needsSetup: true, refresh: 3600 };
@@ -759,20 +761,26 @@ export async function provider(settings, cfg, mod, opts = {}) {
       const list = await Promise.all(repos.filter((r) => info.has(r.full)).map(async (r) => {
         const i = info.get(r.full);
         const entry = (st.stars[r.full.toLowerCase()] ||= { days: {} });
-        if (s.showStarHistory && !entry.seeded) {
-          const seedMax = token ? 500 : 200;
-          if (i.stars === 0 || i.stars > seedMax) entry.seeded = true;
+        // Backfill from the stargazer list – GitHub only answers it with a token,
+        // so without one the history grows from the daily snapshots.
+        if (s.showStarHistory && token && !entry.seeded) {
+          const seedMax = 500;
+          if (i.stars === 0 || i.stars > seedMax) {
+            entry.seeded = true;
+            entry.complete = i.stars === 0;
+          }
           else {
             try {
               await cached(K('seed', r.full), 3600, async () => {
                 const stamps = [];
                 for (let page = 1; page <= Math.ceil(i.stars / 100); page++) {
-                  const { data } = await gh(ctx, `/repos/${r.full}/stargazers?per_page=100&page=${page}`, { accept: STAR_JSON, map: normStargazers, priority: 'low' });
+                  const { data } = await gh(ctx, `/repos/${r.full}/stargazers?per_page=100&page=${page}`, { accept: STAR_JSON, map: normStargazers });
                   stamps.push(...data.map((x) => x.at));
                   if (data.length < 100) break;
                 }
                 entry.days = { ...seedDays(stamps, today, tz), ...entry.days };
                 entry.seeded = true;
+                entry.complete = true;
                 dirty = true;
                 return true;
               });
@@ -781,6 +789,8 @@ export async function provider(settings, cfg, mod, opts = {}) {
             }
           }
         }
+        // histories seeded before the "complete" flag existed: filled from the list when small enough
+        if (entry.seeded && entry.complete === undefined) entry.complete = !!token && i.stars <= 500;
         if (recordStars(entry, today, i.stars)) dirty = true;
         const item = { name: r.name, stars: i.stars, forks: i.forks, pushedAt: i.pushedAt, archived: i.archived };
         if (s.showOverview) {
@@ -799,7 +809,7 @@ export async function provider(settings, cfg, mod, opts = {}) {
           if (s.starDelta === 'day' || s.starDelta === 'week') item.delta = starDelta(entry.days, today, s.starDelta === 'day' ? 1 : 7);
         }
         if (s.showStarHistory) {
-          const series = starSeries(entry.days, today, days);
+          const series = starSeries(entry.days, today, days, entry.complete);
           if (series.filter((v) => v !== null).length > 1) item.series = series;
         }
         return item;
@@ -955,7 +965,7 @@ export async function provider(settings, cfg, mod, opts = {}) {
     }
   }
 
-  if (s.showStargazers && repos.length) {
+  if (s.showStargazers && token && repos.length) {
     jobs.push(section('stargazers', async () => {
       needAll();
       const res = await Promise.all(repos.filter((r) => info.has(r.full)).map(async (r) => {

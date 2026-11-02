@@ -31,17 +31,22 @@ const BUILD_LABELS = { running: 'Running', queued: 'Queued', success: 'Passed', 
 const REVIEW_LABELS = { required: 'Review required', approved: 'Approved', changes: 'Changes requested' };
 const CHECK_LABELS = { success: 'Checks passed', failure: 'Checks failed', pending: 'Checks running' };
 
-// Star history as a small polyline (null = no snapshot yet).
-export function sparkline(values, w = 120, h = 18) {
-  const pts = values.map((v, i) => [i, v]).filter(([, v]) => v !== null && v !== undefined);
-  if (pts.length < 2) return '';
-  const vs = pts.map(([, v]) => v);
+// Star history as an area chart over the module width. Days without a snapshot
+// (null) at the start are left out, so the line starts where the data starts.
+export function starChart(values) {
+  const first = values.findIndex((v) => v !== null && v !== undefined);
+  const vs = first < 0 ? [] : values.slice(first).map((v, i, a) => v ?? a[i - 1] ?? 0);
+  if (vs.length < 2) return null;
   const min = Math.min(...vs);
   const max = Math.max(...vs);
   const span = max - min || 1;
-  const n = values.length - 1 || 1;
-  const p = pts.map(([i, v]) => `${((i / n) * w).toFixed(1)},${(h - 1.5 - ((v - min) / span) * (h - 3)).toFixed(1)}`).join(' ');
-  return `<svg class="gh-spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${p}"/></svg>`;
+  const w = 100;
+  const h = 24;
+  const n = vs.length - 1;
+  const xy = vs.map((v, i) => `${((i / n) * w).toFixed(2)},${(h - 1 - ((v - min) / span) * (h - 2)).toFixed(2)}`);
+  const svg = `<svg class="gh-chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">`
+    + `<polygon points="0,${h} ${xy.join(' ')} ${w},${h}"/><polyline points="${xy.join(' ')}"/></svg>`;
+  return { svg, from: vs[0], to: vs.at(-1), days: values.length - first - 1 };
 }
 
 // Contribution calendar: weeks as columns, Sunday on top.
@@ -95,11 +100,22 @@ export default function render(el, mod, ctx) {
   const list = (rows) => `<ul class="gh-list">${rows.join('')}</ul>`;
   const stat = (icon, value, title) => `<span class="gh-stat" title="${esc(title)}">${ICONS[icon]}${value}</span>`;
 
+  // Star chart with the period and the change below it.
+  const chart = (series) => {
+    const c = series && starChart(series);
+    if (!c) return '';
+    const since = new Date(Date.now() - c.days * 86400000).toLocaleDateString(ctx.fmt.locale, { day: 'numeric', month: 'short' });
+    const diff = c.to - c.from;
+    return `<div class="gh-chart">${c.svg}<div class="gh-chart-axis"><span>${esc(t('Stars since {date}', { date: since }))}</span>`
+      + `<span>${esc(big(c.from))} → ${esc(big(c.to))}${diff > 0 ? ` <span class="gh-delta">+${esc(big(diff))}</span>` : ''}</span></div></div>`;
+  };
+
   function overview(d) {
     if (!d.overview?.length && !d.errors?.overview) return '';
     if (!s.showOverview) {
       // Star history only.
-      const rows = (d.overview || []).filter((r) => r.series).map((r) => row('', esc(r.name), `${sparkline(r.series)}<span class="gh-num">${esc(big(r.stars))}</span>`));
+      const rows = (d.overview || []).map((r) => [r, chart(r.series)]).filter(([, c]) => c)
+        .map(([r, c]) => `<li class="gh-repo"><div class="gh-line"><span class="gh-t gh-name">${esc(r.name)}</span><span class="gh-stats">${stat('star', esc(big(r.stars)), t('Stars'))}</span></div>${c}</li>`);
       return rows.length || d.errors?.overview ? sec('overview', head('star', t('Star history')) + errLine(d, 'overview') + list(rows)) : '';
     }
     const rows = (d.overview || []).map((r) => {
@@ -112,10 +128,9 @@ export default function render(el, mod, ctx) {
       if (r.prs !== null && r.prs !== undefined) stats.push(stat('pr', esc(big(r.prs)), t('Open pull requests')));
       const pushed = r.pushedAt ? t('Pushed {age}', { age: age(r.pushedAt) }) : '';
       const sub = [pushed && esc(pushed), r.archived ? esc(t('Archived')) : ''].filter(Boolean).join(' · ');
-      const spark = !compact && r.series ? sparkline(r.series) : '';
       return `<li class="gh-repo">
         <div class="gh-line"><span class="gh-t gh-name">${esc(r.name)}</span><span class="gh-stats">${stats.join('')}</span></div>
-        ${compact ? '' : `<div class="gh-sub gh-repo-sub"><span>${sub}</span>${spark}</div>`}
+        ${compact ? '' : `<div class="gh-sub gh-repo-sub"><span>${sub}</span></div>${chart(r.series)}`}
       </li>`;
     });
     const errs = d.repoErrors ? Object.entries(d.repoErrors).map(([k, v]) => `<div class="gh-err">${esc(k)}: ${esc(v)}</div>`).join('') : '';
@@ -310,7 +325,7 @@ export default function render(el, mod, ctx) {
   function hints(d) {
     const out = [];
     if (d.notice) out.push(`<div class="gh-hint gh-warn">${esc(d.notice)}</div>`);
-    if (d.needsToken) out.push(`<div class="gh-hint">${esc(t('Pull requests, issues, contribution graph and security alerts need a GitHub token'))}</div>`);
+    if (d.needsToken) out.push(`<div class="gh-hint">${esc(t('Pull requests, issues, contribution graph, new stargazers and security alerts need a GitHub token'))}</div>`);
     if (d.needsUser) out.push(`<div class="gh-hint">${esc(t('Set a GitHub user name for followers'))}</div>`);
     if (d.deferred) out.push(`<div class="gh-hint">${esc(t('Some sections are postponed to save GitHub API requests'))}</div>`);
     if (d.rate && d.rate.limit && d.rate.remaining / d.rate.limit < 0.2 && !d.notice) out.push(`<div class="gh-hint">${esc(t('API: {remaining} of {limit} requests left', d.rate))}</div>`);

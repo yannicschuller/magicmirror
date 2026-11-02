@@ -11,7 +11,7 @@ export default {
   refresh: 600,
   fields: [
     { key: 'token', label: 'Access token (optional)', type: 'text', default: '', secret: true,
-      help: 'Without a token the module shows public data only (repository overview, star history, releases, commits, builds, activity, followers, stargazers) and is frugal: GitHub allows 60 requests per hour, so it updates every 15 minutes, checks running workflows at most every 2 minutes and postpones less important sections when the budget runs low. A token adds your pull requests, review requests, assigned issues, the contribution graph & streak, Dependabot alerts and private repositories, and updates every 5 minutes (30 seconds while a workflow runs). Fine-grained token (read-only): Metadata, Contents, Actions, Pull requests, Issues and Dependabot alerts for the selected repositories. Classic token: "read:user" for public repositories, "repo" for private ones, plus "security_events" for Dependabot alerts.' },
+      help: 'Without a token the module shows public data only (repository overview, star history from daily snapshots, releases, commits, builds, activity, followers) and is frugal: GitHub allows 60 requests per hour, so it updates every 15 minutes, checks running workflows at most every 2 minutes and postpones less important sections when the budget runs low. A token adds your pull requests, review requests, assigned issues, the contribution graph & streak, new stargazers, the backfilled star history, Dependabot alerts and private repositories, and updates every 5 minutes (30 seconds while a workflow runs). Fine-grained token (read-only): Metadata, Contents, Actions, Pull requests, Issues and Dependabot alerts for the selected repositories. Classic token: "read:user" for public repositories, "repo" for private ones, plus "security_events" for Dependabot alerts.' },
     { key: 'username', label: 'GitHub user name (empty = owner of the token)', type: 'text', default: '', placeholder: 'octocat',
       help: 'Used for followers and the contribution graph.' },
     { key: 'repos', label: 'Repositories', type: 'list', itemLabel: 'Repository', default: [], fields: [
@@ -33,7 +33,7 @@ export default {
       { value: 'week', label: 'New stars this week' },
     ] },
     { key: 'showStarHistory', label: 'Star history chart', type: 'bool', default: true,
-      help: 'Built from daily snapshots kept by the mirror. Repositories with few stars (up to 200, with a token up to 500) are filled in once from the stargazer list.' },
+      help: 'Built from daily snapshots kept by the mirror, so without a token it grows day by day. With a token, repositories with up to 500 stars are filled in once from the stargazer list (GitHub only shows it with a token).' },
     { key: 'starWeeks', label: 'Weeks in the star history', type: 'number', default: 8, min: 2, max: 16, showIf: { showStarHistory: true } },
 
     { key: 'showRunning', label: 'Running workflows (live)', type: 'bool', default: true },
@@ -74,7 +74,7 @@ export default {
     { key: 'showFollowers', label: 'New followers', type: 'bool', default: false,
       help: 'New followers are recognised by comparing with the last check, so the list starts empty.' },
     { key: 'followersCount', label: 'Number of followers', type: 'number', default: 3, min: 1, max: 10, showIf: { showFollowers: true } },
-    { key: 'showStargazers', label: 'New stargazers', type: 'bool', default: false },
+    { key: 'showStargazers', label: 'New stargazers', type: 'bool', default: false, help: 'Needs a token – GitHub only lists stargazers to signed-in requests.' },
     { key: 'stargazersCount', label: 'Number of stargazers', type: 'number', default: 3, min: 1, max: 10, showIf: { showStargazers: true } },
     { key: 'showSecurity', label: 'Security alerts (Dependabot, token)', type: 'bool', default: false,
       help: 'Open Dependabot alerts per repository by severity. Needs the "Dependabot alerts" read permission (classic token: "security_events" or "repo").' },
