@@ -214,6 +214,11 @@ if [ "$IS_PI" = y ]; then
   wd_default=y; [ -f /etc/systemd/system.conf.d/mm-watchdog.conf ] || [ -z "$(env_get UPDATE_TIME)" ] || wd_default=n
   ask_yes P_WATCHDOG "$(m "Hardware watchdog: restart the Pi automatically if it ever hangs?" "Hardware-Watchdog: den Pi automatisch neu starten, falls er einmal hängt?")" "$wd_default"
 fi
+P_SDCARD=n
+if [ "$IS_PI" = y ]; then
+  sd_default=y; [ -f /etc/systemd/journald.conf.d/mm-sdcard.conf ] || [ -z "$(env_get UPDATE_TIME)" ] || sd_default=n
+  ask_yes P_SDCARD "$(m "Protect the SD card: system logs in RAM, fewer disk writes (noatime), compressed swap in RAM (zram) instead of a swap file?" "SD-Karte schützen: System-Logs im RAM, weniger Schreibzugriffe (noatime), komprimierter Swap im RAM (zram) statt Swap-Datei?")" "$sd_default"
+fi
 if [ "$P_LOGS" = y ]; then LOG_MAX_SIZE=10m; LOG_MAX_FILES=3; fi
 ask_yes P_WASTE "$(m "Find your waste collection by town/address (no iCal needed)?" "Müllabfuhr per Ort/Adresse finden (ohne iCal)?")" "$(has_profile waste y)"
 ask_yes P_CAMERA "$(m "Show RTSP cameras (go2rtc)?" "RTSP-Kameras anzeigen (go2rtc)?")" "$(has_profile camera n)"
@@ -341,6 +346,40 @@ elif [ -f /etc/systemd/system.conf.d/mm-watchdog.conf ]; then
   $SUDO rm -f /etc/systemd/system.conf.d/mm-watchdog.conf
   $SUDO systemctl daemon-reexec 2>/dev/null || true
   ok "$(m "Hardware watchdog disabled" "Hardware-Watchdog deaktiviert")"
+fi
+
+# SD card protection: most SD cards die from constant small writes (logs, swap, access times).
+if [ "$P_SDCARD" = y ]; then
+  info "$(m "Protecting the SD card" "Schütze die SD-Karte")"
+  # system journal in RAM only (lost on restart – the mirror's own data stays on disk)
+  $SUDO mkdir -p /etc/systemd/journald.conf.d
+  printf '%s\n' "# Magic Mirror: keep the system log in RAM to spare the SD card" "[Journal]" "Storage=volatile" "RuntimeMaxUse=30M" \
+    | $SUDO tee /etc/systemd/journald.conf.d/mm-sdcard.conf >/dev/null
+  $SUDO systemctl restart systemd-journald 2>/dev/null || true
+  # no access-time writes on every file read
+  if awk '$1 !~ /^#/ && $2 == "/" && $4 !~ /noatime/ {found=1} END {exit !found}' /etc/fstab 2>/dev/null; then
+    $SUDO cp /etc/fstab /etc/fstab.mm-backup
+    $SUDO awk 'BEGIN {OFS="\t"} $1 !~ /^#/ && $2 == "/" && $4 !~ /noatime/ {$4 = $4 ",noatime"} {print}' /etc/fstab.mm-backup | $SUDO tee /etc/fstab >/dev/null
+    REBOOT_NEEDED=1
+  fi
+  # swap: compressed in RAM instead of a file on the card
+  if command -v dphys-swapfile >/dev/null 2>&1; then
+    $SUDO dphys-swapfile swapoff 2>/dev/null || true
+    $SUDO systemctl disable --now dphys-swapfile >/dev/null 2>&1 || true
+  fi
+  if ! dpkg -s zram-tools >/dev/null 2>&1; then
+    $SUDO apt-get install -y -qq zram-tools >/dev/null 2>&1 || warn "$(m "zram-tools could not be installed" "zram-tools konnte nicht installiert werden")"
+  fi
+  if [ -f /etc/default/zramswap ]; then
+    printf '%s\n' "# Magic Mirror: compressed swap in RAM" "ALGO=zstd" "PERCENT=50" | $SUDO tee /etc/default/zramswap >/dev/null
+    $SUDO systemctl enable --now zramswap >/dev/null 2>&1 || true
+  fi
+  ok "$(m "SD card protection enabled (logs in RAM, noatime, zram swap)" "SD-Karten-Schutz aktiv (Logs im RAM, noatime, zram-Swap)")"
+elif [ -f /etc/systemd/journald.conf.d/mm-sdcard.conf ]; then
+  $SUDO rm -f /etc/systemd/journald.conf.d/mm-sdcard.conf
+  $SUDO systemctl restart systemd-journald 2>/dev/null || true
+  command -v dphys-swapfile >/dev/null 2>&1 && $SUDO systemctl enable --now dphys-swapfile >/dev/null 2>&1 || true
+  ok "$(m "SD card protection for logs/swap disabled (noatime stays)" "SD-Karten-Schutz für Logs/Swap deaktiviert (noatime bleibt)")"
 fi
 
 if [ "$P_ADSB" = y ] && [ ! -f /etc/modprobe.d/blacklist-rtlsdr.conf ]; then
