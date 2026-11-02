@@ -1,5 +1,6 @@
 // Mirror: module renderers and weather descriptions.
 export default {
+  "As of {time}": "Stand {time}",
   "first GP {year}": "erster GP {year}",
   "Air {n}": "Luft {n}",
   "all day": "ganztägig",

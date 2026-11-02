@@ -146,8 +146,11 @@ async function loadData(inst) {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || `HTTP ${res.status}`);
     if (!instances.includes(inst)) return;
+    // Offline mode: the server answered with its last good data – show how old it is.
+    inst.dataAt = Date.parse(json.fetchedAt) || Date.now();
     // Unchanged data → no re-render (no flicker); the first data fades in.
     inst.lastData = json.data;
+    staleBadge(inst);
     applyContent(inst);
     if (config.pages.some((p) => p.showWhen === inst.mod.id)) {
       clearTimeout(pagesTimer);
@@ -177,11 +180,32 @@ async function loadData(inst) {
     // Keep the last good render; show the error only if there never was data.
     if (inst.wrap.querySelector('.loading')) inst.wrap.querySelector('.mod-body').innerHTML = `<div class="err small">${esc(makeFmt(config.general).t(err.message))}</div>`;
     inst.wrap.classList.add('has-error');
+    staleBadge(inst); // the server is unreachable: the last render stays, with its age
   }
   if (!instances.includes(inst)) return;
   // Retry faster after errors, otherwise follow the module's refresh interval.
   const delay = inst.failures ? Math.min(every || 300, 30 * inst.failures) : refreshSeconds(inst);
   if (delay) inst.fetchTimer = setTimeout(() => ((inst.visible || watched(inst)) && !paused(inst) ? loadData(inst) : (inst.stale = true)), delay * 1000);
+}
+
+// "As of 14:32" on modules whose data could not be refreshed for a while.
+const STALE_MS = 10 * 60 * 1000;
+function staleBadge(inst) {
+  const at = inst.lastData === undefined ? 0 : inst.dataAt;
+  const old = at && Date.now() - at > STALE_MS;
+  let el = inst.wrap.querySelector(':scope > .stale-badge');
+  inst.wrap.classList.toggle('stale', !!old);
+  if (!old) return el?.remove();
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'stale-badge';
+    inst.wrap.append(el);
+  }
+  const fmt = (staleBadge.fmt?.g === config.general ? staleBadge.fmt : (staleBadge.fmt = { g: config.general, ...makeFmt(config.general) }));
+  const d = new Date(at);
+  let day = fmt.dayKey(d) === fmt.dayKey(new Date()) ? '' : `${fmt.dayLabel(fmt.dayKey(d))} `;
+  if (fmt.locale.startsWith('de') && /^(Gestern|Vorgestern) /.test(day)) day = day.toLowerCase(); // "Stand gestern 22:10"
+  el.textContent = fmt.t('As of {time}', { time: `${day}${fmt.time(d)}` });
 }
 
 // ---- pages ---------------------------------------------------------------------
@@ -615,6 +639,7 @@ setInterval(() => {
   updateDim();
   if (!config) return;
   instances.forEach(applyContent); // time-based conditions (race weekend, match day …)
+  instances.forEach(staleBadge);
   // Page schedules / date ranges: keep the current page if it is still active.
   if (!updatePages()) applyVisibility();
 }, 60000);

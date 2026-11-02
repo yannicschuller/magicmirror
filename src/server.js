@@ -8,6 +8,8 @@ import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
 import { getDisplay, setDisplayOverride } from './display.js';
 import { recordSuccess, recordFailure, healthReport } from './health.js';
+import { rememberData, lastGood, flushLastGood } from './lastgood.js';
+import { createHash } from 'node:crypto';
 import { pushRouter } from './push.js';
 import { searchPlaces } from './providers/route.js';
 import { langOf } from '../public/shared/i18n.js';
@@ -110,13 +112,19 @@ app.get('/api/module/:id/data', async (req, res) => {
   if (!mod) return res.status(404).json({ error: 'Module not found' });
   const provider = providers[mod.type];
   if (!provider) return res.json({});
+  // the data belongs to these settings – after a change old data is not shown as a fallback
+  const key = createHash('sha1').update(JSON.stringify([mod.type, mod.settings, cfg.general.locale, cfg.general.timezone])).digest('hex').slice(0, 16);
   try {
     const data = await provider(mod.settings, cfg, mod);
     recordSuccess(mod.id, data);
+    rememberData(mod.id, key, data);
     res.set('Cache-Control', 'no-store').json({ ok: true, fetchedAt: new Date().toISOString(), data });
   } catch (err) {
     recordFailure(mod.id, err.message);
     console.warn(`[module ${mod.type}/${mod.id}] ${err.message}`);
+    // Offline mode: the last good data, marked as stale (the mirror shows its age).
+    const last = lastGood(mod.id, key);
+    if (last) return res.set('Cache-Control', 'no-store').json({ ok: true, stale: true, error: err.message, fetchedAt: new Date(last.at).toISOString(), data: last.data });
     res.status(502).json({ ok: false, error: err.message });
   }
 });
@@ -316,6 +324,7 @@ server.listen(PORT, () => console.log(`[server] Magic Mirror listening on port $
 
 for (const sig of ['SIGTERM', 'SIGINT']) {
   process.on(sig, () => {
+    flushLastGood();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(0), 1500).unref();
   });

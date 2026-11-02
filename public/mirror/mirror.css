@@ -76,6 +76,11 @@ body.hide-cursor, body.hide-cursor * { cursor: none !important; }
 .region[data-region='fullscreen'] .module, .region[data-region='fullscreen'] .mod-body { height: 100%; }
 
 .module { max-width: 100%; transition: opacity .45s ease, transform .45s ease; }
+/* offline mode: last good data with its age */
+.module.stale { position: relative; }
+.module.stale > .mod-body { opacity: .75; }
+.stale-badge { margin-top: .3em; font-size: max(10px, 1.1vmin); color: var(--dim); letter-spacing: .02em; }
+.stale-badge::before { content: '⟲ '; }
 .module.leaving { transition-duration: .35s; }
 .mod-body.fade-in { animation: mm-fade-in .5s ease; }
 @keyframes mm-fade-in { from { opacity: 0; } to { opacity: 1; } }
