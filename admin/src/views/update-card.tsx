@@ -53,7 +53,9 @@ export function UpdateCard() {
           {t('Installed version')}: {status?.build ? <VersionBadge build={status.build} className="align-middle" /> : <span className="font-medium text-foreground tabular-nums">{status?.version ?? '…'}</span>}
           {status?.build?.builtAt && <> · {t('built {date}', { date: date(status.build.builtAt) })}</>}
           {status?.available && status.schedule && (
-            <> · {status.schedule === 'off' ? t('automatic updates off') : t('automatic update daily at {time}', { time: status.schedule })}</>
+            <> · {status.schedule === 'off'
+              ? status.onBoot ? t('automatic update after every start') : t('automatic updates off')
+              : `${t('automatic update daily at {time}', { time: status.schedule })}${status.onBoot ? ` ${t('and after every start')}` : ''}`}</>
           )}
         </CardDescription>
         {status?.available && (

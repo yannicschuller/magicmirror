@@ -31,6 +31,8 @@ export type UpdateStatus = {
   log?: string[];
   mode?: 'pull' | 'build';
   schedule?: string;
+  /** also updates once after every start of the host */
+  onBoot?: boolean;
 };
 
 export const UPDATE_PHASES = (mode?: string) => [

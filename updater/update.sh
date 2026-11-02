@@ -3,6 +3,8 @@
 #   UPDATE_TIME=04:00     daily automatic update (local time, TZ); "off" = manual only
 #   UPDATE_MODE=pull      pull = prebuilt images from the registry, build = build locally
 #   UPDATE_GIT=true       git pull --ff-only the checkout first (compose file, docs …)
+#   UPDATE_ON_BOOT=true   also update once after every start of the host (default: on,
+#                         unless UPDATE_TIME=off)
 #
 #   mm-update             daemon: small HTTP API on :8099 (used by the admin panel) + schedule
 #   mm-update --now       run an update now (foreground)
@@ -12,6 +14,7 @@ set -eu
 UPDATE_TIME="${UPDATE_TIME:-04:00}"
 UPDATE_MODE="${UPDATE_MODE:-pull}"
 UPDATE_GIT="${UPDATE_GIT:-true}"
+if [ "$UPDATE_TIME" = off ]; then UPDATE_ON_BOOT="${UPDATE_ON_BOOT:-false}"; else UPDATE_ON_BOOT="${UPDATE_ON_BOOT:-true}"; fi
 STATE_DIR=/run/mm-update
 STATE="$STATE_DIR/state.json"
 CHECK="$STATE_DIR/check.json"
@@ -27,8 +30,8 @@ status_json() {
   jq -n --argjson state "$(cat "$STATE" 2>/dev/null || echo '{"state":"idle"}')" \
     --argjson check "$(cat "$CHECK" 2>/dev/null || echo 'null')" \
     --arg log "$(tail -n 40 "$LOG" 2>/dev/null || true)" \
-    --arg mode "$UPDATE_MODE" --arg time "$UPDATE_TIME" \
-    '$state + {check: $check, log: ($log | split("\n") | map(select(. != ""))), mode: $mode, schedule: $time}'
+    --arg mode "$UPDATE_MODE" --arg time "$UPDATE_TIME" --arg boot "$UPDATE_ON_BOOT" \
+    '$state + {check: $check, log: ($log | split("\n") | map(select(. != ""))), mode: $mode, schedule: $time, onBoot: ($boot == "true")}'
 }
 if [ "${1:-}" = --cgi-status ]; then status_json; exit 0; fi
 
@@ -200,7 +203,7 @@ serve() {
     chmod 755 "/www/cgi-bin/$cmd"
   done
   # Pass the configuration on to the CGI processes.
-  export UPDATE_TIME UPDATE_MODE UPDATE_GIT
+  export UPDATE_TIME UPDATE_MODE UPDATE_GIT UPDATE_ON_BOOT
   httpd -p 8099 -h /www
 }
 
@@ -220,7 +223,30 @@ esac
 [ -f "$STATE" ] || set_state idle none
 lock_active || true # the container was restarted mid-update
 serve
-log "HTTP API on :8099 · mode: $UPDATE_MODE · git: $UPDATE_GIT · schedule: $UPDATE_TIME"
+log "HTTP API on :8099 · mode: $UPDATE_MODE · git: $UPDATE_GIT · schedule: $UPDATE_TIME · on boot: $UPDATE_ON_BOOT"
+
+# ---- update after the host started ---------------------------------------------------------
+# Only once per boot of the host (its boot time is the same inside the container), not after
+# a mere restart of this container – e.g. when the updater replaced itself. The marker lives
+# in the project's data directory so it survives that.
+BOOT_MARK=/project/data/.updater-boot
+boot_update() {
+  boot="$(awk '/^btime/ {print $2}' /proc/stat 2>/dev/null)"
+  [ -n "$boot" ] || return 0
+  [ "$(cat "$BOOT_MARK" 2>/dev/null)" = "$boot" ] && return 0
+  # Let the mirror come up first and wait for the network (Wi-Fi can take a while).
+  sleep "${UPDATE_BOOT_DELAY:-90}"
+  tries=0
+  until wget -q -T 10 --spider https://ghcr.io/ 2>/dev/null || wget -q -T 10 --spider https://github.com/ 2>/dev/null; do
+    tries=$((tries + 1))
+    [ "$tries" -ge 30 ] && { log "no network after boot – skipping the boot update"; return 0; }
+    sleep 20
+  done
+  mkdir -p "$(dirname "$BOOT_MARK")" && echo "$boot" > "$BOOT_MARK"
+  log "host was started – updating"
+  /usr/local/bin/mm-update --now >/dev/null 2>&1 || true
+}
+[ "$UPDATE_ON_BOOT" = true ] && boot_update &
 
 seconds_until() {
   now_s="$(date +%s)"

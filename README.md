@@ -203,6 +203,8 @@ Unless switched off, the updater does the following every day at `UPDATE_TIME` (
 2. `docker compose pull` (or `build` with `UPDATE_MODE=build`),
 3. recreates only the containers whose image or configuration changed.
 
+It also runs once **after every start of the Raspberry Pi** (about 90 seconds after boot, as soon as the network is up) – only after a real start of the host, not when just the container restarts. `UPDATE_ON_BOOT=false` switches that off (default: on, off when `UPDATE_TIME=off`).
+
 Open mirrors notice the new version and reload themselves. To run an update immediately:
 
 ```bash
@@ -260,6 +262,7 @@ All options with comments are in [`.env.example`](.env.example). The most import
 | `OIDC_*` | – | Optional SSO, see above |
 | `COMPOSE_PROFILES` | – | `kiosk,autoupdate,camera,adsb,fr24,waste` |
 | `UPDATE_TIME` / `UPDATE_MODE` | `04:00` / `pull` | Auto-update schedule and mode |
+| `UPDATE_ON_BOOT` | `true` (`false` with `UPDATE_TIME=off`) | Also update once after every start of the host |
 | `MM_REGISTRY` / `MM_TAG` | `ghcr.io/yannicschuller` / `latest` | Image source (for forks) and pinned versions |
 
 ## Development

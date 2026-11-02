@@ -203,6 +203,9 @@ if [ "$P_UPDATE" = y ]; then
 else
   UPDATE_TIME_VALUE=off
 fi
+boot_default=$P_UPDATE; [ -n "$(env_get UPDATE_ON_BOOT)" ] && { [ "$(env_get UPDATE_ON_BOOT)" = true ] && boot_default=y || boot_default=n; }
+ask_yes P_BOOT_UPDATE "$(m "Also update after every start of the Raspberry Pi?" "Auch nach jedem Start des Raspberry Pi aktualisieren?")" "$boot_default"
+[ "$P_BOOT_UPDATE" = y ] && UPDATE_ON_BOOT_VALUE=true || UPDATE_ON_BOOT_VALUE=false
 logs_default=n; [ -n "$(env_get MM_LOG_MAX_SIZE)" ] && logs_default=y
 ask_yes P_LOGS "$(m "Spare the SD card: limit container logs to a few MB?" "SD-Karte schonen: Container-Logs auf wenige MB begrenzen?")" "$logs_default"
 LOG_MAX_SIZE=""; LOG_MAX_FILES=""
@@ -260,6 +263,7 @@ MM_LOG_MAX_FILES=$LOG_MAX_FILES
 
 # Auto-update
 UPDATE_TIME=${UPDATE_TIME_VALUE:-04:00}
+UPDATE_ON_BOOT=$UPDATE_ON_BOOT_VALUE
 UPDATE_MODE=$(env_get UPDATE_MODE | grep . || echo pull)
 
 # ADS-B / Flightradar24

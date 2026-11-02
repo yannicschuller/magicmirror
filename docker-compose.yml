@@ -78,6 +78,7 @@ services:
       UPDATE_TIME: ${UPDATE_TIME:-04:00}
       UPDATE_MODE: ${UPDATE_MODE:-pull}
       UPDATE_GIT: ${UPDATE_GIT:-true}
+      UPDATE_ON_BOOT: ${UPDATE_ON_BOOT:-}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/project
