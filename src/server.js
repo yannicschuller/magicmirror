@@ -6,7 +6,8 @@ import express from 'express';
 import compression from 'compression';
 import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
-import { getDisplay, setDisplayOverride } from './display.js';
+import { getDisplay, setDisplayOverride, sensorsChanged } from './display.js';
+import { startSensors } from './sensors.js';
 import { recordSuccess, recordFailure, healthReport } from './health.js';
 import { rememberData, lastGood, flushLastGood } from './lastgood.js';
 import { createHash } from 'node:crypto';
@@ -312,6 +313,7 @@ async function power(action) {
 }
 startPowerSchedule(getConfig, power);
 startBackupSchedule(getConfig, updater);
+startSensors(getConfig, sensorsChanged);
 
 admin.get('/backups', async (req, res) => res.json({ list: await listBackups(), status: await backupStatus() }));
 admin.post('/backups/run', async (req, res) => res.json(await runBackup(getConfig, updater)));

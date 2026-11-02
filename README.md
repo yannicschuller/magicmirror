@@ -135,6 +135,15 @@ All of it runs on a Pi 3. The server needs about 60 MB of RAM; the default kiosk
 
 When the internet or a data source is down, the mirror keeps showing each module's last good data with a small note such as *⟲ As of 14:32* (from 10 minutes without fresh data). The server keeps that data in `data/lastgood.json` (written at most every 15 minutes and on shutdown), so this also works right after a reboot without internet. Data older than 48 hours, or data from before a module's settings were changed, is not shown.
 
+## Presence & ambient light (Home Assistant)
+
+Under *General → Sensors* the mirror can use two Home Assistant entities:
+
+- **Presence** (motion/presence sensor, a person, or an `input_boolean`): the screen switches off (HDMI-CEC, all updates paused) when nobody was there for *x* minutes and back on within seconds when someone comes.
+- **Light sensor** (lux): the mirror dims in a dark room and is fully bright in daylight; with the night mode the darker value wins.
+
+The connection is taken from the Home Assistant module, or set separately. Without Home Assistant, any automation can switch the screen via the [control API](#control-api-homey-shortcuts-home-assistant).
+
 ## Backups
 
 Under *General → Backup* the mirror backs up its data directory every night (configuration, history, accounts, module data) as `data/backups/magicmirror-<date>.tar.gz` and keeps the last ones (default 7). *Import / Export → Backups* lists them – **back up now**, **download**, or **restore** a configuration (the current state stays in the history). Optional extra copies:

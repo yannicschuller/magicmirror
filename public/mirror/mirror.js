@@ -456,12 +456,13 @@ function renderIndicator(seconds) {
 // ---- night mode & housekeeping ------------------------------------------------------
 // Remote override from the admin / remote page ("screen off for 1 h", "night now" …).
 let displayOverride = null;
+let displaySensors = null; // presence / light from Home Assistant (via the server)
 
 function updateDim() {
   const g = config?.general;
   if (!g) return;
   // the admin preview always shows the day view
-  const state = preview ? { mode: 'day', brightness: 1 } : displayState(g, new Date(), displayOverride);
+  const state = preview ? { mode: 'day', brightness: 1 } : displayState(g, new Date(), displayOverride, displaySensors);
   dimLayer.style.opacity = String(1 - state.brightness);
   document.body.classList.toggle('night-clock', state.mode === 'clock');
   document.body.classList.toggle('screen-off', state.mode === 'off');
@@ -509,7 +510,10 @@ async function init() {
   // screen state first, so a mirror starting at night does not fetch everything once
   await fetch('/api/display', { cache: 'no-store', signal: AbortSignal.timeout(3000) })
     .then((r) => r.json())
-    .then((d) => (displayOverride = d.override || null))
+    .then((d) => {
+      displayOverride = d.override || null;
+      displaySensors = d.sensors || null;
+    })
     .catch(() => {});
   try {
     const saved = await fetchConfig();
@@ -523,7 +527,7 @@ async function init() {
     return;
   }
   applyTheme(config.general);
-  screenMode = preview ? 'day' : displayState(config.general, new Date(), displayOverride).mode;
+  screenMode = preview ? 'day' : displayState(config.general, new Date(), displayOverride, displaySensors).mode;
   build();
   updateDim();
   scheduleReload();
@@ -579,10 +583,14 @@ function connectEvents() {
   });
   es.addEventListener('reload', () => location.reload());
   es.addEventListener('display', (e) => {
-    displayOverride = JSON.parse(e.data).override || null;
-    dimLayer.classList.add('quick');
+    const d = JSON.parse(e.data);
+    // remote control and presence switch at once; ambient light fades slowly
+    const quick = JSON.stringify(d.override || null) !== JSON.stringify(displayOverride) || !!d.sensors?.absent !== !!displaySensors?.absent;
+    displayOverride = d.override || null;
+    displaySensors = d.sensors || null;
+    if (quick) dimLayer.classList.add('quick');
     updateDim();
-    setTimeout(() => dimLayer.classList.remove('quick'), 1500);
+    if (quick) setTimeout(() => dimLayer.classList.remove('quick'), 1500);
   });
   // New data was pushed for a module (e.g. Apple Reminders) – fetch it now.
   es.addEventListener('refresh', (e) => {

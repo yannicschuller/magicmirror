@@ -73,7 +73,7 @@ cec_loop() {
         last="$want"
       fi
     fi
-    sleep 20
+    sleep 4 # short: presence sensors switch the screen on when someone comes
   done
 }
 cec_loop &

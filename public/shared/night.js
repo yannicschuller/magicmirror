@@ -35,15 +35,18 @@ export function isNight(g, now = new Date()) {
   return from < to ? cur >= from && cur < to : cur >= from || cur < to;
 }
 
-// What the screen should do now. override (remote control): { mode: 'off' | 'on' | 'night', until }
+// What the screen should do now. override (remote control): { mode: 'off' | 'on' | 'night', until };
+// sensors (Home Assistant): { absent: nobody there for a while, brightness: 0–1 from a lux sensor }
 // → { mode: 'day' | 'dim' | 'clock' | 'off', brightness: 0–1 }
-export function displayState(g, now = new Date(), override = null) {
+export function displayState(g, now = new Date(), override = null, sensors = null) {
   const active = override && (!override.until || Date.parse(override.until) > now.getTime()) ? override.mode : null;
   if (active === 'on') return { mode: 'day', brightness: 1 };
   if (active === 'off') return { mode: 'off', brightness: 0 };
+  if (sensors?.absent) return { mode: 'off', brightness: 0 };
+  const ambient = Number.isFinite(sensors?.brightness) ? sensors.brightness : 1;
   const night = active === 'night' || isNight(g, now);
-  if (!night) return { mode: 'day', brightness: 1 };
+  if (!night) return { mode: 'day', brightness: ambient };
   const mode = g.nightMode === 'off' ? 'off' : g.nightMode === 'clock' ? 'clock' : 'dim';
   const level = Math.min(100, Math.max(0, Number(g.dimBrightness ?? 30))) / 100;
-  return { mode, brightness: mode === 'off' ? 0 : level };
+  return { mode, brightness: mode === 'off' ? 0 : Math.min(level, ambient) };
 }
