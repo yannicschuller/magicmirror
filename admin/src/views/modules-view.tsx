@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { CircleAlert, Copy, FlaskConical, Loader2, Plus, Trash2 } from 'lucide-react';
+import { CircleAlert, Copy, Download, FlaskConical, Loader2, Plus, Trash2, Upload } from 'lucide-react';
+import { download, exportModule, importShared, isSharedFile } from '@/lib/share';
 import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,9 @@ function ModuleList({ selected }: { selected?: string }) {
     <Card className="gap-3 overflow-hidden lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)]">
       <CardHeader>
         <CardTitle className="text-base font-semibold">{t('Modules')}</CardTitle>
+        <CardAction>
+          <ImportShared />
+        </CardAction>
       </CardHeader>
       {(() => {
         const dupes = duplicateGroups(cfg.modules).reduce((n, g) => n + g.length - 1, 0);
@@ -208,6 +212,19 @@ function ModuleEditor({ m }: { m: Module }) {
           <Button size="sm" variant="outline" onClick={duplicate}>
             <Copy />
             <span className="max-sm:sr-only">{t('Duplicate')}</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            title={t('Export this module as a file – for another mirror (without tokens and passwords)')}
+            onClick={() => {
+              const { file, secrets } = exportModule(m);
+              download(file, moduleName(m, t));
+              if (secrets) toast.info(t('Exported without {n} token(s)/password(s) – enter them again after importing.', { n: secrets }));
+            }}
+          >
+            <Download />
+            <span className="max-sm:sr-only">{t('Export')}</span>
           </Button>
           <Button size="sm" variant="destructive" onClick={remove}>
             <Trash2 />
@@ -430,5 +447,41 @@ function TestData({ id }: { id: string }) {
         <pre className="max-h-90 overflow-auto rounded-lg border bg-background p-3 font-mono text-xs leading-relaxed">{out}</pre>
       )}
     </div>
+  );
+}
+
+/** Imports a module or page exported from another mirror (Export button). */
+export function ImportShared() {
+  const { cfg, t, mt, touch, setModule, setPage } = useStore();
+  const input = useRef<HTMLInputElement>(null);
+  const onFile = async (file?: File) => {
+    if (!file) return;
+    try {
+      const json = JSON.parse(await file.text());
+      if (!isSharedFile(json)) throw new Error(t('This is not an exported module or page. Whole configurations are imported under Import / Export.'));
+      const r = importShared(json, cfg, mt);
+      touch();
+      if (r.page) {
+        setPage(r.page.id);
+        toast.success(t('Page "{name}" imported with {n} module(s) – save to apply.', { name: r.page.name, n: r.modules.length }));
+      } else {
+        setModule(r.modules[0].id);
+        toast.success(t('Module imported – it is under "Available modules" in the layout until you place it.'));
+      }
+      if (r.skipped) toast.warning(t('{n} module(s) of an unknown type were skipped.', { n: r.skipped }));
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      if (input.current) input.current.value = '';
+    }
+  };
+  return (
+    <>
+      <input ref={input} type="file" accept="application/json,.json" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+      <Button size="xs" variant="outline" onClick={() => input.current?.click()} title={t('Import a module or page from another mirror')}>
+        <Upload />
+        {t('Import')}
+      </Button>
+    </>
   );
 }

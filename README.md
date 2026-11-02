@@ -135,6 +135,10 @@ All of it runs on a Pi 3. The server needs about 60 MB of RAM; the default kiosk
 
 When the internet or a data source is down, the mirror keeps showing each module's last good data with a small note such as *⟲ As of 14:32* (from 10 minutes without fresh data). The server keeps that data in `data/lastgood.json` (written at most every 15 minutes and on shutdown), so this also works right after a reboot without internet. Data older than 48 hours, or data from before a module's settings were changed, is not shown.
 
+## Sharing modules and pages
+
+Each module has an **Export** button in its editor, each page one in the page list (with all its modules). The file contains no tokens or passwords. On another mirror, **Modules → Import** adds it: a module lands under *Available modules* in the layout, a page arrives with its modules in place. Whole configurations are exported and imported under *Import / Export*.
+
 ## Presence & ambient light (Home Assistant)
 
 Under *General → Sensors* the mirror can use two Home Assistant entities:

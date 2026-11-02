@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
-import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, Eye, Replace, MonitorPlay, SlidersHorizontal, Star, MoveVertical, Plus, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, Download, Eye, Replace, MonitorPlay, SlidersHorizontal, Star, MoveVertical, Plus, Trash2, X } from 'lucide-react';
+import { download, exportPage } from '@/lib/share';
 import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Badge } from '@/components/ui/badge';
@@ -223,6 +224,16 @@ function PageRow({ p, i, active }: { p: Page; i: number; active: boolean }) {
         </IconButton>
         <IconButton label={t('Duplicate page')} onClick={duplicate}>
           <Copy />
+        </IconButton>
+        <IconButton
+          label={t('Export page with its modules – for another mirror')}
+          onClick={() => {
+            const { file, secrets } = exportPage(p, cfg);
+            download(file, p.name);
+            if (secrets) toast.info(t('Exported without {n} token(s)/password(s) – enter them again after importing.', { n: secrets }));
+          }}
+        >
+          <Download />
         </IconButton>
         <IconButton label={t('Delete page')} className="hover:text-destructive" onClick={remove}>
           <Trash2 />
