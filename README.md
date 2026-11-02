@@ -52,7 +52,7 @@
 | **Fuel prices** | Cheapest stations nearby or your favourites, E5/E10/diesel | [Tankerkönig](https://creativecommons.tankerkoenig.de) (free API key, Germany) |
 | **Moon & sun** | Moon phase drawn to scale, next full/new moon, sun arc with current position, twilight and golden hour, day length | computed locally |
 | **Football** | Bundesliga & more: matchday with live scores, table, next matches, favourite team | [OpenLigaDB](https://www.openligadb.de) |
-| **Countdown** | Days until holidays, birthdays (yearly, "turns 40"), events – list or one big number | local |
+| **Countdown** | Days until holidays, birthdays (yearly, "turns 40"), events – list or one big number; optionally birthdays from your address book (CardDAV) | local, CardDAV |
 | **Parcel tracking** | Status, last scan, "arriving today" and delivery window per parcel | [DHL API](https://developer.dhl.com) (free key), optional [17TRACK](https://www.17track.net) for other carriers |
 | **Pollen & air quality** | DWD pollen forecast for your region (today/tomorrow), European AQI, PM2.5/PM10, ozone, NO₂ | [DWD](https://opendata.dwd.de), Open-Meteo (no API key) |
 | **Bike & scooter sharing** | Nearest stations with free bikes/e-bikes and free-floating scooters nearby | open GBFS feeds (nextbike, Dott, Bolt, Voi, …) |

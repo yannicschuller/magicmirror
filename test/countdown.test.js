@@ -130,3 +130,20 @@ test('schema and German strings', () => {
   const keys = Object.keys(de);
   assert.deepEqual(keys, [...keys].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
 });
+
+test('address book birthdays: vCard parsing (year, no year, folded lines, anniversaries)', async () => {
+  const { parseVcards, contactEvents, vcardDate } = await import('../src/providers/countdown.js');
+  assert.deepEqual(vcardDate('19850315'), { date: '1985-03-15', yearKnown: true });
+  assert.deepEqual(vcardDate('--0704'), { date: '2000-07-04', yearKnown: false });
+  assert.deepEqual(vcardDate('1604-12-24'), { date: '2000-12-24', yearKnown: false }, 'Apple: 1604 = year unknown');
+  assert.equal(vcardDate('garbage'), null);
+  const vcf = [
+    'BEGIN:VCARD', 'VERSION:3.0', 'FN:Anna Bei', ' spiel', 'BDAY:1990-05-02', 'END:VCARD',
+    'BEGIN:VCARD', 'VERSION:4.0', 'N:Muster;Max;;;', 'BDAY:--1111', 'ANNIVERSARY:20150620', 'END:VCARD',
+    'BEGIN:VCARD', 'FN:Ohne Datum', 'END:VCARD',
+  ].join('\r\n');
+  const cards = parseVcards(vcf);
+  assert.deepEqual(cards.map((c) => c.name), ['Anna Beispiel', 'Max Muster']);
+  const ev = contactEvents(cards, { contactsAnniversaries: true });
+  assert.deepEqual(ev.map((e) => [e.name, e.date, e.years]), [['Anna Beispiel', '1990-05-02', 'age'], ['Max Muster', '2000-11-11', 'none'], ['Max Muster', '2015-06-20', 'count']]);
+});

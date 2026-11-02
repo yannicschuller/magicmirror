@@ -13,8 +13,10 @@ export default function render(el, mod, ctx) {
   const layout = s.layout || 'list';
   const precise = s.precision === 'precise';
   let last = '';
+  let contacts = []; // birthdays from the address book (server data)
+  let errors = [];
 
-  const items = (now) => upcoming(s.events, now, tz, {
+  const items = (now) => upcoming([...(s.events || []), ...contacts], now, tz, {
     hidePast: s.hidePast !== false,
     withinDays: s.withinDays || 0,
     sort: s.sort || 'next',
@@ -85,13 +87,14 @@ export default function render(el, mod, ctx) {
 
   const html = (now) => {
     const list = items(now);
-    if (!list.length) return `<div class="dim">${(s.events || []).some((e) => e?.date) ? t('No upcoming events') : t('No events set up')}</div>`;
-    if (layout === 'compact') return `<div class="cd-compact">${list.map((it) => compact(it, now)).join('')}</div>`;
+    const err = errors.length ? `<div class="err small">${esc(t(errors[0]))}</div>` : '';
+    if (!list.length) return `${err}<div class="dim">${(s.events || []).some((e) => e?.date) || contacts.length ? t('No upcoming events') : t('No events set up')}</div>`;
+    if (layout === 'compact') return `${err}<div class="cd-compact">${list.map((it) => compact(it, now)).join('')}</div>`;
     if (layout === 'big') {
       const rest = list.slice(1);
-      return big(list[0], now) + (rest.length ? `<ul class="cd-list cd-rest">${rest.map((it) => row(it, now)).join('')}</ul>` : '');
+      return err + big(list[0], now) + (rest.length ? `<ul class="cd-list cd-rest">${rest.map((it) => row(it, now)).join('')}</ul>` : '');
     }
-    return `<ul class="cd-list">${list.map((it) => row(it, now)).join('')}</ul>`;
+    return `${err}<ul class="cd-list">${list.map((it) => row(it, now)).join('')}</ul>`;
   };
 
   const draw = () => {
@@ -103,8 +106,14 @@ export default function render(el, mod, ctx) {
 
   draw();
   return {
-    // The server data only feeds the "only show when …" condition; settings are already here.
-    update: draw,
+    // Server data: the events for the "only show when …" condition and address book birthdays.
+    update(data) {
+      contacts = Array.isArray(data?.contacts) ? data.contacts : [];
+      errors = Array.isArray(data?.errors) ? data.errors : [];
+      draw();
+    },
+    // the address book is re-read every 6 hours; own events need no fetching
+    refreshSeconds: () => (s.contactsEnabled ? 3 * 3600 : 0),
     tick: draw,
     show: draw,
     tickEvery: 60000,
