@@ -209,6 +209,11 @@ ask_yes P_BOOT_UPDATE "$(m "Also update after every start of the Raspberry Pi?" 
 logs_default=n; [ -n "$(env_get MM_LOG_MAX_SIZE)" ] && logs_default=y
 ask_yes P_LOGS "$(m "Spare the SD card: limit container logs to a few MB?" "SD-Karte schonen: Container-Logs auf wenige MB begrenzen?")" "$logs_default"
 LOG_MAX_SIZE=""; LOG_MAX_FILES=""
+P_WATCHDOG=n
+if [ "$IS_PI" = y ]; then
+  wd_default=y; [ -f /etc/systemd/system.conf.d/mm-watchdog.conf ] || [ -z "$(env_get UPDATE_TIME)" ] || wd_default=n
+  ask_yes P_WATCHDOG "$(m "Hardware watchdog: restart the Pi automatically if it ever hangs?" "Hardware-Watchdog: den Pi automatisch neu starten, falls er einmal hängt?")" "$wd_default"
+fi
 if [ "$P_LOGS" = y ]; then LOG_MAX_SIZE=10m; LOG_MAX_FILES=3; fi
 ask_yes P_WASTE "$(m "Find your waste collection by town/address (no iCal needed)?" "Müllabfuhr per Ort/Adresse finden (ohne iCal)?")" "$(has_profile waste y)"
 ask_yes P_CAMERA "$(m "Show RTSP cameras (go2rtc)?" "RTSP-Kameras anzeigen (go2rtc)?")" "$(has_profile camera n)"
@@ -317,6 +322,25 @@ if [ "$P_KIOSK" = y ]; then
       warn "$(m "Boot screen could not be installed – the mirror works without it" "Startbildschirm konnte nicht eingerichtet werden – der Spiegel läuft auch ohne")"
     fi
   fi
+fi
+
+# Hardware watchdog: systemd feeds the Pi's watchdog timer; if the system freezes, the
+# timer runs out and the Pi restarts by itself.
+if [ "$P_WATCHDOG" = y ]; then
+  BOOT=/boot/firmware; [ -f "$BOOT/config.txt" ] || BOOT=/boot
+  if [ -f "$BOOT/config.txt" ] && ! grep -q '^dtparam=watchdog=on' "$BOOT/config.txt"; then
+    echo "dtparam=watchdog=on" | $SUDO tee -a "$BOOT/config.txt" >/dev/null
+    REBOOT_NEEDED=1
+  fi
+  $SUDO mkdir -p /etc/systemd/system.conf.d
+  printf '%s\n' "# Magic Mirror: restart the Pi when the system hangs" "[Manager]" "RuntimeWatchdogSec=15" "RebootWatchdogSec=2min" \
+    | $SUDO tee /etc/systemd/system.conf.d/mm-watchdog.conf >/dev/null
+  $SUDO systemctl daemon-reexec 2>/dev/null || true
+  ok "$(m "Hardware watchdog enabled" "Hardware-Watchdog aktiviert")"
+elif [ -f /etc/systemd/system.conf.d/mm-watchdog.conf ]; then
+  $SUDO rm -f /etc/systemd/system.conf.d/mm-watchdog.conf
+  $SUDO systemctl daemon-reexec 2>/dev/null || true
+  ok "$(m "Hardware watchdog disabled" "Hardware-Watchdog deaktiviert")"
 fi
 
 if [ "$P_ADSB" = y ] && [ ! -f /etc/modprobe.d/blacklist-rtlsdr.conf ]; then

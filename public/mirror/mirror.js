@@ -635,6 +635,12 @@ indicator.addEventListener('click', (e) => {
 
 buildGrid();
 init().then(connectEvents);
+// Alive signal for the kiosk watchdog (restarts a frozen browser); ?kiosk=1 is added by the kiosk.
+if (!preview) {
+  const beat = () => fetch(`/api/heartbeat${params.has('kiosk') ? '?kiosk=1' : ''}`, { method: 'POST', keepalive: true }).catch(() => {});
+  beat();
+  setInterval(beat, 60000);
+}
 setInterval(() => {
   updateDim();
   if (!config) return;

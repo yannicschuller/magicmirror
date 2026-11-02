@@ -210,6 +210,8 @@ The `kiosk` container runs privileged so it can drive the display (DRM/KMS), key
 - Extra Chromium flags: `KIOSK_FLAGS=--force-device-scale-factor=1.25`.
 - Night dimming: *General → Night mode*.
 
+**Self-healing.** The kiosk's mirror page reports every minute that it is alive. If that stops for 5 minutes (frozen page, crashed renderer, white screen) or the Pi runs low on memory, the kiosk restarts the browser by itself – while the server is unreachable (update, restart) it waits instead. `KIOSK_WATCHDOG=off` disables it. On a Raspberry Pi the installer can also enable the **hardware watchdog**: if the whole system ever freezes, the Pi restarts on its own after about 15 seconds.
+
 ### Boot screen (Raspberry Pi)
 
 The installer can set up a boot screen with the Magic Mirror logo, a spinner and a status line ("Starting Docker …", "Waiting for the mirror …") instead of scrolling boot text. It stays until the mirror answers, then the kiosk takes over. Install or remove it later with:

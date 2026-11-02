@@ -6,7 +6,10 @@ set -eu
 log() { echo "[kiosk] $*"; }
 
 URL="${MIRROR_URL:-http://magicmirror:8080/}"
-health="$(echo "$URL" | sed -E 's#(https?://[^/]+).*#\1#')/api/health"
+base="$(echo "$URL" | sed -E 's#(https?://[^/]+).*#\1#')"
+health="$base/api/health"
+# marks this browser for the watchdog (its page sends a heartbeat with kiosk=1)
+case "$URL" in *\?*) URL="$URL&kiosk=1" ;; *) URL="$URL?kiosk=1" ;; esac
 
 log "waiting for $health"
 until curl -fsS -o /dev/null "$health"; do sleep 3; done
@@ -75,8 +78,41 @@ cec_loop() {
 }
 cec_loop &
 
+# Self-healing: restart the browser when its page stops sending heartbeats (frozen, crashed
+# renderer, white page) or when the system runs out of memory. The browser loop below then
+# starts it again. KIOSK_WATCHDOG=off disables it.
+STARTED=/tmp/browser-started
+stop_browser() {
+  pkill -x cog 2>/dev/null || true
+  pkill -x chromium 2>/dev/null || pkill -f /usr/lib/chromium 2>/dev/null || true
+  pkill -x cage 2>/dev/null || true
+}
+watchdog() {
+  [ "${KIOSK_WATCHDOG:-on}" = off ] && return 0
+  limit="${KIOSK_WATCHDOG_SECONDS:-300}"
+  while true; do
+    sleep 60
+    since=$(( $(date +%s) - $(cat "$STARTED" 2>/dev/null || date +%s) ))
+    [ "$since" -gt "$limit" ] || continue # give a fresh browser time to load
+    # server unreachable (restarting, updating): not the browser's fault
+    age="$(curl -fsS -m 5 "$base/api/kiosk" 2>/dev/null | sed -nE 's/.*"age":([0-9]+).*/\1/p')"
+    if [ -n "$age" ] && [ "$age" -gt "$limit" ]; then
+      log "watchdog: no sign of life from the mirror page for ${age} s – restarting $BROWSER"
+      stop_browser
+      continue
+    fi
+    avail="$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo 2>/dev/null)"
+    if [ -n "$avail" ] && [ "$avail" -lt "${KIOSK_MIN_FREE_KB:-40000}" ]; then
+      log "watchdog: only $((avail / 1024)) MB memory left – restarting $BROWSER"
+      stop_browser
+    fi
+  done
+}
+watchdog &
+
 while true; do
   log "starting $BROWSER → $URL"
+  date +%s > "$STARTED"
   case "$BROWSER" in
     chromium) run_chromium || true ;;
     *) run_cog || true ;;

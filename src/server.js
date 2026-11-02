@@ -85,6 +85,16 @@ app.use((req, res, next) => (getConfig()?.general?.ecoMode ? compress(req, res, 
 
 app.get('/api/health', (req, res) => res.json({ ok: true, version: VERSION, commit: BUILD.shortCommit, clients: clientCount(), oidc: oidcEnabled, localLogin: localEnabled, go2rtc: go2rtcStatus() }));
 
+// Kiosk watchdog: the kiosk's mirror page reports every minute that it is alive (its
+// JavaScript runs); the kiosk container restarts a frozen or crashed browser.
+const started = Date.now();
+let kioskBeat = 0;
+app.post('/api/heartbeat', (req, res) => {
+  if (req.query.kiosk) kioskBeat = Date.now();
+  res.status(204).end();
+});
+app.get('/api/kiosk', (req, res) => res.set('Cache-Control', 'no-store').json({ age: Math.round((Date.now() - (kioskBeat || started)) / 1000), seen: !!kioskBeat }));
+
 setupAuth(app);
 
 // ---- Mirror (public, read-only) -------------------------------------------
