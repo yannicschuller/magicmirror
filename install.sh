@@ -359,6 +359,7 @@ if [ "$P_SDCARD" = y ]; then
   # no access-time writes on every file read
   if awk '$1 !~ /^#/ && $2 == "/" && $4 !~ /noatime/ {found=1} END {exit !found}' /etc/fstab 2>/dev/null; then
     $SUDO cp /etc/fstab /etc/fstab.mm-backup
+    # shellcheck disable=SC2016 # awk fields, not shell variables
     $SUDO awk 'BEGIN {OFS="\t"} $1 !~ /^#/ && $2 == "/" && $4 !~ /noatime/ {$4 = $4 ",noatime"} {print}' /etc/fstab.mm-backup | $SUDO tee /etc/fstab >/dev/null
     REBOOT_NEEDED=1
   fi

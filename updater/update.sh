@@ -241,7 +241,7 @@ backup_copy() {
         mkdir -p /mnt/smb && mount -t cifs "$ROOT" /mnt/smb -o credentials=/creds,iocharset=utf8,vers=3.0 2>&1 || mount -t cifs "$ROOT" /mnt/smb -o credentials=/creds,iocharset=utf8 || { echo "could not connect to $ROOT"; exit 4; }
         '"$copy"'; rc=$?; umount /mnt/smb; exit $rc' 2>&1)" && rc=0 || rc=$?
     rm -f "$creds"
-    [ $rc -eq 0 ] || { jq -n --arg e "SMB: ${out:-failed}" '{ok: false, error: $e}'; return 0; }
+    [ "$rc" -eq 0 ] || { jq -n --arg e "SMB: ${out:-failed}" '{ok: false, error: $e}'; return 0; }
   else
     echo '{"ok":false,"error":"unknown target"}'; return 0
   fi
