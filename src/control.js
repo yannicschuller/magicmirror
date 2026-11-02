@@ -1,7 +1,7 @@
 // Control API for home automation (Homey, Apple Shortcuts, Home Assistant …):
 //   GET or POST /api/control/<command>   Authorization: Bearer <token>   (or ?token=<token>)
 // Commands: screen/on|off|night|auto, page/next|prev|hold|resume|<page id or name>,
-// reload, power/shutdown|reboot, status. The token is set in the admin (General → System);
+// notify, reload, power/shutdown|reboot, status. The token is set in the admin (General → System);
 // without one the API is off.
 // Also runs the daily shutdown / restart from the settings.
 import crypto from 'node:crypto';
@@ -18,7 +18,7 @@ function tokenOk(given, expected) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-export function controlRouter({ getConfig, getDisplay, setDisplayOverride, broadcast, clientCount, power }) {
+export function controlRouter({ getConfig, getDisplay, setDisplayOverride, broadcast, clientCount, power, notify }) {
   const r = express.Router();
   r.use(express.json({ limit: '16kb' }));
 
@@ -56,6 +56,14 @@ export function controlRouter({ getConfig, getDisplay, setDisplayOverride, broad
     if (!page) return res.status(404).json({ ok: false, error: 'Page not found' });
     broadcast('page', { page: page.id });
     res.json({ ok: true, page: page.id, mirrors: clientCount() });
+  });
+
+  // Notification card: ?title=…&message=…&level=info|success|warn|alert&duration=15&wake=true
+  // (or the same as JSON body).
+  r.all('/notify', (req, res) => {
+    const n = notify({ ...req.query, ...(req.body && typeof req.body === 'object' ? req.body : {}) });
+    if (!n) return res.status(400).json({ ok: false, error: 'title or message is required' });
+    res.json({ ok: true, id: n.id, mirrors: clientCount() });
   });
 
   r.all('/reload', (req, res) => {

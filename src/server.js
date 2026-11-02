@@ -8,6 +8,7 @@ import { VERSION, BUILD } from './version.js';
 import { systemInfo } from './system.js';
 import { getDisplay, setDisplayOverride, sensorsChanged } from './display.js';
 import { startSensors } from './sensors.js';
+import { makeNotification, syncNtfy } from './notify.js';
 import { recordSuccess, recordFailure, healthReport } from './health.js';
 import { rememberData, lastGood, flushLastGood } from './lastgood.js';
 import { createHash } from 'node:crypto';
@@ -329,8 +330,24 @@ admin.post('/backups/:name/restore', async (req, res) => {
   }
 });
 
+// Notifications on the mirrors; "wake" switches a dark screen on for them.
+function notify(input) {
+  const n = makeNotification(input, getConfig().general);
+  if (!n) return null;
+  const d = getDisplay(getConfig());
+  if (n.wake && d.mode === 'off' && !d.override) setDisplayOverride('on', Math.ceil(n.duration / 60));
+  broadcast('notify', n);
+  return n;
+}
+syncNtfy(getConfig().general, notify);
+onConfigChange(() => syncNtfy(getConfig().general, notify));
+admin.post('/notify', (req, res) => {
+  const n = notify(req.body || {});
+  return n ? res.json({ ok: true, mirrors: clientCount() }) : res.status(400).json({ error: 'title or message is required' });
+});
+
 // Token-authenticated control API (Homey, Shortcuts, Home Assistant …).
-app.use('/api/control', controlRouter({ getConfig, getDisplay, setDisplayOverride, broadcast, clientCount, power }));
+app.use('/api/control', controlRouter({ getConfig, getDisplay, setDisplayOverride, broadcast, clientCount, power, notify }));
 
 // Token-authenticated push API (Apple Shortcuts → tasks module); mirrors refresh at once.
 app.use('/api/push', pushRouter(getConfig, (id) => broadcast('refresh', { module: id })));

@@ -17,6 +17,7 @@ function app(general) {
     broadcast: (type, data) => calls.push([type, data]),
     clientCount: () => 1,
     power: async (action) => (calls.push(['power', action]), { ok: true, action }),
+    notify: (n) => (n.title || n.message ? (calls.push(['notify', n.title, n.level]), { id: 'x' }) : null),
   }));
   const server = http.createServer(a).listen(0);
   const base = `http://127.0.0.1:${server.address().port}/api/control`;
@@ -43,6 +44,9 @@ test('control API: token required, screen, pages, power', async () => {
   assert.equal((await fetch(`${base}/page/nope`, auth)).status, 404);
   assert.equal((await (await fetch(`${base}/power/reboot`, auth)).json()).action, 'reboot');
   assert.equal((await fetch(`${base}/power/explode`, auth)).status, 400);
+  await fetch(`${base}/notify?title=W%C3%A4sche&level=success`, auth);
+  assert.deepEqual(calls.at(-1), ['notify', 'Wäsche', 'success']);
+  assert.equal((await fetch(`${base}/notify`, { ...auth, method: 'POST', headers: { ...auth.headers, 'Content-Type': 'application/json' }, body: '{}' })).status, 400);
   const st = await (await fetch(`${base}/status`, auth)).json();
   assert.equal(st.screen, 'day');
   assert.equal(st.pages.length, 2);
@@ -67,4 +71,18 @@ test('scheduled shutdown / restart: once per day within a 5 minute window', () =
   done.shutdown = due.day;
   assert.equal(duePowerAction(g, new Date('2026-11-03T22:32:00Z'), done), null);
   assert.equal(duePowerAction(g, new Date('2026-11-03T22:40:00Z'), {}), null, 'outside the window');
+});
+
+test('notifications: normalized from query/JSON and ntfy', async () => {
+  const { makeNotification, fromNtfy } = await import('../src/notify.js');
+  assert.equal(makeNotification({}), null);
+  const n = makeNotification({ title: 'Waschmaschine', message: 'fertig', duration: '20' }, { notifyDuration: 15 });
+  assert.equal(n.level, 'info');
+  assert.equal(n.duration, 20);
+  assert.equal(n.wake, false);
+  const a = makeNotification({ title: 'Rauchmelder', level: 'alert' }, { notifyDuration: 15 });
+  assert.equal(a.duration, 30, 'alerts stay longer');
+  assert.equal(a.wake, true, 'alerts wake the screen');
+  assert.equal(makeNotification({ title: 'x', wake: 'false' }).wake, false);
+  assert.deepEqual(fromNtfy({ title: 'Paket', message: 'ist da', priority: 4, tags: ['package'] }), { title: 'Paket', message: 'ist da', level: 'warn', icon: 'package' });
 });

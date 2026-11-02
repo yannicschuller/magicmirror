@@ -428,6 +428,7 @@ export const GENERAL_GROUPS = [
   { id: 'night', label: 'Night mode' },
   { id: 'system', label: 'System' },
   { id: 'sensors', label: 'Sensors' },
+  { id: 'notify', label: 'Notifications' },
   { id: 'backup', label: 'Backup' },
 ];
 
@@ -506,6 +507,11 @@ export const GENERAL_FIELDS = [
   { group: 'sensors', key: 'sensorHaUrl', label: 'Home Assistant URL (empty = from the Home Assistant module)', type: 'text', default: '', secret: true, placeholder: 'http://homeassistant.local:8123' },
   { group: 'sensors', key: 'sensorHaToken', label: 'Long-lived access token (empty = from the Home Assistant module)', type: 'text', default: '', secret: true,
     help: 'Alternatively, a Home Assistant automation can switch the screen via the control API (General → System), e.g. screen/on on motion.' },
+  { group: 'notify', key: 'notifyDuration', label: 'Show notifications for (seconds)', type: 'number', default: 15, min: 3, max: 600,
+    help: 'Notifications appear as a card at the top of the mirror. Send them via the control API (General → System): <mirror address>/api/control/notify?title=Washing machine&message=done – optionally level=info|success|warn|alert, duration=30 and wake=true (switches a dark screen on; alerts do that by default).' },
+  { group: 'notify', key: 'ntfyTopicUrl', label: 'ntfy topic (optional)', type: 'text', default: '', secret: true, placeholder: 'https://ntfy.sh/my-mirror-x7k2',
+    help: 'Every message to this ntfy topic appears on the mirror – handy from scripts, Home Assistant or the ntfy app. Priority 4 = warning, 5 = alert. Use a long, random topic name on ntfy.sh (anyone who knows it can send).' },
+  { group: 'notify', key: 'ntfyToken', label: 'ntfy access token (only for protected topics)', type: 'text', default: '', secret: true },
   { group: 'backup', key: 'backupEnabled', label: 'Back up automatically every night', type: 'bool', default: false,
     help: 'Saves the configuration, its history, the accounts and the module data as an archive (the last ones are kept on the Pi and can be downloaded under Import / Export). It contains your tokens and passwords – keep copies in a safe place.' },
   { group: 'backup', key: 'backupTime', label: 'Time', type: 'text', default: '03:30', placeholder: '03:30', showIf: { backupEnabled: true },

@@ -5,6 +5,7 @@ import { scheduleActive, activePages, onDisplay } from '/shared/schedule.js';
 import { displayState } from '/shared/night.js';
 import { moduleHasContent } from '/shared/conditions.js';
 import { setAmbient } from './ambient.js';
+import { icons, calIcons } from './icons.js';
 
 const params = new URLSearchParams(location.search);
 const pinnedPage = params.get('page');
@@ -582,6 +583,7 @@ function connectEvents() {
     serverVersion = version;
   });
   es.addEventListener('reload', () => location.reload());
+  es.addEventListener('notify', (e) => showNote(JSON.parse(e.data)));
   es.addEventListener('display', (e) => {
     const d = JSON.parse(e.data);
     // remote control and presence switch at once; ambient light fades slowly
@@ -621,6 +623,40 @@ function connectEvents() {
     showPage(i);
   });
   es.onopen = () => (statusEl.hidden = true);
+}
+
+// ---- notifications (control API, ntfy) -------------------------------------------------
+// One card at a time on top of everything (also above the night dimming), queued.
+const noteBox = document.createElement('div');
+noteBox.id = 'notify';
+noteBox.setAttribute('role', 'status');
+document.body.append(noteBox);
+const notes = [];
+const NOTE_ICONS = { info: 'bell', success: 'check', warn: 'warning', alert: 'warning' };
+const ALIASES = { package: 'cart', door: 'home', washing_machine: 'check', fire: 'warning', rain: 'rain', car: 'car' };
+function showNote(n) {
+  if (preview) return;
+  notes.push(n);
+  if (notes.length === 1) nextNote();
+}
+function nextNote() {
+  const n = notes[0];
+  if (!n) return;
+  const key = ALIASES[n.icon] || n.icon;
+  const pick = (k) => icons[k] || calIcons[k];
+  const icon = pick(key) || pick(NOTE_ICONS[n.level]) || calIcons.bell;
+  noteBox.className = `level-${n.level}`;
+  noteBox.style.setProperty('--note-duration', `${n.duration}s`);
+  noteBox.innerHTML = `<span class="note-icon">${icon}</span><div class="note-text">${n.title ? `<div class="note-title">${esc(n.title)}</div>` : ''}${n.message ? `<div class="note-msg">${esc(n.message)}</div>` : ''}</div><span class="note-bar"></span>`;
+  void noteBox.offsetWidth;
+  noteBox.classList.add('show');
+  setTimeout(() => {
+    noteBox.classList.remove('show');
+    setTimeout(() => {
+      notes.shift();
+      nextNote();
+    }, 500);
+  }, n.duration * 1000);
 }
 
 // ---- manual navigation (keyboard, touch) ----------------------------------------------

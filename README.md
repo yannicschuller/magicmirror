@@ -164,6 +164,7 @@ Create a token in the admin under *General → System → Token for the control 
 | `/api/control/screen/auto` | Back to the normal schedule (night mode) |
 | `/api/control/page/next` · `/page/prev` · `/page/<page name>` | Change pages on all mirrors |
 | `/api/control/page/hold?minutes=30` · `/page/resume` | Pause / resume the page rotation |
+| `/api/control/notify?title=…&message=…` | Show a notification card – optional `level=info\|success\|warn\|alert`, `duration=30`, `wake=true` (switches a dark screen on; alerts do that by default), `icon=package` |
 | `/api/control/reload` | Reload all mirrors |
 | `/api/control/power/shutdown` · `/power/reboot` | Shut down / restart the Raspberry Pi (needs the updater) |
 | `/api/control/status` | Current screen state, connected mirrors, pages |
@@ -173,6 +174,8 @@ Send the token as the header `Authorization: Bearer <token>`, or for tools witho
 - **Homey:** Flow → *Then* → *Make an HTTP request* (Homey Pro, or the "HTTP request flow cards" app): `GET http://<mirror>:8080/api/control/screen/off` with the header above.
 - **Apple Shortcuts:** *Get contents of URL* → URL `http://<mirror>:8080/api/control/screen/off`, method GET, header `Authorization` = `Bearer <token>`.
 - **Home Assistant:** a `rest_command` with the same URL and header.
+
+**Notifications via ntfy:** under *General → Notifications* you can also enter an [ntfy](https://ntfy.sh) topic – every message sent to it appears on the mirror (priority 4 = warning, 5 = alert).
 
 **Switching the Pi on and off:** under *General → System* the Pi can also shut down or restart daily at a set time. A Raspberry Pi cannot switch itself back on, though – it starts when its power returns. For a timed start, combine the shutdown with a smart plug (Homey: shut down via the API, switch the plug off a few minutes later and on again in the morning). Usually *screen off* is the better choice: the mirror pauses all updates and is back at once.
 
