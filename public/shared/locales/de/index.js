@@ -15,6 +15,7 @@ import calendar from './modules/calendar.js';
 import countdown from './modules/countdown.js';
 import parcels from './modules/parcels.js';
 import airpollen from './modules/airpollen.js';
+import energy from './modules/energy.js';
 import bikes from './modules/bikes.js';
 import nightsky from './modules/nightsky.js';
 import pistatus from './modules/pistatus.js';
@@ -26,4 +27,4 @@ import layout from './layout.js';
 import wasteService from './waste-service.js';
 
 // Module dictionaries first, so the core wording wins on duplicates.
-export default { ...github, ...countdown, ...parcels, ...airpollen, ...bikes, ...nightsky, ...pistatus, ...network, ...news, ...homeassistant, ...tasks, ...fuel, ...sky, ...football, ...calendar, ...flights, ...transitClock, ...layout, ...wasteService, ...f1, ...schema, ...mirror, ...server, ...admin, ...auth };
+export default { ...github, ...countdown, ...parcels, ...airpollen, ...energy, ...bikes, ...nightsky, ...pistatus, ...network, ...news, ...homeassistant, ...tasks, ...fuel, ...sky, ...football, ...calendar, ...flights, ...transitClock, ...layout, ...wasteService, ...f1, ...schema, ...mirror, ...server, ...admin, ...auth };

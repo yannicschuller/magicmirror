@@ -33,6 +33,7 @@ import { calendar } from './providers/calendar.js';
 import { provider as countdown } from './providers/countdown.js';
 import { provider as parcels } from './providers/parcels.js';
 import { provider as airpollen } from './providers/airpollen.js';
+import { provider as energy } from './providers/energy.js';
 import { provider as bikes } from './providers/bikes.js';
 import { provider as nightsky } from './providers/nightsky.js';
 import { provider as pistatus } from './providers/pistatus.js';
@@ -57,6 +58,7 @@ const providers = {
   countdown,
   parcels,
   airpollen,
+  energy,
   bikes,
   nightsky,
   pistatus,

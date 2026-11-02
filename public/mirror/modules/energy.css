@@ -1,0 +1,25 @@
+/* ---- electricity ---- */
+.mod-energy { --en-cheap: #4ade80; --en-normal: var(--fg, #fff); --en-expensive: #f87171; }
+.mod-energy .en-now { display: flex; align-items: baseline; gap: .35em; }
+.mod-energy .en-price { font-size: 2.2em; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+.mod-energy .en-unit { font-size: .8em; color: var(--dim); }
+.mod-energy .en-level { margin-left: .4em; font-size: .7em; text-transform: uppercase; letter-spacing: .08em; padding: .1em .55em; border-radius: 1em; border: 1px solid currentColor; }
+.mod-energy .en-now.lv-cheap .en-level, .mod-energy .en-now.lv-cheap .en-price { color: var(--en-cheap); }
+.mod-energy .en-now.lv-expensive .en-level, .mod-energy .en-now.lv-expensive .en-price { color: var(--en-expensive); }
+.mod-energy .en-now.lv-normal .en-level { color: var(--dim); }
+.mod-energy .en-sub { font-size: .72em; margin-top: .25em; }
+.mod-energy .en-window { font-size: .85em; margin-top: .45em; display: flex; align-items: center; gap: .35em; flex-wrap: wrap; }
+.mod-energy .en-ico { display: inline-flex; width: 1em; height: 1em; color: var(--en-cheap); flex: none; }
+.mod-energy .en-ico svg, .mod-energy .en-ico .ico { width: 100%; height: 100%; }
+.mod-energy .en-chart { display: block; width: 100%; height: 3.6em; margin-top: .6em; overflow: visible; }
+.mod-energy .en-chart rect { fill: color-mix(in srgb, var(--en-normal) 55%, transparent); }
+.mod-energy .en-chart rect.lv-cheap { fill: var(--en-cheap); }
+.mod-energy .en-chart rect.lv-expensive { fill: var(--en-expensive); }
+.mod-energy .en-chart rect.past { opacity: .3; }
+.mod-energy .en-chart rect.now { stroke: var(--fg, #fff); stroke-width: .4; vector-effect: non-scaling-stroke; }
+.mod-energy .en-ticks { position: relative; height: 1.1em; font-size: .62em; color: var(--dim); }
+.mod-energy .en-ticks span { position: absolute; top: .15em; transform: translateX(-50%); }
+.mod-energy .en-chart line.midnight { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; }
+.mod-energy .en-home { display: flex; flex-wrap: wrap; gap: .3em 1em; margin-top: .55em; font-size: .8em; }
+.mod-energy .en-home-item { display: inline-flex; align-items: center; gap: .3em; }
+.mod-energy .en-home .en-ico { color: #fde047; }

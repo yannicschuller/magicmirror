@@ -15,6 +15,10 @@ export const CONDITIONS = {
     label: 'Only show when a parcel is on its way',
     test: (d) => (d.parcels || []).some((p) => p.status !== 'delivered'),
   },
+  energy: {
+    label: 'Only show when electricity is cheap right now',
+    test: (d) => d.current?.level === 'cheap',
+  },
   airpollen: {
     label: 'Only show when pollen reaches the threshold or air quality is moderate or worse',
     test: (d) => !!(d.pollenAlert || d.airAlert),

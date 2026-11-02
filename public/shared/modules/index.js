@@ -15,5 +15,6 @@ import nightsky from './nightsky.js';
 import pistatus from './pistatus.js';
 import network from './network.js';
 import github from './github.js';
+import energy from './energy.js';
 
-export default [news, homeassistant, tasks, fuel, sky, football, calendar, countdown, parcels, airpollen, bikes, nightsky, pistatus, network, github];
+export default [news, homeassistant, tasks, fuel, sky, football, calendar, countdown, parcels, airpollen, bikes, nightsky, pistatus, network, github, energy];
