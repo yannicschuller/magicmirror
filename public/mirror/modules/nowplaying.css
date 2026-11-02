@@ -1,0 +1,13 @@
+/* ---- now playing ---- */
+.mod-nowplaying .np { display: flex; align-items: center; gap: .8em; }
+.mod-nowplaying .np-cover { flex: none; width: 4.2em; height: 4.2em; border-radius: .35em; object-fit: cover; background: rgba(255, 255, 255, .06); }
+.mod-nowplaying .np-placeholder { display: grid; place-items: center; color: var(--dim); }
+.mod-nowplaying .np-placeholder svg, .mod-nowplaying .np-placeholder .ico { width: 45%; height: 45%; }
+.mod-nowplaying .np-text { min-width: 0; flex: 1; }
+.mod-nowplaying .np-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mod-nowplaying .np-artist { font-size: .8em; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mod-nowplaying .np-bar { margin-top: .5em; height: .22em; border-radius: 1em; background: rgba(255, 255, 255, .15); overflow: hidden; }
+.mod-nowplaying .np-bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; transition: width 1s linear; }
+.mod-nowplaying .np-time, .mod-nowplaying .np-state { margin-top: .25em; font-size: .62em; color: var(--dim); font-variant-numeric: tabular-nums; }
+.mod-nowplaying .np.paused .np-cover { opacity: .5; }
+body.eco .mod-nowplaying .np-bar i { transition: none; }

@@ -1,4 +1,5 @@
 import { ShortcutSetupField } from '@/components/shortcut-setup-field';
+import { SpotifyConnectField } from '@/components/spotify-connect-field';
 import { useEffect, useId, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ChevronRight, Loader2, MapPin, Plus, Search, TramFront, X } from 'lucide-react';
 import { cn } from 'cn';
@@ -250,6 +251,18 @@ function FieldInput({ field, values, onChange }: { field: Field; values: Values;
       return (
         <FieldRow field={field} wide>
           <TransitStopField value={v} values={values} onValue={set} />
+        </FieldRow>
+      );
+    case 'spotifyConnect':
+      return (
+        <FieldRow field={field} wide>
+          <SpotifyConnectField
+            values={values}
+            onSet={(key, val) => {
+              values[key] = val;
+              onChange();
+            }}
+          />
         </FieldRow>
       );
     case 'shortcutSetup':

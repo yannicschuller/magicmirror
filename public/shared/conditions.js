@@ -15,6 +15,10 @@ export const CONDITIONS = {
     label: 'Only show when a parcel is on its way',
     test: (d) => (d.parcels || []).some((p) => p.status !== 'delivered'),
   },
+  nowplaying: {
+    label: 'Only show while music is playing',
+    test: (d) => !!d.item?.playing,
+  },
   energy: {
     label: 'Only show when electricity is cheap right now',
     test: (d) => d.current?.level === 'cheap',

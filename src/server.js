@@ -34,6 +34,7 @@ import { provider as countdown } from './providers/countdown.js';
 import { provider as parcels } from './providers/parcels.js';
 import { provider as airpollen } from './providers/airpollen.js';
 import { provider as energy } from './providers/energy.js';
+import { provider as nowplaying, coverFor, spotifyStart, spotifyFinish } from './providers/nowplaying.js';
 import { provider as bikes } from './providers/bikes.js';
 import { provider as nightsky } from './providers/nightsky.js';
 import { provider as pistatus } from './providers/pistatus.js';
@@ -59,6 +60,7 @@ const providers = {
   parcels,
   airpollen,
   energy,
+  nowplaying,
   bikes,
   nightsky,
   pistatus,
@@ -142,6 +144,20 @@ app.get('/api/module/:id/data', async (req, res) => {
     const last = lastGood(mod.id, key);
     if (last) return res.set('Cache-Control', 'no-store').json({ ok: true, stale: true, error: err.message, fetchedAt: new Date(last.at).toISOString(), data: last.data });
     res.status(502).json({ ok: false, error: err.message });
+  }
+});
+
+// Now playing: Home Assistant covers need its token – only the module's current cover is served.
+app.get('/api/module/:id/cover', async (req, res) => {
+  const c = coverFor(req.params.id);
+  if (!c) return res.status(404).end();
+  try {
+    const r = await fetch(c.url, { headers: c.headers, signal: AbortSignal.timeout(10000) });
+    if (!r.ok) return res.status(502).end();
+    res.set('Content-Type', r.headers.get('content-type') || 'image/jpeg').set('Cache-Control', 'public, max-age=86400');
+    res.send(Buffer.from(await r.arrayBuffer()));
+  } catch {
+    res.status(502).end();
   }
 });
 
@@ -253,6 +269,19 @@ admin.post('/preview-data', async (req, res) => {
 });
 
 admin.get('/health', (req, res) => res.json(healthReport(getConfig())));
+// Spotify "Connect" (PKCE): sign-in link, then the pasted redirect address → refresh token.
+admin.post('/spotify/start', (req, res) => {
+  const clientId = String(req.body?.clientId || '').trim();
+  if (!/^[0-9a-f]{32}$/i.test(clientId)) return res.status(400).json({ error: 'Spotify: enter the client ID first' });
+  res.json({ url: spotifyStart(clientId) });
+});
+admin.post('/spotify/finish', async (req, res) => {
+  try {
+    res.json({ refreshToken: await spotifyFinish(req.body?.url) });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 admin.get('/display', (req, res) => res.json(getDisplay(getConfig())));
 admin.post('/display', (req, res) => {
   const { mode = null, minutes = 0 } = req.body || {};
