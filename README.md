@@ -135,6 +135,16 @@ All of it runs on a Pi 3. The server needs about 60 MB of RAM; the default kiosk
 
 When the internet or a data source is down, the mirror keeps showing each module's last good data with a small note such as *⟲ As of 14:32* (from 10 minutes without fresh data). The server keeps that data in `data/lastgood.json` (written at most every 15 minutes and on shutdown), so this also works right after a reboot without internet. Data older than 48 hours, or data from before a module's settings were changed, is not shown.
 
+## Backups
+
+Under *General → Backup* the mirror backs up its data directory every night (configuration, history, accounts, module data) as `data/backups/magicmirror-<date>.tar.gz` and keeps the last ones (default 7). *Import / Export → Backups* lists them – **back up now**, **download**, or **restore** a configuration (the current state stays in the history). Optional extra copies:
+
+- **USB stick** on the Pi – a stick named `MMBACKUP`, otherwise the first USB stick; folder `magicmirror-backups`.
+- **Network share (SMB / NAS)** – e.g. `//nas.local/backup/magicmirror` with user name and password.
+- **WebDAV / Nextcloud** – folder URL (Nextcloud: `https://<cloud>/remote.php/dav/files/<user>/Backups/magicmirror`) with an app password.
+
+USB and SMB copies are made by the updater (profile `autoupdate`), which may mount drives. Backups contain your tokens and passwords – keep them somewhere safe. For a full restore on a new device, unpack an archive into `data/` before the first start.
+
 ## Control API (Homey, Shortcuts, Home Assistant)
 
 Create a token in the admin under *General → System → Token for the control API*. Then any automation can send simple HTTP requests (GET or POST) to the mirror:

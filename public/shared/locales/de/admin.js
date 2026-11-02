@@ -111,6 +111,7 @@ export default {
   "No location set": "Kein Standort gesetzt",
   "No mirror is connected right now.": "Gerade ist kein Spiegel verbunden.",
   "No stop selected": "Keine Haltestelle gewählt",
+  "no USB stick found": "kein USB-Stick gefunden",
   "none": "keiner",
   "Not a valid Magic Mirror configuration": "Keine gültige Magic-Mirror-Konfiguration",
   "Not checked yet.": "Noch nicht geprüft.",
@@ -184,6 +185,7 @@ export default {
   "The update runs in the background – you can keep working. The mirror restarts for a moment, then this page switches to the new version by itself.": "Das Update läuft im Hintergrund – du kannst weiterarbeiten. Der Spiegel startet kurz neu, danach wechselt diese Seite von selbst auf die neue Version.",
   "The updater is not enabled. Add \"autoupdate\" to COMPOSE_PROFILES in .env (UPDATE_TIME=off for manual updates only), then run:": "Der Updater ist nicht aktiv. Ergänze „autoupdate“ bei COMPOSE_PROFILES in der .env (UPDATE_TIME=off für nur manuelle Updates) und führe dann aus:",
   "The updater is not reachable": "Der Updater ist nicht erreichbar",
+  "The updater is not reachable (profile \"autoupdate\")": "Der Updater ist nicht erreichbar (Profil „autoupdate“)",
   "These are recommendations only – all settings stay under your control. Try what works best on your device.": "Das sind nur Empfehlungen – alle Einstellungen bleiben in deiner Hand. Probiere aus, was auf deinem Gerät am besten läuft.",
   "This state is identical to the saved state.": "Dieser Stand ist identisch mit dem gespeicherten Stand.",
   "Unknown device": "Unbekanntes Gerät",
@@ -201,4 +203,6 @@ export default {
   "Updating Magic Mirror …": "Magic Mirror wird aktualisiert …",
   "Uptime": "Laufzeit",
   "uses the saved state": "nutzt den gespeicherten Stand",
+  "WebDAV: invalid URL": "WebDAV: ungültige URL",
+  "WebDAV: wrong user name or password": "WebDAV: falscher Benutzername oder falsches Passwort",
 };

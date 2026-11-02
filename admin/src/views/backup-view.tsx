@@ -14,6 +14,7 @@ import type { Config, Module, Page } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 import { UpdateCard } from './update-card';
 import { HistoryCard } from './history-card';
+import { BackupsCard } from './backups-card';
 
 /** Renders the only markup our messages use (<b>…</b>) without innerHTML. */
 function Rich({ text }: { text: string }) {
@@ -29,6 +30,7 @@ export function BackupView() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <BackupCard />
+      <BackupsCard />
       <HistoryCard />
       <UpdateCard />
       <AccountCard />

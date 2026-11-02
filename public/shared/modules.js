@@ -427,6 +427,7 @@ export const GENERAL_GROUPS = [
   { id: 'pages', label: 'Page rotation' },
   { id: 'night', label: 'Night mode' },
   { id: 'system', label: 'System' },
+  { id: 'backup', label: 'Backup' },
 ];
 
 export const GENERAL_FIELDS = [
@@ -493,6 +494,23 @@ export const GENERAL_FIELDS = [
     help: 'Needs the updater (profile "autoupdate"). A Raspberry Pi cannot switch itself back on – it starts again when its power returns, e.g. with a smart plug that switches off a few minutes later and on again in the morning. Usually "screen off" in the night mode is the better choice: it saves almost as much and is back at once.' },
   { group: 'system', key: 'rebootAt', label: 'Restart the Raspberry Pi daily at (empty = never)', type: 'text', default: '', placeholder: '04:30',
     help: 'A daily restart keeps a small Pi fresh (memory, browser). Needs the updater.' },
+  { group: 'backup', key: 'backupEnabled', label: 'Back up automatically every night', type: 'bool', default: false,
+    help: 'Saves the configuration, its history, the accounts and the module data as an archive (the last ones are kept on the Pi and can be downloaded under Import / Export). It contains your tokens and passwords – keep copies in a safe place.' },
+  { group: 'backup', key: 'backupTime', label: 'Time', type: 'text', default: '03:30', placeholder: '03:30', showIf: { backupEnabled: true },
+    help: 'If the mirror was off at that time, the backup follows after the next start.' },
+  { group: 'backup', key: 'backupKeep', label: 'Number of backups to keep', type: 'number', default: 7, min: 1, max: 60 },
+  { group: 'backup', key: 'backupUsb', label: 'Also copy to a USB stick on the Pi', type: 'bool', default: false,
+    help: 'Uses a stick named "MMBACKUP" or else the first USB stick (FAT, exFAT or ext4) and saves into the folder "magicmirror-backups". Needs the updater (profile "autoupdate").' },
+  { group: 'backup', key: 'backupSmb', label: 'Also copy to a network share (SMB / NAS)', type: 'bool', default: false },
+  { group: 'backup', key: 'backupSmbShare', label: 'Share (//server/share/folder)', type: 'text', default: '', placeholder: '//nas.local/backup/magicmirror', showIf: { backupSmb: true },
+    help: 'Needs the updater (profile "autoupdate").' },
+  { group: 'backup', key: 'backupSmbUser', label: 'User name', type: 'text', default: '', showIf: { backupSmb: true } },
+  { group: 'backup', key: 'backupSmbPassword', label: 'Password', type: 'text', default: '', secret: true, showIf: { backupSmb: true } },
+  { group: 'backup', key: 'backupWebdav', label: 'Also upload via WebDAV (Nextcloud, …)', type: 'bool', default: false },
+  { group: 'backup', key: 'backupWebdavUrl', label: 'Folder URL', type: 'text', default: '', placeholder: 'https://cloud.example.com/remote.php/dav/files/<user>/Backups/magicmirror', showIf: { backupWebdav: true },
+    help: 'Nextcloud: Files → Settings (bottom left) shows the WebDAV address; append a folder. Use an app password (Settings → Security).' },
+  { group: 'backup', key: 'backupWebdavUser', label: 'User name', type: 'text', default: '', showIf: { backupWebdav: true } },
+  { group: 'backup', key: 'backupWebdavPassword', label: 'Password / app password', type: 'text', default: '', secret: true, showIf: { backupWebdav: true } },
   { group: 'system', key: 'controlToken', label: 'Token for the control API (Homey, Shortcuts, Home Assistant …)', type: 'text', default: '', secret: true, generate: true,
     help: 'Switch the screen, change pages or shut down via HTTP: <mirror address>/api/control/… with the header "Authorization: Bearer <this token>" (or ?token=… for tools without headers). Commands: screen/on, screen/off, screen/night, screen/auto (optionally ?minutes=60), page/next, page/prev, page/<page name>, page/hold, page/resume, reload, power/shutdown, power/reboot, status. Empty = API off. Changing the token locks out old automations.' },
 ];

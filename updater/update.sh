@@ -208,10 +208,51 @@ power() {
     && echo "{\"ok\":true,\"action\":\"$1\"}" || echo '{"ok":false,"error":"could not start the helper container"}'
 }
 
+# ---- backup copies (USB stick / SMB share) --------------------------------------------------
+# The server writes a job file into data/backups (credentials never travel in a URL); a
+# short-lived privileged helper mounts the target, copies the archive and keeps the newest N.
+backup_copy() {
+  job="/project/data/backups/.job-$1.json"
+  case "$1" in *[!a-f0-9]*|'') echo '{"ok":false,"error":"invalid job"}'; return 0 ;; esac
+  [ -f "$job" ] || { echo '{"ok":false,"error":"job not found"}'; return 0; }
+  target="$(jq -r '.target' "$job")"; file="$(jq -r '.file' "$job")"; keep="$(jq -r '.keep // 7' "$job")"
+  case "$file" in magicmirror-*.tar.gz) ;; *) echo '{"ok":false,"error":"invalid file"}'; return 0 ;; esac
+  image="$(inspect '{{.Config.Image}}')"
+  # shellcheck disable=SC2016 # expanded inside the helper
+  copy='mkdir -p "$DEST" && cp "/src/$FILE" "$DEST/" && (cd "$DEST" && ls -1 magicmirror-*.tar.gz | sort -r | tail -n +$((KEEP + 1)) | xargs -r rm -f) && sync'
+  if [ "$target" = usb ]; then
+    out="$(docker run --rm --privileged -v /dev:/dev -v "$HOST_DIR/data/backups:/src:ro" -e FILE="$file" -e KEEP="$keep" -e DEST=/mnt/usb/magicmirror-backups \
+      --entrypoint sh "$image" -c '
+        dev="$(blkid -L MMBACKUP 2>/dev/null || true)"
+        [ -n "$dev" ] || dev="$(for d in /dev/sd[a-z][0-9]; do [ -b "$d" ] && echo "$d" && break; done)"
+        [ -n "$dev" ] || { echo "no USB stick found"; exit 3; }
+        mkdir -p /mnt/usb && mount "$dev" /mnt/usb || { echo "could not mount $dev"; exit 4; }
+        '"$copy"'; rc=$?; umount /mnt/usb; exit $rc' 2>&1)" || { jq -n --arg e "USB: ${out:-failed}" '{ok: false, error: $e}'; return 0; }
+  elif [ "$target" = smb ]; then
+    share="$(jq -r '.share // ""' "$job")"
+    case "$share" in //*) ;; *) echo '{"ok":false,"error":"SMB: share must look like //server/share/folder"}'; return 0 ;; esac
+    # //server/share/sub/dir → mount //server/share, copy into sub/dir
+    root="$(echo "$share" | cut -d/ -f1-4)"; sub="$(echo "$share" | cut -d/ -f5-)"
+    # the helper's mounts are resolved on the host, so the file must live in the project dir
+    creds="$HOST_DIR/data/backups/.creds-$1"; (umask 077; : > "$creds")
+    printf 'username=%s\npassword=%s\n' "$(jq -r '.user // ""' "$job")" "$(jq -r '.password // ""' "$job")" > "$creds"
+    out="$(docker run --rm --privileged -v "$HOST_DIR/data/backups:/src:ro" -v "$creds:/creds:ro" -e FILE="$file" -e KEEP="$keep" -e DEST="/mnt/smb/$sub" -e ROOT="$root" \
+      --entrypoint sh "$image" -c '
+        mkdir -p /mnt/smb && mount -t cifs "$ROOT" /mnt/smb -o credentials=/creds,iocharset=utf8,vers=3.0 2>&1 || mount -t cifs "$ROOT" /mnt/smb -o credentials=/creds,iocharset=utf8 || { echo "could not connect to $ROOT"; exit 4; }
+        '"$copy"'; rc=$?; umount /mnt/smb; exit $rc' 2>&1)" && rc=0 || rc=$?
+    rm -f "$creds"
+    [ $rc -eq 0 ] || { jq -n --arg e "SMB: ${out:-failed}" '{ok: false, error: $e}'; return 0; }
+  else
+    echo '{"ok":false,"error":"unknown target"}'; return 0
+  fi
+  log "backup copied ($target): $file"
+  echo '{"ok":true}'
+}
+
 # ---- HTTP API (busybox httpd + CGI, only reachable inside the compose network) -------------
 serve() {
   mkdir -p /www/cgi-bin
-  for cmd in status check run power; do
+  for cmd in status check run power backup; do
     # CGI headers need CRLF line endings.
     printf '#!/bin/sh\nprintf "Content-Type: application/json\\r\\n\\r\\n"\nexec /usr/local/bin/mm-update --cgi-%s\n' "$cmd" > "/www/cgi-bin/$cmd"
     chmod 755 "/www/cgi-bin/$cmd"
@@ -227,6 +268,9 @@ case "${1:-}" in
   --cgi-status) status_json; exit 0 ;;
   --cgi-check) check; exit 0 ;;
   --power) power "${2:-}"; exit 0 ;;
+  --cgi-backup)
+    backup_copy "$(echo "${QUERY_STRING:-}" | sed -n 's/.*job=\([a-f0-9]*\).*/\1/p')"
+    exit 0 ;;
   --cgi-power)
     action="$(echo "${QUERY_STRING:-}" | sed -n 's/.*action=\([a-z]*\).*/\1/p')"
     power "$action" || true

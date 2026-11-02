@@ -12,6 +12,7 @@ import { rememberData, lastGood, flushLastGood } from './lastgood.js';
 import { createHash } from 'node:crypto';
 import { pushRouter } from './push.js';
 import { controlRouter, startPowerSchedule } from './control.js';
+import { runBackup, listBackups, backupStatus, readBackupConfig, startBackupSchedule, BACKUP_DIR, NAME_RE } from './backup.js';
 import { searchPlaces } from './providers/route.js';
 import { langOf } from '../public/shared/i18n.js';
 import { loadConfig, getConfig, saveConfig, onConfigChange, listHistory, readHistory, DEFAULT_LOCALE_ENV } from './config.js';
@@ -310,6 +311,21 @@ async function power(action) {
   return result;
 }
 startPowerSchedule(getConfig, power);
+startBackupSchedule(getConfig, updater);
+
+admin.get('/backups', async (req, res) => res.json({ list: await listBackups(), status: await backupStatus() }));
+admin.post('/backups/run', async (req, res) => res.json(await runBackup(getConfig, updater)));
+admin.get('/backups/:name', (req, res) => {
+  if (!NAME_RE.test(req.params.name)) return res.status(404).json({ error: 'Not found' });
+  res.download(path.join(BACKUP_DIR, req.params.name), req.params.name, (err) => err && !res.headersSent && res.status(404).json({ error: 'Not found' }));
+});
+admin.post('/backups/:name/restore', async (req, res) => {
+  try {
+    res.json(await saveConfig(await readBackupConfig(req.params.name)));
+  } catch (err) {
+    res.status(400).json({ error: `Restore failed: ${err.message}` });
+  }
+});
 
 // Token-authenticated control API (Homey, Shortcuts, Home Assistant …).
 app.use('/api/control', controlRouter({ getConfig, getDisplay, setDisplayOverride, broadcast, clientCount, power }));
