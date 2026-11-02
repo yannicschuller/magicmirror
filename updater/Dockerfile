@@ -1,6 +1,6 @@
 # Auto-updater: pulls new images (and optionally the git checkout) on a schedule
 # and recreates the stack with docker compose.
-FROM docker:27-cli
+FROM docker:29-cli
 
 LABEL org.opencontainers.image.source=https://github.com/yannicschuller/magicmirror \
       org.opencontainers.image.description="Magic Mirror auto-updater" \
