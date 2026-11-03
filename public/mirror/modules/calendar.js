@@ -230,7 +230,7 @@ export default function render(el, mod, ctx) {
     const foot = x.mode === 'foot';
     const km = x.distanceKm.toLocaleString(ctx.fmt.locale, { maximumFractionDigits: x.distanceKm < 10 ? 1 : 0 });
     const sub = t('{duration} ({km} km) to {place}', { duration: duration(x.durationMin * 60000), km, place: '\u0000' });
-    if (x.mode === 'car') note.push(t('without live traffic'));
+    if (x.mode === 'car') note.push(!x.traffic ? t('without live traffic') : x.delayMin > 0 ? t('incl. {n} min traffic delay', { n: x.delayMin }) : t('traffic flowing freely'));
     return head(x.mode === 'car' ? calIcons.car : MODE_ICONS[x.mode] || calIcons.car, foot ? 'Start walking at {time}' : 'Leave at {time}', ctx.fmt.time(leave), countdown(x, now, t(foot ? 'Leave now on foot!' : 'Leave now!')))
       + `<div class="cal-tv-sub">${toTitle(sub, x.title)}</div>`
       + `<div class="cal-tv-note">${note.filter(Boolean).map(esc).join(' · ')}</div>`;

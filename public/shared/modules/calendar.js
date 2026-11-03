@@ -139,6 +139,8 @@ export default {
       { value: 'transit', label: 'Bus & train' },
       { value: 'auto', label: 'Automatic (public transport nearby, otherwise car)' },
     ] },
+    { key: 'travelTrafficKey', label: 'Live traffic for car trips: TomTom API key (optional)', type: 'text', default: '', secret: true, showIf: { travelCard: true },
+      help: 'Free at developer.tomtom.com (2,500 requests a day – the mirror needs only a few). With it, the car travel time includes current traffic and jams; without it, routes come from OSRM without traffic.' },
     { key: 'travelTransitRadiusKm', label: 'Automatic: public transport up to (km from the start)', type: 'number', default: 15, min: 1, max: 100, showIf: { travelCard: true, travelMode: 'auto' } },
     lazyOptions({ key: 'travelTransitNetwork', label: 'Public transport network', type: 'select', default: '', showIf: { travelCard: true },
       help: 'Used for "Bus & train" and "Automatic": connections (EFA) arriving in time, with the latest departure. Without a departures module VVS is used. If no connection is found, the card falls back to walking or driving.' },

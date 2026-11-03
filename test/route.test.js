@@ -157,6 +157,32 @@ test('computeTravel: routes only events inside the window', async () => {
   assert.equal(net.calls.length, before, 'no Nominatim (cached) and no OSRM call');
 });
 
+test('computeTravel: car with a TomTom key uses live traffic, OSRM as fallback', async () => {
+  const tomtom = { routes: [{ summary: { travelTimeInSeconds: 1980, lengthInMeters: 18300, trafficDelayInSeconds: 540 }, legs: [{ points: [{ latitude: 51.3455, longitude: 12.382 }, { latitude: 51.338, longitude: 12.379 }] }] }] };
+  let tomtomUp = true;
+  const net = fakeNet({ osrm: (url) => {
+    if (url.includes('api.tomtom.com')) {
+      assert.match(url, /traffic=true/);
+      if (!tomtomUp) throw new Error('HTTP 403 key=secret');
+      return tomtom;
+    }
+    return osrmFixture();
+  } });
+  const now = new Date(net.now());
+  const at = (min) => new Date(now.getTime() + min * 60000).toISOString();
+  const s = defaults({ travelCard: true, travelTrafficKey: 'k1' });
+  const t = await computeTravel([{ title: 'Termin', location: 'Augustusplatz 9, Leipzig', start: at(45) }], s, HBF, { now });
+  assert.equal(t.durationMin, 33, 'with traffic');
+  assert.equal(t.delayMin, 9);
+  assert.equal(t.traffic, true);
+  assert.equal(t.leaveAt, at(45 - 33 - 5));
+  tomtomUp = false;
+  net.advance(6 * 60000); // past the 5-minute traffic cache
+  const t2 = await computeTravel([{ title: 'Termin', location: 'Augustusplatz 9, Leipzig', start: at(50) }], s, HBF, { now: new Date(net.now()) });
+  assert.equal(t2.durationMin, 21, 'OSRM when TomTom fails');
+  assert.equal(t2.traffic, undefined);
+});
+
 test('computeTravel: geocoding failure → no card', async () => {
   fakeNet({ geo: () => [] });
   const now = new Date('2026-10-27T12:00:00Z');

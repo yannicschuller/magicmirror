@@ -200,6 +200,38 @@ export async function route(from, to, mode = 'car') {
   }
 }
 
+// Car route with live traffic (TomTom Routing API, free key: 2,500 requests a day). arriveAt
+// lets TomTom use the expected traffic at that time. Cached 5 minutes – traffic changes.
+export function parseTomTom(json) {
+  const r = json?.routes?.[0];
+  const sum = r?.summary;
+  if (!sum || !Number.isFinite(sum.travelTimeInSeconds)) return null;
+  const points = (r.legs || []).flatMap((l) => l.points || []).map((p) => [Math.round(p.latitude * 1e5) / 1e5, Math.round(p.longitude * 1e5) / 1e5]);
+  return {
+    durationMin: Math.max(1, Math.round(sum.travelTimeInSeconds / 60)),
+    distanceKm: Math.round(sum.lengthInMeters / 100) / 10,
+    delayMin: Math.max(0, Math.round((sum.trafficDelayInSeconds || 0) / 60)),
+    geometry: thin(points),
+    traffic: true,
+  };
+}
+
+export async function trafficRoute(from, to, key, arriveAt) {
+  const slot = arriveAt ? Math.round(arriveAt / (5 * 60000)) : 0;
+  const cacheKey = `tt|${pt(from)}|${pt(to)}|${slot}`;
+  const hit = recall(routeCache, cacheKey);
+  if (hit !== undefined) return hit;
+  try {
+    const q = new URLSearchParams({ key, traffic: 'true', travelMode: 'car', routeRepresentation: 'polyline' });
+    if (arriveAt && arriveAt > deps.now() + 10 * 60000) q.set('arriveAt', new Date(arriveAt).toISOString().replace(/\.\d+Z$/, 'Z'));
+    const url = `https://api.tomtom.com/routing/1/calculateRoute/${from.lat.toFixed(5)},${from.lon.toFixed(5)}:${to.lat.toFixed(5)},${to.lon.toFixed(5)}/json?${q}`;
+    return remember(routeCache, cacheKey, parseTomTom(await deps.fetchJson(url, { timeout: 15000 })), 5 * 60 * 1000);
+  } catch (err) {
+    logOnce('tomtom', `traffic routing failed (${err.message.replace(/key=[^&\s]+/, 'key=…')}) – using OSRM without traffic`);
+    return remember(routeCache, cacheKey, null, 5 * 60 * 1000);
+  }
+}
+
 // ---- window logic --------------------------------------------------------------------------
 
 // Timed, upcoming events with a real place, early enough to possibly need the card:
@@ -282,7 +314,8 @@ export async function computeTravel(events, s, from, { now = new Date(deps.now()
     // Cheap pre-check: too early even for a slow trip → no routing call yet.
     const maxDuration = Math.min(MAX_HOURS * 60, (km / MIN_SPEED[mode]) * 60 + 10);
     if (!inTravelWindow(now, e.start, leaveAtMs(e.start, maxDuration, buffer), lead)) continue;
-    const r = await route(from, to, mode);
+    const key = String(s.travelTrafficKey || '').trim();
+    const r = (mode === 'car' && key ? await trafficRoute(from, to, key, new Date(e.start).getTime() - buffer * 60000) : null) || (await route(from, to, mode));
     if (!r) continue;
     const leave = leaveAtMs(e.start, r.durationMin, buffer);
     if (!inTravelWindow(now, e.start, leave, lead)) continue;
@@ -293,6 +326,7 @@ export async function computeTravel(events, s, from, { now = new Date(deps.now()
       distanceKm: r.distanceKm,
       leaveAt: new Date(leave).toISOString(),
       geometry: r.geometry,
+      ...(r.traffic ? { traffic: true, delayMin: r.delayMin } : {}),
     };
   }
   return null;
