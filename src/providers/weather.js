@@ -13,6 +13,9 @@ async function openMeteo(loc, timezone, units = 'metric') {
     current: 'temperature_2m,apparent_temperature,relative_humidity_2m,is_day,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,uv_index,pressure_msl,cloud_cover,visibility,dew_point_2m',
     hourly: 'temperature_2m,precipitation_probability,precipitation,weather_code,uv_index,wind_gusts_10m,is_day',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max,sunrise,sunset,sunshine_duration',
+    // rain in the next 2 hours (15-minute steps)
+    minutely_15: 'precipitation',
+    forecast_minutely_15: '12',
   });
   if (units === 'imperial') {
     params.set('temperature_unit', 'fahrenheit');
@@ -22,6 +25,16 @@ async function openMeteo(loc, timezone, units = 'metric') {
   return cached(`openmeteo:${lat}:${lon}:${timezone}:${units}`, 600, () =>
     fetchJson(`https://api.open-meteo.com/v1/forecast?${params}`),
   );
+}
+
+// The next 8 quarter hours (2 h) from the current one; precipitation in mm (or inch).
+export function nowcastSteps(raw) {
+  const m = raw.minutely_15;
+  if (!m?.time?.length) return null;
+  const now = raw.current?.time || '';
+  let i = m.time.findIndex((t) => t > now);
+  i = i <= 0 ? 0 : i - 1; // the quarter hour we are in
+  return m.time.slice(i, i + 8).map((time, j) => ({ time, mm: m.precipitation[i + j] ?? 0 }));
 }
 
 function hourlyFromNow(raw) {
@@ -115,6 +128,7 @@ export async function weather(settings, cfg) {
       precip: c.precipitation ?? null,
     },
     hourly: hourlyFromNow(raw).slice(0, 48),
+    nowcast: nowcastSteps(raw),
     daily: d.time.map((date, i) => ({
       date,
       code: d.weather_code[i],

@@ -201,3 +201,17 @@ test('scales', () => {
   assert.equal(tempColor(0), 'rgb(125,211,252)');
   assert.match(tempColor(20), /^rgb\(\d+,\d+,\d+\)$/);
 });
+
+test('rain in the next 2 hours: starts / stops / continues / none', async () => {
+  const { rainSummary } = await import('../public/shared/nowcast.js');
+  const { nowcastSteps } = await import('../src/providers/weather.js');
+  const q = (mm) => mm.map((v, i) => ({ time: `2026-11-03T15:${String(i * 15 % 60).padStart(2, '0')}`, mm: v }));
+  assert.deepEqual(rainSummary(q([0, 0, 0.3, 0.4, 0, 0, 0, 0])), { kind: 'starts', at: '2026-11-03T15:30', intensity: 'light', peak: 0.4 });
+  assert.equal(rainSummary(q([1, 2.5, 0, 0])).kind, 'stops');
+  assert.equal(rainSummary(q([1, 2.5, 3, 2])).intensity, 'heavy');
+  assert.equal(rainSummary(q([1, 1, 1, 1])).kind, 'continues');
+  assert.equal(rainSummary(q([0, 0.05, 0, 0])).kind, 'none');
+  assert.equal(rainSummary(null).kind, 'none');
+  const raw = { current: { time: '2026-11-03T15:30' }, minutely_15: { time: ['2026-11-03T15:15', '2026-11-03T15:30', '2026-11-03T15:45'], precipitation: [0, 0.2, 0.5] } };
+  assert.deepEqual(nowcastSteps(raw).map((s) => s.mm), [0.2, 0.5], 'starts with the current quarter hour');
+});

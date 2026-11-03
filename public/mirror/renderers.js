@@ -6,6 +6,7 @@ import { flights } from './flights.js';
 import { f1 } from './f1.js';
 import { goStatus, nextReachable } from './transit-go.js';
 import { wordClock, GRIDS, litCells } from './word-clock.js';
+import { rainSummary, WET_MM } from '/shared/nowcast.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 // Set by makeFmt() – the mirror renders one configuration at a time.
@@ -326,12 +327,31 @@ const weather = (el, mod, ctx) => {
       .join('')}</table>`;
   }
 
+  // "Rain from 15:45" with 8 small bars for the next two hours.
+  function rainSoon(d) {
+    const r = rainSummary(d.nowcast);
+    if (r.kind === 'none' && !s.nowcastDry) return '';
+    if (r.kind === 'none' && !d.nowcast) return '';
+    const at = r.at ? ctx.fmt.localHour(r.at) : '';
+    const strength = r.intensity && r.intensity !== 'light' ? ` (${t(r.intensity === 'heavy' ? 'heavy' : 'moderate')})` : '';
+    const text = {
+      none: t('No rain in the next 2 hours'),
+      starts: t('Rain from {time}', { time: at }) + strength,
+      stops: t('Rain stops around {time}', { time: at }),
+      continues: t('Rain for the next 2 hours') + strength,
+    }[r.kind];
+    const max = Math.max(r.peak || 0, 1);
+    const bars = r.kind === 'none' ? '' : `<span class="w-rain-bars">${d.nowcast.map((x) => `<i style="height:${Math.max(6, Math.min(100, (x.mm / max) * 100)).toFixed(0)}%"${x.mm >= WET_MM ? ' class="wet"' : ''}></i>`).join('')}</span>`;
+    return `<div class="w-rain kind-${r.kind}"><span class="w-rain-ico">${icons.umbrella}</span><span class="w-rain-text">${esc(text)}</span>${bars}</div>`;
+  }
+
   return {
     update(d) {
       const kind = anim === 'full' && s.animatedBackground ? bgKind(d.current.code) : null;
       let html = `<div class="weather layout-${compact ? 'compact' : 'detailed'} anim-${anim}">`;
       if (kind) html += `<div class="w-bg w-bg-${kind}"><i></i></div>`;
       if (s.showCurrent) html += current(d);
+      if (s.nowcast !== false) html += rainSoon(d);
       if (s.showHourly) html += hourly(d);
       if (s.forecastDays > 0) html += daily(d);
       el.innerHTML = html + '</div>';

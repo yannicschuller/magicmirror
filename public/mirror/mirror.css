@@ -170,6 +170,15 @@ td:last-child { padding-right: 0; }
 .w-temp sup { font-size: .45em; vertical-align: top; position: relative; top: .25em; color: var(--dim); }
 .w-desc { font-size: 1.15em; margin-top: .1em; }
 .w-details, .w-sun { margin-top: .25em; }
+/* rain in the next 2 hours */
+.w-rain { display: flex; align-items: center; gap: .45em; margin-top: .45em; font-size: .85em; }
+.w-rain-ico { display: inline-flex; width: 1.1em; height: 1.1em; color: var(--accent); flex: none; }
+.w-rain-ico svg, .w-rain-ico .ico { width: 100%; height: 100%; }
+.w-rain.kind-none { color: var(--dim); }
+.w-rain.kind-none .w-rain-ico { color: var(--dim); }
+.w-rain-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 1em; margin-left: .2em; }
+.w-rain-bars i { width: .32em; background: rgba(255, 255, 255, .2); border-radius: 1px; }
+.w-rain-bars i.wet { background: var(--accent); }
 .w-hourly { display: flex; gap: 1.1em; margin-top: .9em; justify-content: inherit; }
 .region[data-region$='right'] .w-hourly { justify-content: flex-end; }
 .region[data-region$='center'] .w-hourly { justify-content: center; }
