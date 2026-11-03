@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { provider, todoistTasks, haTasks, caldavTasks, parseVtodos, extractCalendarData, normalizeDue, sortItems, isOverdue, zonedToIso, filterDue } from '../src/providers/tasks.js';
+import { completeTask, completeVtodo, provider, todoistTasks, haTasks, caldavTasks, parseVtodos, extractCalendarData, normalizeDue, sortItems, isOverdue, zonedToIso, filterDue } from '../src/providers/tasks.js';
 import schema from '../public/shared/modules/tasks.js';
 import de from '../public/shared/locales/de/modules/tasks.js';
 import { applyDefaults } from '../public/shared/modules.js';
@@ -73,6 +73,7 @@ before(async () => {
       // ---- Todoist
       if (u.pathname.startsWith('/todoist/')) {
         if (req.headers.authorization !== 'Bearer tok') return json(401, {});
+        if (u.pathname === '/todoist/tasks/t1/close') return json(204, {});
         if (u.pathname === '/todoist/projects') return json(200, { results: [{ id: 'p1', name: 'Inbox' }, { id: 'p2', name: 'Einkauf' }], next_cursor: null });
         if (u.pathname === '/todoist/tasks/filter') {
           return json(200, { results: [
@@ -105,6 +106,8 @@ before(async () => {
           { summary: 'Alt', uid: 'd', status: 'completed' },
         ] } } });
       }
+      if (u.pathname === '/ha/api/services/todo/update_item') return json(200, []);
+      if (u.pathname === '/dav/tasks/1.ics' && req.method === 'PUT') { res.writeHead(204); return res.end(); }
       if (u.pathname === '/ha/api/shopping_list') return json(200, [{ name: 'Legacy', id: '1', complete: false }, { name: 'Gone', id: '2', complete: true }]);
 
       // ---- CalDAV
@@ -125,6 +128,8 @@ before(async () => {
 after(() => server.close());
 
 const last = (path) => seen.filter((r) => r.path === path).at(-1);
+// the ids used for ticking off are tested separately
+const noRef = (list) => list.map(({ ref, uid, ...x }) => x);
 
 test('schema: secrets and showIf', () => {
   const byKey = Object.fromEntries(schema.fields.map((f) => [f.key, f]));
@@ -183,7 +188,7 @@ test('todoist: paginated task list with bearer token', async () => {
   assert.equal(reqs[0].query.limit, '200');
   assert.equal(reqs[1].query.cursor, 'page2');
   assert.deepEqual(items.map((i) => i.title), ['Zahnarzt anrufen', 'Brot', 'Fixed tz']);
-  assert.deepEqual(items[0], { title: 'Zahnarzt anrufen', due: '2030-03-01T09:30:00.000Z', allDay: false, priority: 3 });
+  assert.deepEqual(noRef(items)[0], { title: 'Zahnarzt anrufen', due: '2030-03-01T09:30:00.000Z', allDay: false, priority: 3 });
   assert.equal(items[2].due, '2030-03-02T08:00:00.000Z');
   assert.equal(items[2].priority, 1);
   assert.equal(items[1].due, null);
@@ -196,7 +201,7 @@ test('todoist: project by name and filter query', async () => {
   const filtered = await todoistTasks(settings({ todoistToken: 'tok', todoistProject: 'p2', todoistFilter: 'today | overdue' }), TZ, `${base}/todoist`);
   assert.equal(last('/todoist/tasks/filter').query.query, 'today | overdue');
   assert.deepEqual(filtered.map((i) => i.title), ['Filtered A']);
-  assert.deepEqual(filtered[0], { title: 'Filtered A', due: '2020-01-01', allDay: true, priority: 3 });
+  assert.deepEqual(noRef(filtered)[0], { title: 'Filtered A', due: '2020-01-01', allDay: true, priority: 3 });
   await assert.rejects(todoistTasks(settings({ todoistToken: 'tok', todoistProject: 'Nope' }), TZ, `${base}/todoist`), /not found/);
   await assert.rejects(todoistTasks(settings({ todoistToken: 'bad' }), TZ, `${base}/todoist`), /rejected the API token/);
   await assert.rejects(todoistTasks(settings({}), TZ, `${base}/todoist`), /No Todoist API token/);
@@ -212,7 +217,7 @@ test('home assistant: todo.get_items with return_response', async () => {
   assert.equal(r.headers.authorization, 'Bearer hatok');
   assert.match(r.headers['content-type'], /application\/json/);
   assert.deepEqual(JSON.parse(r.body), { entity_id: 'todo.shopping_list', status: 'needs_action' });
-  assert.deepEqual(items, [
+  assert.deepEqual(noRef(items), [
     { title: 'Eier', due: null, allDay: false, priority: 0 },
     { title: 'Butter', due: '2020-05-01', allDay: true, priority: 0 },
     { title: 'Termin', due: '2030-05-01T08:00:00.000Z', allDay: false, priority: 0 },
@@ -233,7 +238,7 @@ test('home assistant: fallback to legacy shopping list API, errors', async () =>
 test('caldav: VTODO parsing', () => {
   const todos = parseVtodos(ICS_TODOS, TZ);
   assert.equal(todos.length, 4);
-  assert.deepEqual(todos[0], { summary: 'Milch kaufen, 2 Liter', due: { due: '2020-01-01', allDay: true }, priority: 1, status: 'NEEDS-ACTION' });
+  assert.deepEqual(noRef(todos)[0], { summary: 'Milch kaufen, 2 Liter', due: { due: '2020-01-01', allDay: true }, priority: 1, status: 'NEEDS-ACTION' });
   assert.equal(todos[1].summary, 'Steuererklärung');
   assert.deepEqual(todos[1].due, { due: '2030-06-15T07:00:00.000Z', allDay: false });
   assert.equal(extractCalendarData(MULTISTATUS).length, 2);
@@ -249,7 +254,7 @@ test('caldav: REPORT calendar-query with basic auth', async () => {
   assert.match(r.body, /<c:calendar-query/);
   assert.match(r.body, /<c:comp-filter name="VTODO">/);
   assert.match(r.body, /<c:prop-filter name="COMPLETED"><c:is-not-defined\/>/);
-  assert.deepEqual(items, [
+  assert.deepEqual(noRef(items), [
     { title: 'Milch kaufen, 2 Liter', due: '2020-01-01', allDay: true, priority: 3 },
     { title: 'Steuererklärung', due: '2030-06-15T07:00:00.000Z', allDay: false, priority: 2 },
     { title: 'Ohne Status & Datum', due: null, allDay: false, priority: 0 },
@@ -289,4 +294,36 @@ test('filterDue: due within n days, overdue kept, no-due optional', () => {
   assert.deepEqual(t(3, true), ['over', 'today', 'in3', 'none']);
   assert.deepEqual(t(3, false), ['over', 'today', 'in3']);
   assert.deepEqual(t(1, false), ['over', 'today']);
+});
+
+test('tick off: Todoist close, Home Assistant update_item, CalDAV PUT with STATUS:COMPLETED', async () => {
+  const todo = settings({ source: 'todoist', todoistToken: 'tok' });
+  const items = await todoistTasks(todo, TZ, `${base}/todoist`);
+  assert.equal(items.find((i) => i.title === 'Zahnarzt anrufen').ref, 'td:t1');
+  await completeTask(todo, { id: 'm' }, 'td:t1', { todoistBase: `${base}/todoist` });
+  assert.equal(last('/todoist/tasks/t1/close').method, 'POST');
+
+  const ha = settings({ source: 'homeassistant', haUrl: `${base}/ha`, haToken: 'hatok', haEntity: 'todo.shopping_list' });
+  assert.equal((await haTasks(ha, TZ))[0].ref, 'ha:a');
+  await completeTask(ha, { id: 'm' }, 'ha:a');
+  assert.deepEqual(JSON.parse(last('/ha/api/services/todo/update_item').body), { entity_id: 'todo.shopping_list', item: 'a', status: 'completed' });
+
+  const dav = settings({ source: 'caldav', caldavUrl: `${base}/dav/tasks/`, caldavUser: 'anna', caldavPassword: 'geheim' });
+  assert.equal((await caldavTasks(dav, TZ))[0].ref, 'cd:1');
+  await completeTask(dav, { id: 'm' }, 'cd:2');
+  const put = last('/dav/tasks/1.ics');
+  assert.equal(put.headers['if-match'], '"a"');
+  const todos = parseVtodos(put.body, TZ);
+  assert.equal(todos.find((x) => x.uid === '2').status, 'COMPLETED');
+  assert.equal(todos.find((x) => x.uid === '1').status, 'COMPLETED', 'all VTODOs of that resource get the status – one per file is usual');
+  await assert.rejects(completeTask(dav, { id: 'm' }, 'cd:999'), /not found/);
+  await assert.rejects(completeTask(ha, { id: 'm' }, 'td:x'), /Unknown task/);
+});
+
+test('completeVtodo replaces an old status and keeps alarms', () => {
+  const ics = 'BEGIN:VCALENDAR\r\nBEGIN:VTODO\r\nUID:x\r\nSTATUS:NEEDS-ACTION\r\nBEGIN:VALARM\r\nACTION:DISPLAY\r\nEND:VALARM\r\nEND:VTODO\r\nEND:VCALENDAR';
+  const out = completeVtodo(ics, new Date('2026-11-03T10:00:00Z'));
+  assert.equal((out.match(/STATUS:/g) || []).length, 1);
+  assert.match(out, /STATUS:COMPLETED\r\nCOMPLETED:20261103T100000Z/);
+  assert.match(out, /BEGIN:VALARM/);
 });

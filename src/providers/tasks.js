@@ -3,7 +3,10 @@
 //   { title, due: 'YYYY-MM-DD' | ISO instant | null, allDay, priority: 0–3 }
 // where priority 3 is the most urgent.
 import { createHash } from 'node:crypto';
-import { fetchJson, fetchRaw, cached, dateKey } from '../util.js';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fetchJson, fetchRaw, cached, uncache, dateKey } from '../util.js';
+import { DATA_DIR } from '../config.js';
 import { translator, langOf } from '../../public/shared/i18n.js';
 import { readPushedTasks } from '../push.js';
 
@@ -112,7 +115,7 @@ export async function todoistTasks(settings, timeZone, base = TODOIST) {
     .sort((a, b) => (a.child_order ?? 0) - (b.child_order ?? 0))
     .map((t) => {
       const d = t.due ? normalizeDue(t.due.datetime || t.due.date, t.due.timezone || timeZone) : { due: null, allDay: false };
-      return { title: String(t.content || '').trim(), ...d, priority: Math.max(0, Math.min(3, (Number(t.priority) || 1) - 1)) };
+      return { ref: `td:${t.id}`, title: String(t.content || '').trim(), ...d, priority: Math.max(0, Math.min(3, (Number(t.priority) || 1) - 1)) };
     });
 }
 
@@ -144,7 +147,7 @@ export async function haTasks(settings, timeZone) {
     if (!Array.isArray(list)) throw fail('No to-do items for {entity} in the Home Assistant response', { entity });
     return list
       .filter((i) => !i.status || i.status === 'needs_action')
-      .map((i) => ({ title: String(i.summary || '').trim(), ...normalizeDue(i.due, timeZone), priority: 0 }));
+      .map((i) => ({ ...(i.uid ? { ref: `ha:${i.uid}` } : {}), title: String(i.summary || '').trim(), ...normalizeDue(i.due, timeZone), priority: 0 }));
   }
   // Fallback for Home Assistant versions without service responses: the
   // legacy shopping list API (only for the built-in shopping list).
@@ -217,6 +220,7 @@ export function parseVtodos(ics, timeZone) {
     if (name === 'SUMMARY') cur.summary = icsUnescape(value);
     else if (name === 'STATUS') cur.status = value.trim().toUpperCase();
     else if (name === 'PRIORITY') cur.priority = parseInt(value, 10) || 0;
+    else if (name === 'UID') cur.uid = value.trim();
     else if (name === 'COMPLETED') cur.completed = true;
     else if (name === 'PERCENT-COMPLETE') cur.percent = parseInt(value, 10) || 0;
     else if (name === 'DUE') {
@@ -256,7 +260,84 @@ export async function caldavTasks(settings, timeZone) {
   const todos = extractCalendarData(xml).flatMap((ics) => parseVtodos(ics, timeZone));
   return todos
     .filter((t) => !t.completed && t.status !== 'COMPLETED' && t.status !== 'CANCELLED' && (t.percent ?? 0) < 100)
-    .map((t) => ({ title: t.summary || '', ...(t.due || { due: null, allDay: false }), priority: icsPriority(t.priority) }));
+    .map((t) => ({ ...(t.uid ? { ref: `cd:${t.uid}` } : {}), title: t.summary || '', ...(t.due || { due: null, allDay: false }), priority: icsPriority(t.priority) }));
+}
+
+// ---- ticking off -----------------------------------------------------------------------------
+
+// CalDAV: find the resource with this UID and save it with STATUS:COMPLETED.
+export function completeVtodo(ics, now = new Date()) {
+  const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const lines = ics.replace(/\r\n|\r/g, '\n').replace(/\n[ \t]/g, '').split('\n');
+  const out = [];
+  let inTodo = false;
+  let depth = 0;
+  for (const line of lines) {
+    if (/^BEGIN:VTODO$/i.test(line)) { inTodo = true; depth = 0; out.push(line); continue; }
+    if (inTodo && /^BEGIN:/i.test(line)) depth++;
+    if (inTodo && /^END:VTODO$/i.test(line)) {
+      out.push('STATUS:COMPLETED', `COMPLETED:${stamp}`, 'PERCENT-COMPLETE:100', `LAST-MODIFIED:${stamp}`);
+      inTodo = false;
+      out.push(line);
+      continue;
+    }
+    if (inTodo && /^END:/i.test(line)) depth--;
+    if (inTodo && depth === 0 && /^(STATUS|COMPLETED|PERCENT-COMPLETE|LAST-MODIFIED)[;:]/i.test(line)) continue;
+    out.push(line);
+  }
+  return out.join('\r\n');
+}
+
+async function caldavComplete(settings, uid) {
+  const url = settings.caldavUrl.trim();
+  const auth = settings.caldavUser || settings.caldavPassword ? { Authorization: 'Basic ' + Buffer.from(`${settings.caldavUser}:${settings.caldavPassword}`).toString('base64') } : {};
+  const res = await fetchRaw(url, { method: 'REPORT', headers: { ...auth, 'Content-Type': 'application/xml; charset=utf-8', Depth: '1' }, body: REPORT_BODY(false) });
+  const xml = await res.text();
+  for (const block of xml.split(/<\/(?:[\w.-]+:)?response>/i)) {
+    const data = extractCalendarData(block)[0];
+    if (!data || !parseVtodos(data, 'UTC').some((t) => t.uid === uid)) continue;
+    const href = xmlDecode(block.match(/<(?:[\w.-]+:)?href>([\s\S]*?)<\/(?:[\w.-]+:)?href>/i)?.[1] || '').trim();
+    const etag = xmlDecode(block.match(/<(?:[\w.-]+:)?getetag>([\s\S]*?)<\/(?:[\w.-]+:)?getetag>/i)?.[1] || '').trim();
+    if (!href) break;
+    await fetchRaw(new URL(href, url).toString(), { method: 'PUT', headers: { ...auth, 'Content-Type': 'text/calendar; charset=utf-8', ...(etag ? { 'If-Match': etag } : {}) }, body: completeVtodo(data) });
+    return;
+  }
+  throw new Error('Task not found');
+}
+
+// Apple Reminders (pushed by a Shortcut) cannot be changed from here: the task is hidden
+// until the next push no longer contains it (or 7 days have passed).
+const DONE_FILE = (id) => path.join(DATA_DIR, 'push', `tasks-done-${id.replace(/[^\w-]/g, '_')}.json`);
+async function readDone(id) {
+  try {
+    return JSON.parse(await fs.readFile(DONE_FILE(id), 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+export async function completeTask(settings, mod, ref, { todoistBase = TODOIST } = {}) {
+  const [kind, ...rest] = String(ref || '').split(':');
+  const id = rest.join(':');
+  if (!id) throw new Error('Unknown task');
+  if (kind === 'td' && settings.source === 'todoist') {
+    await fetchRaw(`${todoistBase}/tasks/${encodeURIComponent(id)}/close`, { method: 'POST', headers: { Authorization: `Bearer ${settings.todoistToken.trim()}` } });
+  } else if (kind === 'ha' && settings.source === 'homeassistant') {
+    const base = settings.haUrl.trim().replace(/\/+$/, '');
+    await fetchRaw(`${base}/api/services/todo/update_item`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${settings.haToken.trim()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entity_id: settings.haEntity.trim(), item: id, status: 'completed' }),
+    });
+  } else if (kind === 'cd' && settings.source === 'caldav') {
+    await caldavComplete(settings, id);
+  } else if (kind === 'sc' && settings.source === 'shortcuts') {
+    const done = await readDone(mod.id);
+    done[id] = Date.now();
+    await fs.mkdir(path.dirname(DONE_FILE(mod.id)), { recursive: true });
+    await fs.writeFile(DONE_FILE(mod.id), JSON.stringify(done));
+  } else throw new Error('Unknown task');
+  uncache('tasks:');
 }
 
 // ---- provider ------------------------------------------------------------------------------
@@ -294,7 +375,10 @@ export async function provider(settings, cfg, mod) {
       const pushed = mod && (await readPushedTasks(mod.id));
       if (!pushed) throw fail('No reminders received yet – run your Shortcut once');
       receivedAt = pushed.receivedAt;
-      return pushed.items;
+      // ticked off on the mirror's remote: hidden until a push no longer contains them
+      const done = await readDone(mod.id);
+      const fresh = Object.fromEntries(Object.entries(done).filter(([, at]) => Date.now() - at < 7 * 86400000));
+      return pushed.items.filter((i) => !(i.title in fresh)).map((i) => ({ ...i, ref: `sc:${i.title}` }));
     };
   } else if (settings.source === 'homeassistant') {
     key = hash('ha', settings.haUrl, settings.haToken, settings.haEntity);

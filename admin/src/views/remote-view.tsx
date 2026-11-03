@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Lightbulb, Loader2, Moon, MonitorOff, Pause, Play, RefreshCw, Sun } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Lightbulb, Loader2, Moon, MonitorOff, Pause, Play, RefreshCw, Sun } from 'lucide-react';
+import { moduleName } from '@/lib/helpers';
+import type { Module } from '@/lib/shared';
 import { toast } from 'sonner';
 import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
@@ -124,10 +126,70 @@ export function RemoteView() {
         </CardContent>
       </Card>
 
+      {cfg.modules.filter((m) => m.type === 'tasks' && m.enabled).map((m) => <TasksCard key={m.id} m={m} />)}
+
       <Button variant="outline" onClick={() => command('reload')} disabled={busy === 'reload'}>
         {busy === 'reload' ? <Loader2 className="animate-spin" /> : <RefreshCw />}
         {t('Reload all mirrors')}
       </Button>
     </div>
+  );
+}
+
+type Task = { ref?: string; title: string; overdue?: boolean };
+
+/** The open tasks of a tasks module – tap to tick one off (also on the mirror at once). */
+function TasksCard({ m }: { m: Module }) {
+  const { t } = useStore();
+  const [items, setItems] = useState<Task[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/module/${encodeURIComponent(m.id)}/data`, { cache: 'no-store' });
+      const j = await res.json();
+      if (!j.ok) throw new Error(j.error || `HTTP ${res.status}`);
+      setItems(j.data.items || []);
+      setError(null);
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }, [m.id]);
+  useEffect(() => {
+    load();
+  }, [load]);
+  const done = async (task: Task) => {
+    if (!task.ref) return;
+    setBusy(task.ref);
+    try {
+      await api(`/tasks/${encodeURIComponent(m.id)}/complete`, { method: 'POST', body: { ref: task.ref } });
+      setItems((list) => (list || []).filter((x) => x.ref !== task.ref));
+      toast.success(t('"{title}" done', { title: task.title }));
+      setTimeout(load, 1500);
+    } catch (err) {
+      toast.error(t(errorMessage(err)));
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">{moduleName(m, t)}</CardTitle>
+        <CardDescription>
+          {m.settings.source === 'shortcuts' ? t('Tap to tick off. Apple Reminders stay open on your iPhone – the mirror only hides them.') : t('Tap to tick off – also in the app.')}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-1.5">
+        {error && <p className="text-sm text-destructive">{t(error)}</p>}
+        {items && !items.length && <p className="text-sm text-muted-foreground">{t('Nothing open.')}</p>}
+        {items?.map((task) => (
+          <Button key={task.ref || task.title} variant="outline" className="h-auto min-h-11 justify-start gap-3 py-2 text-left whitespace-normal" disabled={!task.ref || busy === task.ref} onClick={() => done(task)}>
+            <span className="grid size-5 shrink-0 place-items-center rounded-full border">{busy === task.ref ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3 opacity-0" />}</span>
+            <span className={cn('flex-1', task.overdue && 'text-destructive')}>{task.title}</span>
+          </Button>
+        ))}
+      </CardContent>
+    </Card>
   );
 }

@@ -46,6 +46,11 @@ export async function cached(key, ttlSeconds, fn) {
   return pending;
 }
 
+// Forget cached values whose key starts with `prefix` (after a change, e.g. a task ticked off).
+export function uncache(prefix) {
+  for (const k of store.keys()) if (k.startsWith(prefix)) store.delete(k);
+}
+
 // Drop old cache entries now and then so the Pi's memory stays small.
 setInterval(() => {
   const limit = Date.now() - 6 * 3600 * 1000;

@@ -26,7 +26,7 @@ import { MODULE_TYPES, publicConfig, defaultConfig, normalizeConfig } from '../p
 import { weather, weatherHints, ambientWeather } from './providers/weather.js';
 import { provider as news } from './providers/news.js';
 import { provider as homeassistant, startHaLive } from './providers/homeassistant.js';
-import { provider as tasks } from './providers/tasks.js';
+import { provider as tasks, completeTask } from './providers/tasks.js';
 import { provider as fuel } from './providers/fuel.js';
 import { provider as football } from './providers/football.js';
 import { calendar } from './providers/calendar.js';
@@ -269,6 +269,20 @@ admin.post('/preview-data', async (req, res) => {
 });
 
 admin.get('/health', (req, res) => res.json(healthReport(getConfig())));
+// Tick off a task from the remote control (Todoist, Home Assistant, CalDAV; Apple Reminders
+// are only hidden – they cannot be changed from here).
+admin.post('/tasks/:id/complete', async (req, res) => {
+  const mod = getConfig().modules.find((m) => m.id === req.params.id && m.type === 'tasks');
+  if (!mod) return res.status(404).json({ error: 'Module not found' });
+  try {
+    await completeTask(mod.settings, mod, req.body?.ref);
+    broadcast('refresh', { module: mod.id });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 // Spotify "Connect" (PKCE): sign-in link, then the pasted redirect address → refresh token.
 admin.post('/spotify/start', (req, res) => {
   const clientId = String(req.body?.clientId || '').trim();
