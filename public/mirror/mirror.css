@@ -445,6 +445,14 @@ td:last-child { padding-right: 0; }
 .transit table { width: 100%; }
 .tr-stop { margin-bottom: .3em; }
 .transit td { padding-top: .2em; padding-bottom: .2em; }
+/* disruptions of the lines shown */
+.transit .tr-infos { margin-top: .6em; display: flex; flex-direction: column; gap: .4em; font-size: .78em; }
+.transit .tr-info { display: flex; gap: .45em; align-items: flex-start; }
+.transit .tr-info-ico { flex: none; width: 1.1em; height: 1.1em; margin-top: .1em; color: var(--warn); }
+.transit .tr-info.high .tr-info-ico { color: var(--severe); }
+.transit .tr-info-ico svg, .transit .tr-info-ico .ico { width: 100%; height: 100%; }
+.transit .tr-info .line { font-size: .85em; margin-right: .3em; }
+.transit .tr-info-text { margin-top: .15em; font-size: .9em; line-height: 1.3; }
 .transit .dest { max-width: 14em; overflow: hidden; text-overflow: ellipsis; text-align: left; width: 100%; }
 .transit .line {
   display: inline-block; min-width: 2.6em; text-align: center; font-weight: 600; font-size: .85em;

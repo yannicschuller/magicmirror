@@ -451,7 +451,10 @@ const transit = (el, mod, ctx) => {
         banner = `<div class="go-banner go-${level}"><span class="go-dot"></span><span>${t('Line {line}', { line: esc(x.line) })} → ${esc(x.destination)}: <b>${msg}</b></span></div>`;
       } else banner = `<div class="go-banner dim">${t('No reachable departure')}</div>`;
     }
-    el.innerHTML = `<div class="transit go-style-${go || 'none'}">${d.stop ? `<div class="dim small tr-stop">${esc(d.stop)}</div>` : ''}${banner}${rows.length ? `<table>${rows.join('')}</table>` : `<div class="dim">${t('No departures')}</div>`}</div>`;
+    const notes = s.showDisruptions !== false && d.disruptions?.length
+      ? `<div class="tr-infos">${d.disruptions.map((i) => `<div class="tr-info${i.priority === 'high' ? ' high' : ''}"><span class="tr-info-ico">${icons.warning}</span><div><div class="tr-info-title">${i.lines.map((l) => `<span class="line cat-${esc(l.category)}">${esc(l.line)}</span>`).join('')} ${esc(i.title || i.text)}</div>${s.disruptionDetails && i.text && i.title ? `<div class="tr-info-text dim">${esc(i.text)}</div>` : ''}</div></div>`).join('')}</div>`
+      : '';
+    el.innerHTML = `<div class="transit go-style-${go || 'none'}">${d.stop ? `<div class="dim small tr-stop">${esc(d.stop)}</div>` : ''}${banner}${rows.length ? `<table>${rows.join('')}</table>` : `<div class="dim">${t('No departures')}</div>`}${notes}</div>`;
   };
   return { update(d) { last = d; render(); }, tick: render, tickEvery: 15000 };
 };

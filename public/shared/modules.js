@@ -286,6 +286,10 @@ export const MODULE_TYPES = {
         help: 'Shows only departures that stop at one of these stops later on (part of the name is enough). Works with EFA networks that provide stop sequences (e.g. Saxony, Bavaria) and HAFAS.' },
       { key: 'showVia', label: 'Show the matching stop ("via …")', type: 'bool', default: true },
       { key: 'hideCancelled', label: 'Hide cancelled departures', type: 'bool', default: false },
+      { key: 'showDisruptions', label: 'Disruptions and construction work of these lines', type: 'bool', default: true,
+        help: 'Messages of the transport company (rail replacement buses, diversions, …) for the lines shown here.' },
+      { key: 'disruptionsMax', label: 'Max. messages', type: 'number', default: 2, min: 1, max: 6, showIf: { showDisruptions: true } },
+      { key: 'disruptionDetails', label: 'Show the message text (not only the title)', type: 'bool', default: false, showIf: { showDisruptions: true } },
       { key: 'timeMode', label: 'Time display', type: 'select', default: 'relative', options: [
         { value: 'relative', label: 'in x min' }, { value: 'absolute', label: 'Time' }, { value: 'both', label: 'Both' },
       ] },

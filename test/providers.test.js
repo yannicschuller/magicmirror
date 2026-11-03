@@ -267,6 +267,31 @@ test('transit: "via" filter keeps only departures stopping at a given stop', asy
   }
 });
 
+test('transit: disruptions of the lines shown, each message once with its lines', async () => {
+  const http = await import('node:http');
+  const { transit, plainText } = await import('../src/providers/transit.js');
+  const soon = (min) => new Date(Date.now() + min * 60000).toISOString();
+  const sev = { id: 'VIA_1', priority: 'normal', infoLinks: [{ urlText: 'Tram 4: Busse statt Bahnen', content: '<p>Zwischen&nbsp;<b>A</b> und B fahren Busse.</p>' }] };
+  const ev = (line, min, infos = [], cls = 4) => ({ departureTimePlanned: soon(min), transportation: { number: line, destination: { name: 'X' }, product: { class: cls } }, location: { properties: {} }, infos });
+  const server = http.createServer((req, res) => {
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ stopEvents: [ev('4', 5, [sev]), ev('4', 15, [sev]), ev('15', 8, [sev]), ev('70', 9, [{ id: 'B', infoLinks: [{ urlText: 'Bus 70 Umleitung' }] }], 5)] }));
+  }).listen(0);
+  try {
+    const base = { provider: 'efa', efaPreset: 'custom', baseUrl: `http://127.0.0.1:${server.address().port}/`, stop: { id: 'x', name: 'Hbf' } };
+    const data = await transit(applyDefaults(MODULE_TYPES.transit.fields, { ...base, categories: ['tram'] }));
+    assert.equal(data.disruptions.length, 1, 'the bus message is filtered out with the bus');
+    assert.deepEqual(data.disruptions[0].lines, [{ line: '4', category: 'tram' }, { line: '15', category: 'tram' }]);
+    assert.equal(data.disruptions[0].text, 'Zwischen A und B fahren Busse.');
+    assert.ok(!('infos' in data.departures[0]));
+    const off = await transit(applyDefaults(MODULE_TYPES.transit.fields, { ...base, showDisruptions: false, limit: 3 }));
+    assert.equal(off.disruptions, undefined);
+    assert.equal(plainText('a'.repeat(50) + ' b'.repeat(200), 60).endsWith(' …'), true);
+  } finally {
+    server.close();
+  }
+});
+
 test('waste: past collections stay visible for the configured days', async () => {
   const { waste } = await import('../src/providers/waste.js');
   const { dateKey } = await import('../src/util.js');
