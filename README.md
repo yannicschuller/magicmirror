@@ -24,7 +24,7 @@
 - **Backup:** export and import the complete configuration as one file.
 - **Languages:** English and German, for both the mirror and the admin panel.
 - **Smart visibility:** modules can show only at certain times, only when they have something to show (open tasks, an aircraft nearby, a race weekend …) or stand in for another module; pages can depend on a module's result too.
-- **Night mode:** dim, show only the clock or switch the screen off (HDMI-CEC standby) – by time or from sunset to sunrise.
+- **Night mode:** dim, show only the clock or switch the screen off (HDMI-CEC standby or no HDMI signal) – by time or from sunset to sunrise.
 - **Light on small hardware:** while the screen is off the mirror pauses all fetches and animations; an optional power-saving mode (*General → System*) reduces refresh rates and effects, compresses transfers and caps the server's memory. The installer can also limit container logs to spare the SD card.
 - **Phone remote:** `/admin/#remote` switches pages, holds the rotation and turns the screen on/off.
 - **Several mirrors:** one server, several screens with their own pages (`/?display=flur`).
@@ -145,7 +145,7 @@ Each module has an **Export** button in its editor, each page one in the page li
 
 Under *General → Sensors* the mirror can use two Home Assistant entities:
 
-- **Presence** (motion/presence sensor, a person, or an `input_boolean`): the screen switches off (HDMI-CEC, all updates paused) when nobody was there for *x* minutes and back on within seconds when someone comes.
+- **Presence** (motion/presence sensor, a person, or an `input_boolean`): the screen switches off (all updates paused) when nobody was there for *x* minutes and back on within seconds when someone comes.
 - **Light sensor** (lux): the mirror dims in a dark room and is fully bright in daylight; with the night mode the darker value wins.
 
 The connection is taken from the Home Assistant module, or set separately. Without Home Assistant, any automation can switch the screen via the [control API](#control-api-homey-shortcuts-home-assistant).
@@ -166,7 +166,7 @@ Create a token in the admin under *General → System → Token for the control 
 
 | Request | Effect |
 |---|---|
-| `/api/control/screen/off` · `/screen/on` · `/screen/night` | Screen off (HDMI-CEC, everything paused) / on / night mode – optionally `?minutes=60`, otherwise until `screen/auto` |
+| `/api/control/screen/off` · `/screen/on` · `/screen/night` | Screen off (everything paused) / on / night mode – optionally `?minutes=60`, otherwise until `screen/auto` |
 | `/api/control/screen/auto` | Back to the normal schedule (night mode) |
 | `/api/control/page/next` · `/page/prev` · `/page/<page name>` | Change pages on all mirrors |
 | `/api/control/page/hold?minutes=30` · `/page/resume` | Pause / resume the page rotation |
@@ -237,6 +237,8 @@ The `kiosk` container runs privileged so it can drive the display (DRM/KMS), key
 - Showing a different server: `KIOSK_URL=http://other-host:8080/`.
 - Extra Chromium flags: `KIOSK_FLAGS=--force-device-scale-factor=1.25`.
 - Night dimming: *General → Night mode*.
+
+**Switching the screen off.** With *Night mode → Switch the screen off*, the remote control, presence or the control API, the kiosk really switches the screen off: via HDMI-CEC if a device answers (TVs), otherwise by stopping the HDMI signal so a monitor goes to standby. Most PC monitors have no CEC. Without a signal the browser has to stop, so waking up takes as long as starting it (on a Pi 3 up to about half a minute). `KIOSK_SCREEN_OFF` chooses: `auto` (default), `cec`, `signal` or `black` (only show black).
 
 **Self-healing.** The kiosk's mirror page reports every minute that it is alive. If that stops for 5 minutes (frozen page, crashed renderer, white screen) or the Pi runs low on memory, the kiosk restarts the browser by itself – while the server is unreachable (update, restart) it waits instead. `KIOSK_WATCHDOG=off` disables it. On a Raspberry Pi the installer can also enable the **hardware watchdog**: if the whole system ever freezes, the Pi restarts on its own after about 15 seconds.
 

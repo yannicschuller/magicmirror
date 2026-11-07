@@ -493,7 +493,7 @@ export const GENERAL_FIELDS = [
   { group: 'night', key: 'nightMode', label: 'At night', type: 'select', default: 'dim', options: [
     { value: 'dim', label: 'Dim everything' }, { value: 'clock', label: 'Show only the clock (dimmed)' }, { value: 'off', label: 'Switch the screen off' },
   ], showIf: { dimEnabled: true },
-    help: '"Switch the screen off" turns the screen black; a TV or monitor with HDMI-CEC also goes to standby (kiosk on the Pi).' },
+    help: 'With the kiosk on the Pi, "Switch the screen off" really switches it off: via HDMI-CEC on a TV, otherwise by stopping the HDMI signal so a monitor goes to standby (it then wakes a little slower because the browser restarts).' },
   { group: 'night', key: 'dimBrightness', label: 'Brightness at night (%)', type: 'number', default: 30, min: 0, max: 100, showIf: { dimEnabled: true, nightMode: ['dim', 'clock'] } },
 
   { group: 'system', key: 'ecoMode', label: 'Power-saving mode (Raspberry Pi 3)', type: 'bool', default: false,
@@ -504,7 +504,7 @@ export const GENERAL_FIELDS = [
   { group: 'system', key: 'rebootAt', label: 'Restart the Raspberry Pi daily at (empty = never)', type: 'text', default: '', placeholder: '04:30',
     help: 'A daily restart keeps a small Pi fresh (memory, browser). Needs the updater.' },
   { group: 'sensors', key: 'presenceEntity', label: 'Presence sensor (Home Assistant entity)', type: 'text', default: '', placeholder: 'binary_sensor.hallway_motion',
-    help: 'Motion or presence sensor, a person ("home") or a helper (input_boolean). The screen switches off when nobody was there for the time below and on again as soon as someone comes (HDMI-CEC; all updates pause meanwhile). Empty = off.' },
+    help: 'Motion or presence sensor, a person ("home") or a helper (input_boolean). The screen switches off when nobody was there for the time below and on again as soon as someone comes (all updates pause meanwhile). Empty = off.' },
   { group: 'sensors', key: 'presenceOffMinutes', label: 'Screen off after x minutes without presence', type: 'number', default: 10, min: 1, max: 240 },
   { group: 'sensors', key: 'luxEntity', label: 'Light sensor (Home Assistant entity, lux)', type: 'text', default: '', placeholder: 'sensor.hallway_illuminance',
     help: 'The mirror gets darker in a dark room and fully bright in daylight. Combined with the night mode, the darker of both wins. Empty = off.' },

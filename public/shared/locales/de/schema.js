@@ -1,7 +1,7 @@
 // Module schema: labels, options, descriptions and default content.
 export default {
   "\"Put the bin out today\" reminder from hour (day before)": "Erinnerung „heute rausstellen“ ab Uhrzeit (Vortag)",
-  "\"Switch the screen off\" turns the screen black; a TV or monitor with HDMI-CEC also goes to standby (kiosk on the Pi).": "„Bildschirm ausschalten“ macht das Bild schwarz; ein Fernseher oder Monitor mit HDMI-CEC geht zusätzlich in Standby (Kiosk auf dem Pi).",
+  "With the kiosk on the Pi, \"Switch the screen off\" really switches it off: via HDMI-CEC on a TV, otherwise by stopping the HDMI signal so a monitor goes to standby (it then wakes a little slower because the browser restarts).": "Beim Kiosk auf dem Pi schaltet „Bildschirm ausschalten“ wirklich ab: per HDMI-CEC am Fernseher, sonst durch Abschalten des HDMI-Signals, sodass ein Monitor in den Standby geht (er wacht dann etwas langsamer auf, weil der Browser neu startet).",
   "24 October 2026": "24. Oktober 2026",
   "24-hour format": "24-Stunden-Format",
   "24/10/2026": "24.10.2026",
@@ -198,7 +198,7 @@ export default {
   "Monospace": "Monospace",
   "Morning (5–11 am), one line per message": "Morgens (5–11 Uhr), eine Zeile je Spruch",
   "Most networks also find stops all over Germany, but real-time data usually only comes from the network of your region.": "Die meisten Verbünde finden auch Haltestellen in ganz Deutschland, Echtzeitdaten gibt es aber meist nur beim Verbund deiner Region.",
-  "Motion or presence sensor, a person (\"home\") or a helper (input_boolean). The screen switches off when nobody was there for the time below and on again as soon as someone comes (HDMI-CEC; all updates pause meanwhile). Empty = off.": "Bewegungs- oder Präsenzmelder, eine Person („home“) oder ein Helfer (input_boolean). Der Bildschirm geht aus, wenn so lange wie unten eingestellt niemand da war, und sofort wieder an, sobald jemand kommt (HDMI-CEC; solange pausieren alle Aktualisierungen). Leer = aus.",
+  "Motion or presence sensor, a person (\"home\") or a helper (input_boolean). The screen switches off when nobody was there for the time below and on again as soon as someone comes (all updates pause meanwhile). Empty = off.": "Bewegungs- oder Präsenzmelder, eine Person („home“) oder ein Helfer (input_boolean). Der Bildschirm geht aus, wenn so lange wie unten eingestellt niemand da war, und sofort wieder an, sobald jemand kommt (solange pausieren alle Aktualisierungen). Leer = aus.",
   "Moves everything a few pixels every few minutes, so static parts such as the clock do not burn into OLED, plasma or old screens. Hardly noticeable.": "Verschiebt alles alle paar Minuten um ein paar Pixel, damit feste Elemente wie die Uhr sich nicht in OLED-, Plasma- oder alte Bildschirme einbrennen. Kaum zu bemerken.",
   "Mugwort": "Beifuß",
   "Music / concert": "Musik / Konzert",

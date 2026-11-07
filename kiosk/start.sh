@@ -48,17 +48,59 @@ run_chromium() {
   rm -rf /tmp/chromium/Singleton*
 }
 
-# Night mode "screen off" / remote control: put an HDMI-CEC screen into standby and wake it
-# again. Needs /dev/cec0 (Pi with the vc4 KMS driver) and a TV/monitor with CEC; without
-# it the mirror just shows black. KIOSK_CEC=off disables it.
-display_api="$(echo "$URL" | sed -E 's#(https?://[^/]+).*#\1#')/api/display"
-cec_loop() {
-  [ "${KIOSK_CEC:-auto}" = off ] && return 0
-  dev=/dev/cec0
-  [ -e "$dev" ] || { log "no $dev – screen standby via HDMI-CEC unavailable"; return 0; }
-  cec-ctl -d "$dev" --playback --osd-name "MagicMirror" >/dev/null 2>&1 || { log "CEC setup failed"; return 0; }
-  log "HDMI-CEC ready"
+# Stops the browser; the browser loop at the end starts it again.
+STARTED=/tmp/browser-started
+stop_browser() {
+  pkill -x cog 2>/dev/null || true
+  pkill -x chromium 2>/dev/null || pkill -f /usr/lib/chromium 2>/dev/null || true
+  pkill -x cage 2>/dev/null || true
+}
+browser_running() { pgrep -x cog >/dev/null 2>&1 || pgrep -x cage >/dev/null 2>&1 || pgrep -x chromium >/dev/null 2>&1; }
+
+# Night mode "screen off" / remote control / presence: really switch the screen off.
+#   cec     HDMI-CEC standby – TVs, hardly any PC monitor (they ignore it and just show black)
+#   signal  no HDMI signal, so a monitor goes to standby. The browser holds the display, so it
+#           has to stop for that; waking up takes as long as starting it.
+#   black   the mirror only shows black
+# KIOSK_SCREEN_OFF=auto picks cec when a device answers on CEC, otherwise signal.
+SCREEN_OFF=/tmp/screen-off
+SYS="${KIOSK_SYS:-/sys}"
+CEC_DEV="${KIOSK_CEC_DEV:-/dev/cec0}"
+display_api="$base/api/display"
+
+quiet_write() { { echo "$1" > "$2"; } 2>/dev/null || true; }
+
+signal_off() {
+  touch "$SCREEN_OFF"
+  stop_browser
+  for _ in 1 2 3 4 5 6 7 8 9 10; do browser_running || break; sleep 1; done
+  sleep 1 # the kernel's console takes over the display again – then switch that off too
+  for f in "$SYS"/class/graphics/fb*/blank; do [ -e "$f" ] && quiet_write 4 "$f"; done
+  for f in "$SYS"/class/drm/card*-*/status; do
+    [ -e "$f" ] && [ "$(cat "$f" 2>/dev/null)" = connected ] && quiet_write off "$f"
+  done
+  return 0
+}
+
+signal_on() {
+  for f in "$SYS"/class/drm/card*-*/status; do [ -e "$f" ] && quiet_write detect "$f"; done
+  for f in "$SYS"/class/graphics/fb*/blank; do [ -e "$f" ] && quiet_write 0 "$f"; done
+  return 0
+}
+
+cec_ready=no
+cec_answers() { [ "$cec_ready" = yes ] && cec-ctl -d "$CEC_DEV" --to 0 --give-device-power-status 2>/dev/null | grep -q 'pwr-state'; }
+
+screen_loop() {
+  method="${KIOSK_SCREEN_OFF:-auto}"
+  # KIOSK_CEC=off from older setups: no switching at all unless a method is chosen
+  [ "${KIOSK_CEC:-auto}" = off ] && [ "$method" = auto ] && method=black
+  [ "$method" = black ] && { log "screen off: black only"; return 0; }
+  if [ -e "$CEC_DEV" ] && [ "$method" != signal ] && cec-ctl -d "$CEC_DEV" --playback --osd-name "MagicMirror" >/dev/null 2>&1; then
+    cec_ready=yes
+  fi
   last=""
+  used=""
   while true; do
     mode="$(curl -fsS "$display_api" 2>/dev/null | sed -nE 's/.*"mode":"([a-z]+)".*/\1/p')"
     if [ -n "$mode" ]; then
@@ -66,32 +108,46 @@ cec_loop() {
       [ "$mode" = off ] && want=off
       if [ "$want" != "$last" ]; then
         if [ "$want" = off ]; then
-          cec-ctl -d "$dev" --to 0 --standby >/dev/null 2>&1 && log "screen → standby (CEC)"
+          # asked each time: a screen only answers on CEC while it is awake
+          if [ "$method" = cec ] || { [ "$method" = auto ] && cec_answers; }; then
+            used=cec
+            cec-ctl -d "$CEC_DEV" --to 0 --standby >/dev/null 2>&1 && log "screen → standby (CEC)"
+          else
+            used=signal
+            signal_off
+            log "screen → off (no HDMI signal)"
+          fi
         else
-          cec-ctl -d "$dev" --to 0 --image-view-on >/dev/null 2>&1 && log "screen → on (CEC)"
+          if [ "$used" = signal ]; then
+            signal_on
+            sleep 1 # let the kernel find the screen again before the browser asks for it
+            rm -f "$SCREEN_OFF"
+            log "screen → on (HDMI signal, starting $BROWSER)"
+          elif [ "$cec_ready" = yes ]; then
+            cec-ctl -d "$CEC_DEV" --to 0 --image-view-on >/dev/null 2>&1 && log "screen → on (CEC)"
+          fi
         fi
         last="$want"
+      elif [ "$want" = off ] && [ "$used" = signal ] && browser_running; then
+        stop_browser # it was just starting when the screen went off
       fi
     fi
     sleep 4 # short: presence sensors switch the screen on when someone comes
   done
 }
-cec_loop &
+# A restart of this container must not leave the screen switched off.
+signal_on
+screen_loop &
 
 # Self-healing: restart the browser when its page stops sending heartbeats (frozen, crashed
 # renderer, white page) or when the system runs out of memory. The browser loop below then
 # starts it again. KIOSK_WATCHDOG=off disables it.
-STARTED=/tmp/browser-started
-stop_browser() {
-  pkill -x cog 2>/dev/null || true
-  pkill -x chromium 2>/dev/null || pkill -f /usr/lib/chromium 2>/dev/null || true
-  pkill -x cage 2>/dev/null || true
-}
 watchdog() {
   [ "${KIOSK_WATCHDOG:-on}" = off ] && return 0
   limit="${KIOSK_WATCHDOG_SECONDS:-300}"
   while true; do
     sleep 60
+    [ -e "$SCREEN_OFF" ] && continue # stopped on purpose
     since=$(( $(date +%s) - $(cat "$STARTED" 2>/dev/null || date +%s) ))
     [ "$since" -gt "$limit" ] || continue # give a fresh browser time to load
     # server unreachable (restarting, updating): not the browser's fault
@@ -111,6 +167,7 @@ watchdog() {
 watchdog &
 
 while true; do
+  while [ -e "$SCREEN_OFF" ]; do sleep 1; done
   log "starting $BROWSER → $URL"
   date +%s > "$STARTED"
   case "$BROWSER" in

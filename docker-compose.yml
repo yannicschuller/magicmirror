@@ -61,6 +61,7 @@ services:
       MIRROR_URL: ${KIOSK_URL:-http://magicmirror:8080/}
       KIOSK_FLAGS: ${KIOSK_FLAGS:-}
       KIOSK_CEC: ${KIOSK_CEC:-auto}
+      KIOSK_SCREEN_OFF: ${KIOSK_SCREEN_OFF:-auto}
       KIOSK_WATCHDOG: ${KIOSK_WATCHDOG:-on}
     volumes:
       - /run/udev:/run/udev:ro
