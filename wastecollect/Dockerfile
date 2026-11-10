@@ -32,6 +32,8 @@ RUN --mount=type=bind,from=build,source=/wheels,target=/wheels \
     pip install --no-cache-dir --no-index --find-links /wheels -r /tmp/requirements.txt \
  && rm /tmp/requirements.txt
 COPY --from=build /opt/wcs /opt/wcs
+# Fixed sources that are not in a library release yet (see the note in each file).
+COPY overrides/ /opt/wcs/waste_collection_schedule/source/
 COPY app.py lookups.py /app/
 # Precompile so imports are fast on a Raspberry Pi.
 RUN python -m compileall -q /opt/wcs /app && useradd -r -u 10001 wcs
