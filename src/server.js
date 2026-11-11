@@ -357,11 +357,11 @@ admin.get('/update', async (req, res) => {
     else res.json({ available: false, version: VERSION, build: BUILD });
   }
 });
-for (const cmd of ['check', 'run']) {
+for (const cmd of ['check', 'run', 'rollback']) {
   admin.post(`/update/${cmd}`, async (req, res) => {
     try {
       const result = await updater(cmd, cmd === 'check' ? 90000 : 10000);
-      if (cmd === 'run' && result.ok) lastUpdaterStatus = { at: Date.now(), status: { ...(lastUpdaterStatus?.status || {}), state: 'running', phase: 'start', startedAt: new Date().toISOString(), log: [] } };
+      if ((cmd === 'run' || cmd === 'rollback') && result.ok) lastUpdaterStatus = { at: Date.now(), status: { ...(lastUpdaterStatus?.status || {}), state: 'running', phase: 'start', startedAt: new Date().toISOString(), log: [] } };
       res.json(result);
     } catch {
       res.status(502).json({ error: 'The updater is not reachable' });

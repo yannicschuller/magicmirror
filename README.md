@@ -267,7 +267,9 @@ Unless switched off, the updater does the following every day at `UPDATE_TIME` (
 
 It also runs once **after every start of the Raspberry Pi** (about 90 seconds after boot, as soon as the network is up) – only after a real start of the host, not when just the container restarts. `UPDATE_ON_BOOT=false` switches that off (default: on, off when `UPDATE_TIME=off`).
 
-Open mirrors notice the new version and reload themselves. To run an update immediately:
+Open mirrors notice the new version and reload themselves.
+
+**Going back:** before every update the updater keeps the images in use (tag `mm-rollback`) and notes the commit. If an update breaks something, *Import / Export → Updates → Previous version → Go back to it* (or `docker compose exec updater mm-update --rollback`) returns to it. Automatic updates then pause until the next manual update, so the broken version does not come straight back. One previous set of images stays on disk for this. To run an update immediately:
 
 ```bash
 docker compose exec updater mm-update --now

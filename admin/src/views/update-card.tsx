@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpCircle, CircleAlert, CircleCheck, Download, Loader2, RefreshCw } from 'lucide-react';
+import { ArrowUpCircle, CircleAlert, CircleCheck, Download, History, Loader2, PauseCircle, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +37,17 @@ export function UpdateCard() {
       action: t('Update now'),
     });
     if (ok) await startUpdate();
+  };
+
+  const rb = status?.rollback;
+  const rollback = async () => {
+    const ok = await confirm({
+      title: t('Go back to version {v}?', { v: rb?.version || '?' }),
+      description: t('The mirror returns to the version that ran before the last update and restarts for a moment. Automatic updates pause until you update manually again, so the newer version does not come straight back. Your configuration stays as it is.'),
+      action: t('Go back'),
+      destructive: true,
+    });
+    if (ok) await startUpdate('rollback');
   };
 
   const c = status?.check;
@@ -118,6 +129,20 @@ export function UpdateCard() {
             <Button className="self-start" onClick={start} disabled={running}>
               {running && <Loader2 className="animate-spin" />}
               <Download /> {t('Update now')}
+            </Button>
+          </div>
+        )}
+        {status?.hold && (
+          <p className="flex items-center gap-2 text-sm text-warning">
+            <PauseCircle className="size-4" /> {t('Automatic updates are paused since the rollback ({date}). "Update now" resumes them.', { date: date(status.hold) })}
+          </p>
+        )}
+        {status?.available && rb && !running && (
+          <div className="flex flex-wrap items-center gap-3 border-t pt-3 text-sm">
+            <History className="size-4 text-muted-foreground" />
+            <span className="flex-1 text-muted-foreground">{t('Previous version: {v} (until {date})', { v: rb.version || '?', date: date(rb.at) })}</span>
+            <Button size="sm" variant="outline" onClick={rollback}>
+              {t('Go back to it')}
             </Button>
           </div>
         )}

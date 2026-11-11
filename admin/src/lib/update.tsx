@@ -33,6 +33,10 @@ export type UpdateStatus = {
   schedule?: string;
   /** also updates once after every start of the host */
   onBoot?: boolean;
+  /** the version before the last update */
+  rollback?: { at: string; commit: string | null; version: string } | null;
+  /** automatic updates paused after a rollback (since) */
+  hold?: string | null;
 };
 
 export const UPDATE_PHASES = (mode?: string) => [
@@ -53,7 +57,8 @@ type UpdateCtx = {
   /** seconds since the current update started */
   elapsed: number;
   error: string | null;
-  start: () => Promise<boolean>;
+  /** run an update, or go back to the version before the last one */
+  start: (cmd?: 'run' | 'rollback') => Promise<boolean>;
   load: () => Promise<void>;
   setCheck: (c: UpdateCheck) => void;
   /** the user dismissed the result of the last run */
@@ -134,11 +139,12 @@ export function UpdateProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(timer);
   }, [running]);
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (cmd: 'run' | 'rollback' = 'run') => {
     try {
       prevRun.current = status?.startedAt ?? null;
       startedAt.current = Date.now();
-      await api('/update/run', { method: 'POST' });
+      const r = await api<{ ok: boolean; error?: string }>(`/update/${cmd}`, { method: 'POST' });
+      if (r.ok === false) throw new Error(r.error || 'failed');
       setRunning(true);
       setResult(null);
       setStatus((s) => (s ? { ...s, state: 'running', phase: 'start', error: null, log: [] } : s));

@@ -9,6 +9,7 @@
 #   mm-update             daemon: small HTTP API on :8099 (used by the admin panel) + schedule
 #   mm-update --now       run an update now (foreground)
 #   mm-update --check     check for updates, print JSON
+#   mm-update --rollback  back to the version before the last update (pauses automatic updates)
 #   mm-update --power shutdown|reboot   shut down / restart the host
 set -eu
 
@@ -27,12 +28,17 @@ now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 # Status for the admin panel must answer fast even while Docker is busy pulling on a Pi 3 –
 # it only reads files, so it runs before anything that talks to Docker.
+ROLLBACK=/project/data/.updater-rollback.json # the version before the last update
+HOLD=/project/data/.updater-hold                # automatic updates paused after a rollback
 status_json() {
   jq -n --argjson state "$(cat "$STATE" 2>/dev/null || echo '{"state":"idle"}')" \
     --argjson check "$(cat "$CHECK" 2>/dev/null || echo 'null')" \
+    --argjson rollback "$(cat "$ROLLBACK" 2>/dev/null || echo 'null')" \
+    --arg hold "$(cat "$HOLD" 2>/dev/null || true)" \
     --arg log "$(tail -n 40 "$LOG" 2>/dev/null || true)" \
     --arg mode "$UPDATE_MODE" --arg time "$UPDATE_TIME" --arg boot "$UPDATE_ON_BOOT" \
-    '$state + {check: $check, log: ($log | split("\n") | map(select(. != ""))), mode: $mode, schedule: $time, onBoot: ($boot == "true")}'
+    '$state + {check: $check, log: ($log | split("\n") | map(select(. != ""))), mode: $mode, schedule: $time, onBoot: ($boot == "true"),
+      rollback: $rollback, hold: (if $hold == "" then null else $hold end)}'
 }
 if [ "${1:-}" = --cgi-status ]; then status_json; exit 0; fi
 
@@ -100,10 +106,74 @@ check() {
 }
 
 # ---- update ------------------------------------------------------------------------------
+# ---- rollback point ----------------------------------------------------------------------
+# Before an update the images in use get the extra tag "mm-rollback-new" and the commit is
+# noted; if the update changed anything, that becomes the rollback point ("mm-rollback").
+# One previous set of images stays on disk for this.
+repo_of() { case "${1##*/}" in *:*) echo "${1%:*}" ;; *) echo "$1" ;; esac; }
+image_ids() { for i in $(compose config --images 2>/dev/null); do docker image inspect -f '{{.Id}}' "$i" 2>/dev/null || true; done | sort | tr '\n' ' '; }
+
+mark_rollback() {
+  for i in $(compose config --images 2>/dev/null); do
+    if docker image inspect "$i" >/dev/null 2>&1; then docker tag "$i" "$(repo_of "$i"):mm-rollback-new" || true; fi
+  done
+  ids_before="$(image_ids)"
+  commit_before="$(has_git && git_ rev-parse HEAD 2>/dev/null || true)"
+  version_before="$(jq -r '.version // ""' package.json 2>/dev/null || true)"
+}
+
+keep_rollback() {
+  if [ "$ids_before" = "$(image_ids)" ] && [ "$commit_before" = "$(has_git && git_ rev-parse HEAD 2>/dev/null || true)" ]; then
+    # nothing changed – the previous rollback point stays
+    for i in $(compose config --images 2>/dev/null); do docker rmi "$(repo_of "$i"):mm-rollback-new" >/dev/null 2>&1 || true; done
+    return 0
+  fi
+  for i in $(compose config --images 2>/dev/null); do
+    r="$(repo_of "$i")"
+    if docker image inspect "$r:mm-rollback-new" >/dev/null 2>&1; then
+      docker tag "$r:mm-rollback-new" "$r:mm-rollback" || true
+      docker rmi "$r:mm-rollback-new" >/dev/null 2>&1 || true
+    fi
+  done
+  jq -n --arg at "$(now)" --arg commit "$commit_before" --arg version "$version_before" \
+    '{at: $at, commit: (if $commit == "" then null else $commit end), version: $version}' > "$ROLLBACK.tmp" && mv "$ROLLBACK.tmp" "$ROLLBACK"
+}
+
+rollback() {
+  : > "$LOG"
+  set_state running start
+  [ -f "$ROLLBACK" ] || { log "no earlier version to go back to"; return 1; }
+  commit="$(jq -r '.commit // ""' "$ROLLBACK")"
+  log "going back to $(jq -r '.version // "?"' "$ROLLBACK")${commit:+ ($(echo "$commit" | cut -c1-7))}"
+  if [ -n "$commit" ] && has_git; then
+    set_state running git
+    # keeps local changes; fails instead of overwriting them
+    git_ reset -q --keep "$commit" || log "checkout could not be reset (local changes?) – images only"
+  fi
+  set_state running pull
+  services="$(compose config --services | grep -vx "${SELF_SERVICE:-updater}" | tr '\n' ' ')"
+  # the updater keeps its own (newer) version
+  self_image="$(compose config --images "${SELF_SERVICE:-updater}" 2>/dev/null | head -n1)"
+  for i in $(compose config --images 2>/dev/null); do
+    [ "$i" = "$self_image" ] && continue
+    r="$(repo_of "$i")"
+    if docker image inspect "$r:mm-rollback" >/dev/null 2>&1; then docker tag "$r:mm-rollback" "$i" || true; fi
+  done
+  set_state running restart
+  # shellcheck disable=SC2086
+  compose up -d --no-build $services
+  # no automatic update would bring the broken version straight back
+  mkdir -p "$(dirname "$HOLD")" && now > "$HOLD"
+  rm -f "$CHECK"
+  log "done – automatic updates are paused until the next manual update"
+  set_state "done" "done"
+}
+
 update() {
   : > "$LOG"
   set_state running start
   log "checking for updates"
+  mark_rollback
   if has_git; then
     set_state running git
     before="$(git_ rev-parse HEAD)"
@@ -130,6 +200,7 @@ update() {
   # shellcheck disable=SC2086
   compose up -d --no-build $services
   set_state running cleanup
+  keep_rollback
   self_update
   docker image prune -f >/dev/null
   rm -f "$CHECK"
@@ -175,7 +246,9 @@ lock_active() {
   return 1
 }
 
+# run_update [update|rollback] – one at a time, output in the log the admin panel shows.
 run_update() {
+  job="${1:-update}"
   lock_active || true
   if ! mkdir "$LOCK" 2>/dev/null; then
     log "an update is already running (PID $(lock_pid)) – following its log, Ctrl+C stops only the output"
@@ -188,9 +261,9 @@ run_update() {
   fi
   echo $$ > "$LOCK/pid"
   trap 'rm -rf "$LOCK"' EXIT
-  if ! update >> "$LOG" 2>&1; then
+  if ! "$job" >> "$LOG" 2>&1; then
     set_state error failed "$(tail -n 1 "$LOG")"
-    log "update failed" >> "$LOG"
+    log "$job failed" >> "$LOG"
   fi
   cat "$LOG"
 }
@@ -252,7 +325,7 @@ backup_copy() {
 # ---- HTTP API (busybox httpd + CGI, only reachable inside the compose network) -------------
 serve() {
   mkdir -p /www/cgi-bin
-  for cmd in status check run power backup; do
+  for cmd in status check run power backup rollback; do
     # CGI headers need CRLF line endings.
     printf '#!/bin/sh\nprintf "Content-Type: application/json\\r\\n\\r\\n"\nexec /usr/local/bin/mm-update --cgi-%s\n' "$cmd" > "/www/cgi-bin/$cmd"
     chmod 755 "/www/cgi-bin/$cmd"
@@ -263,7 +336,19 @@ serve() {
 }
 
 case "${1:-}" in
-  --now) run_update; exit 0 ;;
+  # manual update: also ends a pause after a rollback
+  --now) rm -f "$HOLD"; run_update update; exit 0 ;;
+  # nightly / after boot: skipped while paused after a rollback
+  --scheduled)
+    if [ -f "$HOLD" ]; then log "automatic update skipped – paused after a rollback (update manually to resume)"; exit 0; fi
+    run_update update; exit 0 ;;
+  --rollback) run_update rollback; exit 0 ;;
+  --cgi-rollback)
+    if lock_active; then echo '{"ok":false,"error":"already running"}'; exit 0; fi
+    [ -f "$ROLLBACK" ] || { echo '{"ok":false,"error":"no earlier version"}'; exit 0; }
+    setsid /usr/local/bin/mm-update --rollback >/dev/null 2>&1 < /dev/null &
+    echo '{"ok":true}'
+    exit 0 ;;
   --check) check; exit 0 ;;
   --cgi-status) status_json; exit 0 ;;
   --cgi-check) check; exit 0 ;;
@@ -307,7 +392,7 @@ boot_update() {
   done
   mkdir -p "$(dirname "$BOOT_MARK")" && echo "$boot" > "$BOOT_MARK"
   log "host was started – updating"
-  /usr/local/bin/mm-update --now >/dev/null 2>&1 || true
+  /usr/local/bin/mm-update --scheduled >/dev/null 2>&1 || true
 }
 [ "$UPDATE_ON_BOOT" = true ] && boot_update &
 
@@ -325,6 +410,6 @@ fi
 while true; do
   sleep "$(seconds_until "$UPDATE_TIME")"
   # own process: its EXIT trap removes the lock (in this long-running shell it never would)
-  /usr/local/bin/mm-update --now >/dev/null 2>&1 || true
+  /usr/local/bin/mm-update --scheduled >/dev/null 2>&1 || true
   sleep 60
 done
