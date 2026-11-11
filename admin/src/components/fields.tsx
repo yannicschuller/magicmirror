@@ -123,7 +123,7 @@ export function CheckChip({
 function FieldRow({ field, children, wide, htmlFor }: { field: Field; children: ReactNode; wide?: boolean; htmlFor?: string }) {
   const { t } = useStore();
   return (
-    <div className={cn('flex min-w-0 flex-col gap-1.5', wide && 'col-span-full')}>
+    <div data-field={field.key} className={cn('flex min-w-0 flex-col gap-1.5 rounded-md transition-shadow', wide && 'col-span-full')}>
       <Label htmlFor={htmlFor} className="text-xs font-medium text-muted-foreground">
         {t(field.label)}
       </Label>
@@ -183,7 +183,7 @@ function FieldInput({ field, values, onChange }: { field: Field; values: Values;
   switch (field.type) {
     case 'bool':
       return (
-        <label htmlFor={id} className="flex cursor-pointer items-center gap-3 py-1.5 text-sm">
+        <label htmlFor={id} data-field={field.key} className="flex cursor-pointer items-center gap-3 rounded-md py-1.5 text-sm">
           <Switch id={id} checked={!!v} onCheckedChange={(c) => set(c)} />
           <span>{t(field.label)}</span>
         </label>
@@ -526,7 +526,7 @@ function ListField({ field, values, onChange }: { field: Field; values: Values; 
     onChange();
   };
   return (
-    <div className="col-span-full flex min-w-0 flex-col gap-2">
+    <div data-field={field.key} className="col-span-full flex min-w-0 flex-col gap-2 rounded-md">
       <Label className="text-xs font-medium text-muted-foreground">{t(field.label)}</Label>
       <div className="flex flex-col gap-2.5">
         {arr.map((item, i) => (

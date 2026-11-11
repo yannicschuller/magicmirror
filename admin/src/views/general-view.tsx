@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Clock, Monitor, Moon, Palette, Settings2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Archive, Bell, Clock, Monitor, Moon, Palette, Radar, Settings2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FieldsForm } from '@/components/fields';
@@ -8,15 +8,19 @@ import { useStore } from '@/lib/store';
 import { SystemCard } from './system-card';
 import { useActiveTabVisible } from '@/lib/use-active-tab-visible';
 
-const ICONS: Record<string, typeof Clock> = { basics: Settings2, look: Palette, pages: Clock, night: Moon, system: Monitor };
+const ICONS: Record<string, typeof Clock> = { basics: Settings2, look: Palette, pages: Clock, night: Moon, system: Monitor, sensors: Radar, notify: Bell, backup: Archive };
 const DESCRIPTIONS: Record<string, string> = {
   basics: 'Name, location, time zone and language of the mirror.',
   look: 'Font, colours, margins and orientation.',
   pages: 'How and when pages switch.',
   night: 'Dim the mirror at night, show only the clock or switch the screen off.',
   system: 'Housekeeping and the state of the device.',
+  sensors: 'Presence and ambient light from Home Assistant.',
+  notify: 'Messages on the mirror from automations and ntfy.',
+  backup: 'Nightly backups on the Pi, a USB stick, a network share or WebDAV.',
 };
-const TAB_KEY = 'mm.general.tab';
+export const TAB_KEY = 'mm.general.tab';
+export const TAB_EVENT = 'mm-general-tab'; // the settings search switches tabs
 
 /** General settings, split into tabs by the fields' `group`. */
 export function GeneralView() {
@@ -36,6 +40,11 @@ export function GeneralView() {
       /* storage unavailable */
     }
   };
+  useEffect(() => {
+    const on = (e: Event) => setTab((e as CustomEvent<string>).detail);
+    window.addEventListener(TAB_EVENT, on);
+    return () => window.removeEventListener(TAB_EVENT, on);
+  }, []);
   const bar = useActiveTabVisible<HTMLDivElement>(tab);
   return (
     <Tabs value={tab} onValueChange={pick} className="mx-auto flex w-full max-w-4xl flex-col gap-4">

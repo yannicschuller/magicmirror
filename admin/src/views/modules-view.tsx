@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { CircleAlert, Copy, Download, FlaskConical, Loader2, Plus, Trash2, Upload } from 'lucide-react';
+import { Check, CircleAlert, Copy, Download, FlaskConical, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { download, exportModule, importShared, isSharedFile } from '@/lib/share';
 import { toast } from 'sonner';
 import { cn } from 'cn';
@@ -18,7 +18,7 @@ const CONDITIONS = CONDITIONS_JS as Record<string, { label: string } | undefined
 import { CheckChip, FieldsForm, NumberInput, OptionSelect, noPlus } from '@/components/fields';
 import { clone, errorMessage } from '@/lib/api';
 import { duplicateGroups, mergeDuplicates, moduleName, pagesSummary, regionLabel, typeLabel } from '@/lib/helpers';
-import { MODULE_TYPES, REGIONS, defaultModule, uid, type Module } from '@/lib/shared';
+import { MODULE_TYPES, REGIONS, defaultModule, uid, type Module, type Values } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 import { useHealth } from '@/lib/health';
 
@@ -411,25 +411,35 @@ function ModuleEditor({ m }: { m: Module }) {
           <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">{t('Settings')}</h3>
           <FieldsForm fields={type.fields} values={m.settings} onChange={touch} />
         </div>
-        <TestData id={m.id} />
+        <TestData m={m} />
       </CardContent>
     </Card>
   );
 }
 
-function TestData({ id }: { id: string }) {
+type TestResult = { ok: boolean; ms: number; error?: string; warnings: string[]; counts: [string, number][]; raw: string };
+
+// What a test returned, in words: the lists in the data with their length, and partial errors.
+function summarize(json: { ok?: boolean; error?: string; data?: Values }, ms: number): TestResult {
+  const d = json.data || {};
+  const warnings = [d.errors, d.error ? [d.error] : null].flat().filter(Boolean).map((e) => (typeof e === 'string' ? e : (e as Values).message || JSON.stringify(e))).slice(0, 5);
+  const counts = Object.entries(d).filter(([k, v]) => Array.isArray(v) && k !== 'errors').map(([k, v]) => [k, (v as unknown[]).length] as [string, number]);
+  return { ok: !!json.ok, ms, error: json.error, warnings, counts, raw: JSON.stringify(json, null, 2).slice(0, 8000) };
+}
+
+/** Fetches the module's data right now with the settings as they are in the editor (also unsaved). */
+function TestData({ m }: { m: Module }) {
   const { t } = useStore();
-  const [out, setOut] = useState<string | null>(null);
+  const [res, setRes] = useState<TestResult | null>(null);
   const [loading, setLoading] = useState(false);
   const run = async () => {
     setLoading(true);
-    setOut(t('Loading …'));
+    const start = performance.now();
     try {
-      const res = await fetch(`/api/module/${encodeURIComponent(id)}/data`);
-      const json = await res.json();
-      setOut(JSON.stringify(json, null, 2).slice(0, 6000));
+      const r = await fetch('/api/admin/preview-data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ module: m }) });
+      setRes(summarize(await r.json(), Math.round(performance.now() - start)));
     } catch (err) {
-      setOut(t(errorMessage(err)));
+      setRes({ ok: false, ms: 0, error: errorMessage(err), warnings: [], counts: [], raw: '' });
     } finally {
       setLoading(false);
     }
@@ -439,12 +449,28 @@ function TestData({ id }: { id: string }) {
       <div className="flex flex-wrap items-center gap-3">
         <Button size="sm" variant="secondary" onClick={run} disabled={loading}>
           {loading ? <Loader2 className="animate-spin" /> : <FlaskConical />}
-          {t('Test data')}
+          {t('Test now')}
         </Button>
-        <span className="text-xs text-muted-foreground">{t('uses the saved state')}</span>
+        <span className="text-xs text-muted-foreground">{t('fetches the data with the settings above – also before saving')}</span>
       </div>
-      {out !== null && (
-        <pre className="max-h-90 overflow-auto rounded-lg border bg-background p-3 font-mono text-xs leading-relaxed">{out}</pre>
+      {res && (
+        <div className={cn('flex flex-col gap-1.5 rounded-lg border p-3 text-sm', res.ok && !res.warnings.length ? 'border-success/40 bg-success/10' : res.ok ? 'border-warning/40 bg-warning/10' : 'border-destructive/40 bg-destructive/10')}>
+          <div className="flex items-center gap-2 font-medium">
+            {res.ok ? <Check className="size-4 text-success" /> : <CircleAlert className="size-4 text-destructive" />}
+            {res.ok ? t('Works ({ms} ms)', { ms: res.ms }) : t('Failed')}
+          </div>
+          {res.error && <p className="text-destructive">{t(res.error)}</p>}
+          {res.warnings.map((w) => (
+            <p key={w} className="text-xs text-warning">{t(w)}</p>
+          ))}
+          {res.ok && res.counts.length > 0 && <p className="text-xs text-muted-foreground">{res.counts.map(([k, n]) => `${k}: ${n}`).join(' · ')}</p>}
+          {res.raw && (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-muted-foreground">{t('Raw data')}</summary>
+              <pre className="mt-2 max-h-80 overflow-auto rounded-md bg-background p-2 font-mono leading-relaxed">{res.raw}</pre>
+            </details>
+          )}
+        </div>
       )}
     </div>
   );

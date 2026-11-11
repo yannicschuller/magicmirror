@@ -21,6 +21,7 @@ import { StoreProvider, useStore, useT, VIEWS, type View } from '@/lib/store';
 import { VersionBadge } from '@/components/version-badge';
 import { ChangesDialog } from '@/components/changes-dialog';
 import { UpdateIndicator } from '@/components/update-progress';
+import { SettingsSearch } from '@/components/settings-search';
 import { useActiveTabVisible } from '@/lib/use-active-tab-visible';
 import { UpdateProvider } from '@/lib/update';
 import { HealthProvider } from '@/lib/health';
@@ -134,6 +135,7 @@ function Shell() {
             </TabsList>
           </div>
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            <SettingsSearch />
             <UpdateIndicator />
             {dirty && (
               <>
