@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CornerDownLeft, Search } from 'lucide-react';
 import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
@@ -129,7 +130,7 @@ export function SettingsSearch() {
         <Search />
         <span className="sr-only">{t('Search settings')}</span>
       </Button>
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-3 pt-[12vh] backdrop-blur-sm" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
           <div role="dialog" aria-label={t('Search settings')} className="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border bg-popover shadow-2xl">
             <div className="flex items-center gap-2 border-b px-3">
@@ -176,7 +177,8 @@ export function SettingsSearch() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

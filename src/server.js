@@ -193,6 +193,13 @@ admin.put('/config', async (req, res) => {
 });
 
 admin.get('/history', async (req, res) => res.json(await listHistory()));
+// First start: nothing saved yet and still the default modules → the admin offers the setup wizard.
+admin.get('/setup', async (req, res) => {
+  const cfg = getConfig();
+  const d = defaultConfig(cfg.general.locale);
+  const untouched = cfg.modules.length === d.modules.length && cfg.modules.every((m) => d.modules.some((x) => x.id === m.id));
+  res.json({ fresh: untouched && (await listHistory()).length === 0 });
+});
 admin.get('/history/:id', async (req, res) => {
   const cfg = await readHistory(req.params.id);
   return cfg ? res.json(cfg) : res.status(404).json({ error: 'Not found' });

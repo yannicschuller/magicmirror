@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Download, FileJson, KeyRound, Loader2, RefreshCw, RotateCcw, Upload, UserRound } from 'lucide-react';
+import { Download, FileJson, KeyRound, Loader2, RefreshCw, RotateCcw, Upload, UserRound, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import type { Config, Module, Page } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 import { UpdateCard } from './update-card';
 import { HistoryCard } from './history-card';
+import { OPEN_SETUP } from '@/components/setup-wizard';
 import { BackupsCard } from './backups-card';
 
 /** Renders the only markup our messages use (<b>…</b>) without innerHTML. */
@@ -170,6 +171,10 @@ function BackupCard() {
             <Button variant="secondary" onClick={reload}>
               <RefreshCw />
               {t('Reload all mirrors')}
+            </Button>
+            <Button variant="secondary" onClick={() => window.dispatchEvent(new Event(OPEN_SETUP))}>
+              <Sparkles />
+              {t('Setup wizard')}
             </Button>
             <Button variant="destructive" onClick={reset}>
               <RotateCcw />

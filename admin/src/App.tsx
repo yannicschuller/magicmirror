@@ -22,6 +22,7 @@ import { VersionBadge } from '@/components/version-badge';
 import { ChangesDialog } from '@/components/changes-dialog';
 import { UpdateIndicator } from '@/components/update-progress';
 import { SettingsSearch } from '@/components/settings-search';
+import { SetupWizard } from '@/components/setup-wizard';
 import { useActiveTabVisible } from '@/lib/use-active-tab-visible';
 import { UpdateProvider } from '@/lib/update';
 import { HealthProvider } from '@/lib/health';
@@ -136,6 +137,7 @@ function Shell() {
           </div>
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <SettingsSearch />
+            <SetupWizard />
             <UpdateIndicator />
             {dirty && (
               <>
