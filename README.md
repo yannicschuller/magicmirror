@@ -133,6 +133,10 @@ All of it runs on a Pi 3. The server needs about 60 MB of RAM; the default kiosk
 - Use prebuilt images (the default). Building the images on the Pi 3 itself works, but takes a long time.
 - The ADS-B receiver (`adsb` / `fr24` profiles) runs fine alongside everything else on a Pi 3.
 
+## Picture of the mirror
+
+*Remote control → What the mirror shows → Take a picture* asks the kiosk's page to render itself into an image – the page as it is right now (current page, dimming, data, error notes). Images from other servers without CORS (map tiles, some photos) may be missing in it. Without a kiosk, any open mirror answers.
+
 ## Offline mode
 
 When the internet or a data source is down, the mirror keeps showing each module's last good data with a small note such as *⟲ As of 14:32* (from 10 minutes without fresh data). The server keeps that data in `data/lastgood.json` (written at most every 15 minutes and on shutdown), so this also works right after a reboot without internet. Data older than 48 hours, or data from before a module's settings were changed, is not shown.

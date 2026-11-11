@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Lightbulb, Loader2, Moon, MonitorOff, Pause, Play, RefreshCw, Sun } from 'lucide-react';
+import { Camera, Check, ChevronLeft, ChevronRight, Download, Lightbulb, Loader2, Moon, MonitorOff, Pause, Play, RefreshCw, Sun } from 'lucide-react';
 import { moduleName } from '@/lib/helpers';
 import type { Module } from '@/lib/shared';
 import { toast } from 'sonner';
@@ -126,6 +126,8 @@ export function RemoteView() {
         </CardContent>
       </Card>
 
+      <ScreenshotCard />
+
       {cfg.modules.filter((m) => m.type === 'tasks' && m.enabled).map((m) => <TasksCard key={m.id} m={m} />)}
 
       <Button variant="outline" onClick={() => command('reload')} disabled={busy === 'reload'}>
@@ -189,6 +191,68 @@ function TasksCard({ m }: { m: Module }) {
             <span className={cn('flex-1', task.overdue && 'text-destructive')}>{task.title}</span>
           </Button>
         ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** What the mirror shows right now: the kiosk renders its page into an image on request. */
+function ScreenshotCard() {
+  const { t, lang } = useStore();
+  const [at, setAt] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api<{ at: string | null }>('/screenshot/info').then((r) => setAt(r.at)).catch(() => {});
+  }, []);
+  const take = async () => {
+    setBusy(true);
+    try {
+      const before = (await api<{ at: string | null }>('/screenshot/info')).at;
+      const r = await api<{ mirrors: number; kiosk: boolean }>('/screenshot', { method: 'POST' });
+      if (!r.mirrors) throw new Error('No mirror is connected right now.');
+      // the page needs a few seconds (longer on a Pi 3)
+      for (let i = 0; i < 40; i++) {
+        await new Promise((res) => setTimeout(res, 1000));
+        const now = (await api<{ at: string | null }>('/screenshot/info')).at;
+        if (now && now !== before) {
+          setAt(now);
+          return;
+        }
+      }
+      throw new Error('The mirror did not send a picture.');
+    } catch (err) {
+      toast.error(t(errorMessage(err)));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const when = at ? new Date(at).toLocaleString(lang, { dateStyle: 'short', timeStyle: 'medium' }) : null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">{t('What the mirror shows')}</CardTitle>
+        <CardDescription>{t('A picture of the page on the mirror right now. Images from other servers (maps, some photos) may be missing in it.')}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={take} disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" /> : <Camera />}
+            {t('Take a picture')}
+          </Button>
+          {at && (
+            <Button variant="ghost" size="sm" asChild>
+              <a href={`/api/admin/screenshot?t=${encodeURIComponent(at)}`} download={`mirror-${at.slice(0, 19).replace(/[:T]/g, '-')}.jpg`}>
+                <Download /> {t('Download')}
+              </a>
+            </Button>
+          )}
+        </div>
+        {at && (
+          <figure className="flex flex-col gap-1">
+            <img src={`/api/admin/screenshot?t=${encodeURIComponent(at)}`} alt={t('What the mirror shows')} className="w-full rounded-lg border bg-black" />
+            <figcaption className="text-xs text-muted-foreground">{when}</figcaption>
+          </figure>
+        )}
       </CardContent>
     </Card>
   );

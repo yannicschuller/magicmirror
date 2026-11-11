@@ -584,6 +584,10 @@ function connectEvents() {
   });
   es.addEventListener('reload', () => location.reload());
   es.addEventListener('notify', (e) => showNote(JSON.parse(e.data)));
+  es.addEventListener('screenshot', (e) => {
+    const { nonce, any } = JSON.parse(e.data);
+    if (!preview && (params.has('kiosk') || any)) takeScreenshot(nonce);
+  });
   es.addEventListener('display', (e) => {
     const d = JSON.parse(e.data);
     // remote control and presence switch at once; ambient light fades slowly
@@ -657,6 +661,26 @@ function nextNote() {
       nextNote();
     }, 500);
   }, n.duration * 1000);
+}
+
+// ---- screenshot for the admin -------------------------------------------------------
+// Renders the page into a JPEG (as it is now: page, dimming, errors). Images from other
+// servers without CORS (map tiles, some photos) may stay empty.
+let shooting = false;
+async function takeScreenshot(nonce) {
+  if (shooting) return;
+  shooting = true;
+  try {
+    const { domToJpeg } = await import('/vendor/modern-screenshot/index.mjs');
+    const scale = Math.min(1, 1280 / Math.max(1, window.innerWidth));
+    const url = await domToJpeg(document.body, { scale, quality: 0.8, backgroundColor: '#000', width: window.innerWidth, height: window.innerHeight, timeout: 15000 });
+    const blob = await (await fetch(url)).blob();
+    await fetch(`/api/screenshot?nonce=${encodeURIComponent(nonce)}`, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
+  } catch (err) {
+    console.warn('[screenshot]', err);
+  } finally {
+    shooting = false;
+  }
 }
 
 // ---- manual navigation (keyboard, touch) ----------------------------------------------

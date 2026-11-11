@@ -11,7 +11,7 @@ import { startSensors } from './sensors.js';
 import { makeNotification, syncNtfy } from './notify.js';
 import { recordSuccess, recordFailure, healthReport } from './health.js';
 import { rememberData, lastGood, flushLastGood } from './lastgood.js';
-import { createHash } from 'node:crypto';
+import crypto, { createHash } from 'node:crypto';
 import { pushRouter } from './push.js';
 import { controlRouter, startPowerSchedule } from './control.js';
 import { runBackup, listBackups, backupStatus, readBackupConfig, startBackupSchedule, BACKUP_DIR, NAME_RE } from './backup.js';
@@ -102,11 +102,24 @@ app.post('/api/heartbeat', (req, res) => {
 });
 app.get('/api/kiosk', (req, res) => res.set('Cache-Control', 'no-store').json({ age: Math.round((Date.now() - (kioskBeat || started)) / 1000), seen: !!kioskBeat }));
 
+// Screenshot of the mirror: the admin asks, the kiosk's page renders itself into an image
+// and posts it back with the one-time nonce from the request (nobody else can post one).
+let shotRequest = null; // { nonce, at }
+let shot = null; // { at, type, data: Buffer }
+app.post('/api/screenshot', express.raw({ type: ['image/jpeg', 'image/png'], limit: '8mb' }), (req, res) => {
+  if (!shotRequest || req.query.nonce !== shotRequest.nonce || Date.now() - shotRequest.at > 60000) return res.status(403).end();
+  if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).end();
+  shot = { at: new Date().toISOString(), type: req.get('content-type'), data: req.body };
+  shotRequest = null;
+  res.status(204).end();
+});
+
 setupAuth(app);
 
 // ---- Mirror (public, read-only) -------------------------------------------
 app.use('/vendor/leaflet', express.static(path.join(root, 'node_modules/leaflet/dist'), { maxAge: '7d' }));
 app.use('/vendor/inter', express.static(path.join(root, 'node_modules/@fontsource/inter'), { maxAge: '7d' }));
+app.use('/vendor/modern-screenshot', express.static(path.join(root, 'node_modules/modern-screenshot/dist'), { maxAge: '7d' }));
 app.use('/shared', express.static(path.join(root, 'public/shared')));
 app.use('/brand', express.static(path.join(root, 'public/brand'), { maxAge: '7d' }));
 app.get('/favicon.ico', (req, res) => res.redirect(301, '/brand/favicon.svg'));
@@ -269,6 +282,18 @@ admin.post('/preview-data', async (req, res) => {
 });
 
 admin.get('/health', (req, res) => res.json(healthReport(getConfig())));
+admin.post('/screenshot', (req, res) => {
+  const kiosk = kioskBeat && Date.now() - kioskBeat < 3 * 60000;
+  shotRequest = { nonce: crypto.randomBytes(16).toString('hex'), at: Date.now() };
+  // the kiosk answers; without a kiosk any open mirror may
+  broadcast('screenshot', { nonce: shotRequest.nonce, any: !kiosk });
+  res.json({ ok: true, kiosk, mirrors: clientCount() });
+});
+admin.get('/screenshot/info', (req, res) => res.set('Cache-Control', 'no-store').json({ at: shot?.at || null }));
+admin.get('/screenshot', (req, res) => {
+  if (!shot) return res.status(404).json({ error: 'No screenshot yet' });
+  res.set('Cache-Control', 'no-store').type(shot.type).send(shot.data);
+});
 // Tick off a task from the remote control (Todoist, Home Assistant, CalDAV; Apple Reminders
 // are only hidden – they cannot be changed from here).
 admin.post('/tasks/:id/complete', async (req, res) => {
