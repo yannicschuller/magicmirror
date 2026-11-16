@@ -60,6 +60,9 @@ export type Page = {
   ambient?: 'off' | 'subtle' | 'full';
 };
 
+/** Position and size of a module on one page. */
+export type Placement = { region: string; order: number; width?: 'full' | 'half'; height?: 'auto' | 'fill' };
+
 export type Module = {
   id: string;
   type: string;
@@ -77,7 +80,7 @@ export type Module = {
   /** shown only while this other module is hidden */
   insteadOf?: string;
   /** own position per page; other pages use region/order */
-  placements?: Record<string, { region: string; order: number }>;
+  placements?: Record<string, Placement>;
   schedule?: Schedule;
   settings: Values;
 };

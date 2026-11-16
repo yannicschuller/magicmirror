@@ -138,8 +138,10 @@ export function configDiff(savedJson: string, cur: Values, t: Translate): DiffEn
     prop('height', 'Height', (v) => (v === 'fill' ? t('Use as much space as possible') : t('Automatic')));
     prop('order', 'Order within the area', (v) => String(v));
     prop('width', 'Width', (v) => (v === 'half' ? t('Half width (two side by side)') : t('Full width of the area')));
-    prop('placements', 'Own position on:', (v: Record<string, { region: string }> | undefined, cfg) =>
-      Object.entries(v || {}).map(([pid, pl]) => `${pageName(pid, cfg)}: ${regionName(pl.region)}`).join(', ') || '–');
+    prop('placements', 'Position & size', (v: Record<string, { region: string; width?: string; height?: string }> | undefined, cfg) =>
+      Object.entries(v || {})
+        .map(([pid, pl]) => `${pageName(pid, cfg)}: ${[regionName(pl.region), pl.width === 'half' ? t('half width') : '', pl.height === 'fill' ? t('as much space as possible') : ''].filter(Boolean).join(' · ')}`)
+        .join(', ') || '–');
     prop('schedule', 'Only show at certain times', (v) => scheduleText(v, t));
     prop('insteadOf', 'Show instead of another module', (v, cfg) => {
       const o = v && cfg.modules.find((x: Values) => x.id === v);

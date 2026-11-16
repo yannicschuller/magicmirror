@@ -283,9 +283,9 @@ function layoutFill() {
   const visible = (region) => instances.some((i) => i.visible && regionOf(i) === region && !i.wrap.classList.contains('empty') && !i.wrap.classList.contains('no-content'));
   for (const [col, colIndex] of Object.entries(COLUMNS)) {
     const regions = ROWS.map((row) => grid.querySelector(`.region[data-region="${row}_${col}"]`));
-    regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = el.style.paddingTop = el.style.paddingBottom = ''));
+    regions.forEach((el) => (el.style.gridRow = el.style.gridColumn = el.style.paddingTop = el.style.paddingBottom = el.style.clipPath = ''));
     ROWS.forEach((row, r) => {
-      const fills = instances.some((i) => i.visible && regionOf(i) === `${row}_${col}` && i.mod.height === 'fill');
+      const fills = instances.some((i) => i.visible && regionOf(i) === `${row}_${col}` && i.wrap.classList.contains('fill'));
       if (!fills) return;
       let start = r;
       let end = r;
@@ -303,6 +303,10 @@ function layoutFill() {
         end = 2;
         regions[r].style.paddingBottom = `${contentHeight(regions[2]) + gap}px`;
       }
+      // The kept-clear strip belongs to the neighbour: nothing of this area may show there
+      // (overflow alone clips only at the padding edge).
+      const { paddingTop, paddingBottom } = regions[r].style;
+      if (paddingTop || paddingBottom) regions[r].style.clipPath = `inset(${paddingTop || '0px'} -50vw ${paddingBottom || '0px'} -50vw)`;
       if (start === end) return;
       // grid rows: 1 = top bar, 2 = top, 3 = middle, 4 = bottom, 5 = bottom bar
       regions[r].style.gridRow = `${start + 2} / ${end + 3}`;
@@ -324,8 +328,12 @@ function misplaced(inst, page) {
 }
 
 function place(inst, page) {
+  // width and height can differ per page
+  const pl = placementOn(inst.mod, page.id);
+  inst.wrap.classList.toggle('half', pl.width === 'half');
+  inst.wrap.classList.toggle('fill', pl.height === 'fill');
   if (!misplaced(inst, page)) return;
-  const { region, order } = placementOn(inst.mod, page.id);
+  const { region, order } = pl;
   const target = grid.querySelector(`.region[data-region="${region}"]`);
   if (!target) return;
   inst.wrap.dataset.order = String(order);

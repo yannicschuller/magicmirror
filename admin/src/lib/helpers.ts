@@ -1,13 +1,18 @@
-import { MODULE_TYPES, REGIONS, type Config, type Module, type Translate } from './shared';
+import { MODULE_TYPES, REGIONS, type Config, type Module, type Placement, type Translate } from './shared';
 
 export const typeLabel = (m: Module, t: Translate) => t(MODULE_TYPES[m.type]?.label || m.type);
 export const moduleName = (m: Module, t: Translate) => m.title || typeLabel(m, t);
 export const onPage = (m: Module, pageId: string) => m.pages.includes('*') || m.pages.includes(pageId);
 
-/** Where a module sits on a page: its own position there, else its default position. */
-export const placement = (m: Module, pageId: string) => {
+/** Where and how large a module is on a page: its own placement there, else its defaults. */
+export const placement = (m: Module, pageId: string): Required<Placement> => {
   const p = m.placements?.[pageId];
-  return p ? { region: p.region, order: p.order } : { region: m.region, order: m.order };
+  return {
+    region: p?.region ?? m.region,
+    order: p?.order ?? m.order,
+    width: p?.width || m.width || 'full',
+    height: p?.height || m.height || 'auto',
+  };
 };
 
 /** Pages a module is shown on (ids). */
@@ -18,14 +23,21 @@ const pagesOf = (m: Module, allPages: string[]) => (m.pages.includes('*') ? allP
  * default position; on several pages this page gets its own position.
  */
 export function setPlacement(m: Module, pageId: string, region: string, order: number, allPages: string[]) {
+  setLayout(m, pageId, { region, order }, allPages);
+}
+
+/**
+ * Changes position and/or size of a module on one page only (same rule as above). Its own
+ * placement on a page keeps the full picture, so other pages are never affected.
+ */
+export function setLayout(m: Module, pageId: string, patch: Partial<Placement>, allPages: string[]) {
   const shown = pagesOf(m, allPages);
   if (shown.length <= 1 && (shown[0] ?? pageId) === pageId) {
-    m.region = region;
-    m.order = order;
+    Object.assign(m, patch);
     if (m.placements) delete m.placements[pageId];
     return;
   }
-  m.placements = { ...(m.placements || {}), [pageId]: { region, order } };
+  m.placements = { ...(m.placements || {}), [pageId]: { ...placement(m, pageId), ...patch } };
 }
 export const regionLabel = (id: string, t: Translate) => t(REGIONS.find((r) => r.id === id)?.label || id);
 

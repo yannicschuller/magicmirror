@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Check, CircleAlert, Copy, Download, FlaskConical, Loader2, Plus, Trash2, Upload } from 'lucide-react';
+import { Check, ChevronRight, CircleAlert, Copy, Download, FlaskConical, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { download, exportModule, importShared, isSharedFile } from '@/lib/share';
 import { toast } from 'sonner';
 import { cn } from 'cn';
@@ -15,10 +15,10 @@ import { ScheduleEditor } from '@/components/schedule-editor';
 import { CONDITIONS as CONDITIONS_JS } from '../../../public/shared/conditions.js';
 
 const CONDITIONS = CONDITIONS_JS as Record<string, { label: string } | undefined>;
-import { CheckChip, FieldsForm, NumberInput, OptionSelect, noPlus } from '@/components/fields';
+import { CheckChip, FieldsForm, OptionSelect, noPlus } from '@/components/fields';
 import { clone, errorMessage } from '@/lib/api';
-import { duplicateGroups, mergeDuplicates, moduleName, pagesSummary, regionLabel, typeLabel } from '@/lib/helpers';
-import { MODULE_TYPES, REGIONS, defaultModule, uid, type Module, type Values } from '@/lib/shared';
+import { duplicateGroups, mergeDuplicates, moduleName, onPage, pagesSummary, placement, regionLabel, typeLabel } from '@/lib/helpers';
+import { MODULE_TYPES, defaultModule, uid, type Module, type Values } from '@/lib/shared';
 import { useStore } from '@/lib/store';
 import { useHealth } from '@/lib/health';
 
@@ -171,8 +171,9 @@ function ModuleList({ selected }: { selected?: string }) {
 }
 
 function ModuleEditor({ m }: { m: Module }) {
-  const { cfg, t, mt, touch, setModule, lang } = useStore();
+  const { cfg, t, mt, touch, setModule, setPage, setView, lang } = useStore();
   const issue = useHealth().find((x) => x.id === m.id);
+  const shownOn = cfg.pages.filter((p) => onPage(m, p.id));
   const confirm = useConfirm();
   const type = MODULE_TYPES[m.type];
   const all = m.pages.includes('*');
@@ -270,91 +271,32 @@ function ModuleEditor({ m }: { m: Module }) {
               }}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="m-region" className="text-xs font-medium text-muted-foreground">
-              {t('Position')}
-            </Label>
-            <OptionSelect
-              id="m-region"
-              value={m.region}
-              options={REGIONS.map((r) => ({ value: r.id, label: r.label }))}
-              onValue={(v) => {
-                m.region = v;
-                touch();
-              }}
-            />
-            {Object.keys(m.placements || {}).length > 0 && (
-              <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                <span>{t('Own position on:')}</span>
-                {Object.entries(m.placements!).map(([pid, pl]) => (
-                  <span key={pid} className="flex items-center gap-1.5">
-                    <b className="font-medium text-foreground">{cfg.pages.find((p) => p.id === pid)?.name || pid}</b> → {regionLabel(pl.region, t)}
+          <div className="col-span-full flex flex-col gap-1.5">
+            <Label className="text-xs font-medium text-muted-foreground">{t('Position & size')}</Label>
+            {shownOn.length ? (
+              <div className="flex flex-col gap-1">
+                {shownOn.map((p) => {
+                  const pl = placement(m, p.id);
+                  const size = [pl.width === 'half' ? t('half width') : '', pl.height === 'fill' ? t('as much space as possible') : ''].filter(Boolean).join(' · ');
+                  return (
                     <button
+                      key={p.id}
                       type="button"
-                      className="rounded px-1 hover:bg-accent hover:text-foreground"
-                      title={t('Use the default position on this page')}
+                      className="flex items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent"
                       onClick={() => {
-                        delete m.placements![pid];
-                        touch();
+                        setPage(p.id);
+                        setView('layout');
                       }}
                     >
-                      ×
+                      <b className="font-medium">{p.name}</b>
+                      <span className="text-muted-foreground">{regionLabel(pl.region, t)}{size ? ` · ${size}` : ''}</span>
+                      <ChevronRight className="ml-auto size-3.5 text-muted-foreground" />
                     </button>
-                  </span>
-                ))}
-                <span>{t('Other pages use the position above. Drag the module in "Pages & layout" to move it on one page only.')}</span>
+                  );
+                })}
               </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="m-order" className="text-xs font-medium text-muted-foreground">
-              {t('Order within the area')}
-            </Label>
-            <NumberInput
-              id="m-order"
-              step={1}
-              value={m.order}
-              onValue={(n) => {
-                m.order = n || 0;
-                touch();
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="m-height" className="text-xs font-medium text-muted-foreground">
-              {t('Height')}
-            </Label>
-            <OptionSelect
-              id="m-height"
-              value={m.height || 'auto'}
-              options={[
-                { value: 'auto', label: 'Automatic (as much as the content needs)' },
-                { value: 'fill', label: 'Use as much space as possible' },
-              ]}
-              onValue={(v) => {
-                m.height = v as Module['height'];
-                touch();
-              }}
-            />
-            <p className="text-xs text-muted-foreground">{t('"As much space as possible" also extends into empty areas above and below.')}</p>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="m-width" className="text-xs font-medium text-muted-foreground">
-              {t('Width')}
-            </Label>
-            <OptionSelect
-              id="m-width"
-              value={m.width || 'full'}
-              options={[
-                { value: 'full', label: 'Full width of the area' },
-                { value: 'half', label: 'Half width (two side by side)' },
-              ]}
-              onValue={(v) => {
-                m.width = v as Module['width'];
-                touch();
-              }}
-            />
-            <p className="text-xs text-muted-foreground">{t('Two half-width modules next to each other in the same area share a row; a half-width module on its own uses the full width.')}</p>
+            ) : null}
+            <p className="text-xs text-muted-foreground">{t('Position, width and height are set per page in "Pages & layout": drag the module, and use ↔ (half width) and ↕ (as much space as possible) on it.')}</p>
           </div>
           <div className="col-span-full flex flex-col gap-3">
             <ScheduleEditor m={m} />

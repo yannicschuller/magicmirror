@@ -703,6 +703,8 @@ body.eco .flights .fl-photo img.fl-ph-bg { display: none; }
 }
 .region:has(> .module.half:not(.off):not(.no-content)) > .module { flex: 1 1 100%; min-width: 0; }
 .region:has(> .module.half:not(.off):not(.no-content)) > .module.half { flex: 1 1 calc(50% - 1.2vmin); }
+/* side by side the area's height no longer limits a "fill" module by itself */
+.region:has(> .module.half:not(.off):not(.no-content)) > .module.fill { max-height: 100%; overflow: hidden; }
 .region[data-region^='middle']:has(> .module.half:not(.off):not(.no-content)) { align-content: safe center; }
 .region[data-region^='bottom']:has(> .module.half:not(.off):not(.no-content)) { align-content: flex-end; }
 .region[data-region$='center']:has(> .module.half:not(.off):not(.no-content)) { justify-content: center; }

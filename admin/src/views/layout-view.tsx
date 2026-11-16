@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
-import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, Download, Eye, Replace, MonitorPlay, SlidersHorizontal, Star, MoveVertical, Plus, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CalendarRange, Clock, Copy, Download, Eye, Replace, MonitorPlay, SlidersHorizontal, Star, MoveHorizontal, MoveVertical, Plus, Trash2, X } from 'lucide-react';
 import { download, exportPage } from '@/lib/share';
 import { toast } from 'sonner';
 import { cn } from 'cn';
@@ -18,7 +18,7 @@ import { IconButton } from '@/components/icon-button';
 import { PageOptions } from '@/components/page-options';
 import { api, clone, errorMessage } from '@/lib/api';
 import { REGIONS, uid, type Module, type Page } from '@/lib/shared';
-import { moduleName, onPage, pagesSummary, placement, setPlacement, typeLabel } from '@/lib/helpers';
+import { moduleName, onPage, pagesSummary, placement, setLayout, setPlacement, typeLabel } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
 // Same arrangement as the mirror's screen grid.
@@ -336,7 +336,7 @@ function Zone({ region, label, page }: { region: string; label: string; page: Pa
       <div className="truncate text-[10px] font-medium tracking-wider text-[#5d6782] uppercase">{label}</div>
       <div className="flex flex-wrap gap-1.5">
         {mods.map((m) => (
-          <div key={m.id} className={cn('min-w-0', m.width === 'half' ? 'flex-[1_1_calc(50%-0.375rem)]' : 'flex-[1_1_100%]')}>
+          <div key={m.id} className={cn('min-w-0', placement(m, page.id).width === 'half' ? 'flex-[1_1_calc(50%-0.375rem)]' : 'flex-[1_1_100%]')}>
             <ModuleChip m={m} page={page} />
           </div>
         ))}
@@ -349,6 +349,8 @@ function ModuleChip({ m, page, outside = false }: { m: Module; page: Page; outsi
   const { cfg, t, touch, setModule, setView } = useStore();
   const [dragging, setDragging] = useState(false);
   const all = m.pages.includes('*');
+  const pl = placement(m, page.id);
+  const allPages = cfg.pages.map((p) => p.id);
   const insteadOf = m.insteadOf ? cfg.modules.find((x) => x.id === m.insteadOf) : undefined;
   const meta = [insteadOf ? t('instead of {name}', { name: moduleName(insteadOf, t) }) : typeLabel(m, t), all && t('all pages'), !m.enabled && t('off'), outside && pagesSummary(m, cfg, t)]
     .filter(Boolean)
@@ -400,25 +402,39 @@ function ModuleChip({ m, page, outside = false }: { m: Module; page: Page; outsi
           </span>
         )}
       </span>
-      <span className="truncate text-[11px] text-muted-foreground">{meta}</span>
+      <span className={cn('truncate text-[11px] text-muted-foreground', !outside && 'pr-5')}>{meta}</span>
       {!outside && (
-        <button
-          type="button"
-          title={m.height === 'fill' ? t('Uses as much space as possible – click for automatic height') : t('Use as much space as possible')}
-          aria-label={t('Use as much space as possible')}
-          aria-pressed={m.height === 'fill'}
-          className={cn(
-            'absolute right-1 bottom-1 rounded p-0.5 hover:bg-primary/15 hover:text-primary',
-            m.height === 'fill' ? 'text-primary' : 'text-muted-foreground/60',
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            m.height = m.height === 'fill' ? 'auto' : 'fill';
-            touch();
-          }}
-        >
-          <MoveVertical className="size-3" />
-        </button>
+        // size on this page: half / full width, automatic height / as much as possible
+        <span className="absolute right-1 bottom-1 flex gap-0.5">
+          <button
+            type="button"
+            title={pl.width === 'half' ? t('Half width – click for the full width (this page)') : t('Half width, two side by side (this page)')}
+            aria-label={t('Half width, two side by side (this page)')}
+            aria-pressed={pl.width === 'half'}
+            className={cn('rounded p-0.5 hover:bg-primary/15 hover:text-primary', pl.width === 'half' ? 'text-primary' : 'text-muted-foreground/60')}
+            onClick={(e) => {
+              e.stopPropagation();
+              setLayout(m, page.id, { width: pl.width === 'half' ? 'full' : 'half' }, allPages);
+              touch();
+            }}
+          >
+            <MoveHorizontal className="size-3" />
+          </button>
+          <button
+            type="button"
+            title={pl.height === 'fill' ? t('Uses as much space as possible – click for automatic height (this page)') : t('Use as much space as possible (this page)')}
+            aria-label={t('Use as much space as possible (this page)')}
+            aria-pressed={pl.height === 'fill'}
+            className={cn('rounded p-0.5 hover:bg-primary/15 hover:text-primary', pl.height === 'fill' ? 'text-primary' : 'text-muted-foreground/60')}
+            onClick={(e) => {
+              e.stopPropagation();
+              setLayout(m, page.id, { height: pl.height === 'fill' ? 'auto' : 'fill' }, allPages);
+              touch();
+            }}
+          >
+            <MoveVertical className="size-3" />
+          </button>
+        </span>
       )}
       {!outside && (
         <button

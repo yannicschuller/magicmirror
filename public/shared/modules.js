@@ -650,14 +650,18 @@ function normalizePlacements(p, pageIds) {
   for (const [page, v] of Object.entries(p)) {
     if (!pageIds.has(page) || !v || !REGION_IDS.has(v.region)) continue;
     out[page] = { region: v.region, order: Number.isFinite(Number(v.order)) ? Number(v.order) : 0 };
+    if (v.width === 'half' || v.width === 'full') out[page].width = v.width;
+    if (v.height === 'fill' || v.height === 'auto') out[page].height = v.height;
   }
   return out;
 }
 
-// Where a module sits on a page: its own position there, else its default position.
+// Where and how large a module is on a page: its own placement there, else its defaults.
 export function placementOn(m, pageId) {
   const p = m.placements?.[pageId];
-  return p ? { region: p.region, order: p.order } : { region: m.region, order: m.order };
+  const width = p?.width || m.width || 'full';
+  const height = p?.height || m.height || 'auto';
+  return p ? { region: p.region, order: p.order, width, height } : { region: m.region, order: m.order, width, height };
 }
 
 export function normalizeConfig(input, fallbackLocale = DEFAULT_LOCALE) {

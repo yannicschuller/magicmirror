@@ -381,6 +381,10 @@ test('modules: own position per page (placements)', async () => {
   });
   const m = cfg.modules[0];
   assert.deepEqual(m.placements, { b: { region: 'bottom_right', order: 2 } });
-  assert.deepEqual(placementOn(m, 'a'), { region: 'top_left', order: 0 });
-  assert.deepEqual(placementOn(m, 'b'), { region: 'bottom_right', order: 2 });
+  assert.deepEqual(placementOn(m, 'a'), { region: 'top_left', order: 0, width: 'full', height: 'auto' });
+  assert.deepEqual(placementOn(m, 'b'), { region: 'bottom_right', order: 2, width: 'full', height: 'auto' });
+  // width and height per page: own values there, the module's defaults elsewhere
+  const sized = normalizeConfig({ pages: [{ id: 'a' }, { id: 'b' }], modules: [{ type: 'clock', pages: ['*'], region: 'top_left', width: 'half', placements: { b: { region: 'top_center', order: 0, width: 'full', height: 'fill' }, a: { region: 'top_left', order: 1, width: 'wide' } } }] }).modules[0];
+  assert.deepEqual(placementOn(sized, 'b'), { region: 'top_center', order: 0, width: 'full', height: 'fill' });
+  assert.deepEqual(placementOn(sized, 'a'), { region: 'top_left', order: 1, width: 'half', height: 'auto' }, 'invalid width falls back to the default');
 });

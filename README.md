@@ -17,7 +17,7 @@
 ---
 
 - **One-line installer:** installs Docker, asks for the important settings and turns a fresh Raspberry Pi into a mirror that boots straight into full-screen on HDMI.
-- **Admin panel at `/admin`:** every module can be switched on or off, configured and dragged into place. Sign in with a username and password, and optionally via OIDC / SSO.
+- **Admin panel at `/admin`:** every module can be switched on or off, configured and dragged into place. Position, width (full / half – two side by side) and height (automatic / as much space as possible) are set per page in the layout editor, so a module can be wide on one page and half width on another. Sign in with a username and password, and optionally via OIDC / SSO.
 - **Pages:** as many pages as you like, rotating automatically, and modules can appear on several pages.
 - **Live:** changes show up on every mirror immediately, with no reload.
 - **Auto-update:** new versions are installed overnight and open mirrors reload themselves.
