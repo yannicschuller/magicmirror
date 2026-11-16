@@ -1,0 +1,144 @@
+{
+ "services": {
+  "app": {
+   "status": "up",
+   "latency": 979,
+   "code": 200,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:38:19.532Z"
+  },
+  "api": {
+   "status": "up",
+   "latency": 732,
+   "code": 200,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:38:19.532Z"
+  },
+  "mcp": {
+   "status": "up",
+   "latency": 732,
+   "code": 405,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:38:19.532Z"
+  },
+  "website": {
+   "status": "up",
+   "latency": 1284,
+   "code": 200,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:38:19.532Z"
+  },
+  "downloads": {
+   "status": "up",
+   "latency": 882,
+   "code": 200,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:38:19.532Z"
+  },
+  "docs": {
+   "status": "up",
+   "latency": 2157,
+   "code": 200,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:38:19.532Z"
+  },
+  "push": {
+   "status": "up",
+   "latency": 756,
+   "code": 200,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:40:51.450Z"
+  },
+  "marketplace": {
+   "status": "up",
+   "latency": 814,
+   "code": 200,
+   "message": null,
+   "checks": null,
+   "checkedAt": "2026-11-16T01:40:51.450Z",
+   "since": "2026-11-16T01:40:51.450Z"
+  }
+ },
+ "days": {
+  "app": {
+   "2026-11-16": {
+    "n": 2,
+    "down": 0,
+    "degraded": 0,
+    "ms": 1782
+   }
+  },
+  "api": {
+   "2026-11-16": {
+    "n": 2,
+    "down": 0,
+    "degraded": 0,
+    "ms": 1350
+   }
+  },
+  "mcp": {
+   "2026-11-16": {
+    "n": 2,
+    "down": 0,
+    "degraded": 0,
+    "ms": 1323
+   }
+  },
+  "website": {
+   "2026-11-16": {
+    "n": 2,
+    "down": 0,
+    "degraded": 0,
+    "ms": 2185
+   }
+  },
+  "downloads": {
+   "2026-11-16": {
+    "n": 2,
+    "down": 0,
+    "degraded": 0,
+    "ms": 1611
+   }
+  },
+  "docs": {
+   "2026-11-16": {
+    "n": 2,
+    "down": 0,
+    "degraded": 0,
+    "ms": 4111
+   }
+  },
+  "push": {
+   "2026-11-16": {
+    "n": 1,
+    "down": 0,
+    "degraded": 0,
+    "ms": 756
+   }
+  },
+  "marketplace": {
+   "2026-11-16": {
+    "n": 1,
+    "down": 0,
+    "degraded": 0,
+    "ms": 814
+   }
+  }
+ },
+ "incidents": [],
+ "updatedAt": "2026-11-16T01:40:51.450Z"
+}

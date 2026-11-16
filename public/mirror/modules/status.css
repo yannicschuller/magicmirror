@@ -1,0 +1,43 @@
+/* ---- service status ---- */
+.mod-status { --st-up: #4ade80; --st-degraded: #fbbf24; --st-down: #f87171; --st-maintenance: #60a5fa; --st-pending: #a3a3a3; --st-unknown: #525252; }
+.mod-status .st-dot { flex: none; display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: var(--st-unknown); }
+.mod-status .st-dot.st-up { background: var(--st-up); }
+.mod-status .st-dot.st-degraded { background: var(--st-degraded); }
+.mod-status .st-dot.st-down { background: var(--st-down); box-shadow: 0 0 .6em var(--st-down); }
+.mod-status .st-dot.st-maintenance { background: var(--st-maintenance); }
+.mod-status .st-dot.st-pending { background: var(--st-pending); }
+.mod-status .st-summary { display: flex; align-items: center; gap: .5em; }
+.mod-status .st-summary.bad { color: var(--st-down); }
+.mod-status .st-summary + .st-list { margin-top: .5em; }
+.mod-status .st-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35em; }
+.mod-status .st-list.st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.2em; max-width: 100%; }
+.mod-status .st-row { display: flex; align-items: flex-start; gap: .55em; }
+.mod-status .st-row > .st-dot { margin-top: .45em; }
+.mod-status .st-main { flex: 1; min-width: 0; }
+.mod-status .st-line { display: flex; align-items: baseline; gap: .6em; }
+.mod-status .st-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mod-status .st-r { flex: none; font-size: .78em; color: var(--dim); font-variant-numeric: tabular-nums; }
+.mod-status .st-state { font-weight: 600; }
+.mod-status .st-state.st-down { color: var(--st-down); }
+.mod-status .st-state.st-degraded { color: var(--st-degraded); }
+.mod-status .st-state.st-maintenance { color: var(--st-maintenance); }
+.mod-status .st-sub { font-size: .7em; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mod-status .st-hist { display: flex; gap: 1px; height: .45em; margin-top: .2em; }
+.mod-status .st-hist i { flex: 1; max-width: .5em; border-radius: 1px; background: var(--st-unknown); opacity: .85; }
+.mod-status .st-hist i.st-up { background: var(--st-up); opacity: .55; }
+.mod-status .st-hist i.st-degraded { background: var(--st-degraded); }
+.mod-status .st-hist i.st-down { background: var(--st-down); }
+.mod-status .st-hist i.st-maintenance { background: var(--st-maintenance); }
+.mod-status .st-list.st-grid .st-hist { display: none; }
+.mod-status .st-incidents { list-style: none; margin: .6em 0 0; padding: 0; display: flex; flex-direction: column; gap: .3em; font-size: .78em; }
+.mod-status .st-incidents li { display: flex; gap: .4em; align-items: flex-start; }
+.mod-status .st-inc-ico { flex: none; width: 1.1em; height: 1.1em; color: var(--st-degraded); }
+.mod-status .st-incidents li.st-down .st-inc-ico { color: var(--st-down); }
+.mod-status .st-incidents li.st-maintenance .st-inc-ico { color: var(--st-maintenance); }
+.mod-status .st-inc-ico svg, .mod-status .st-inc-ico .ico { width: 100%; height: 100%; }
+/* right column: dots on the outside edge */
+.region[data-region$='right'] .mod-status .st-row,
+.region[data-region$='right'] .mod-status .st-summary,
+.region[data-region$='right'] .mod-status .st-incidents li { flex-direction: row-reverse; }
+.region[data-region$='right'] .mod-status .st-line { flex-direction: row-reverse; }
+.region[data-region$='right'] .mod-status .st-hist { justify-content: flex-end; }

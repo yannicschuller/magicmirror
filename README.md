@@ -56,6 +56,7 @@
 | **Parcel tracking** | Status, last scan, "arriving today" and delivery window per parcel | [DHL API](https://developer.dhl.com) (free key), optional [17TRACK](https://www.17track.net) for other carriers |
 | **Electricity** | Dynamic price now (cheap/normal/expensive), hourly chart for today/tomorrow, cheapest window for the washing machine; optional solar, grid and battery from Home Assistant | [Energy-Charts](https://energy-charts.info) / aWATTar (no API key) or Tibber |
 | **Now playing** | Cover, title, artist and progress of the music playing right now; hidden while nothing plays | Home Assistant media players (Sonos, Chromecast, Spotify integration …) or Spotify directly (own app, sign-in in the admin) |
+| **Service status** | Up / degraded / down with response time, history bars, uptime and incidents; optionally only when something is wrong | [Uptime Kuma](https://github.com/louislam/uptime-kuma) status page, your own status JSON, or any Statuspage.io page (GitHub, Cloudflare, …) |
 | **Pollen & air quality** | DWD pollen forecast for your region (today/tomorrow), European AQI, PM2.5/PM10, ozone, NO₂ | [DWD](https://opendata.dwd.de), Open-Meteo (no API key) |
 | **Bike & scooter sharing** | Nearest stations with free bikes/e-bikes and free-floating scooters nearby | open GBFS feeds (nextbike, Dott, Bolt, Voi, …) |
 | **ISS & night sky** | Visible ISS passes with direction and brightness, planets tonight, moon, conjunctions and meteor showers | [CelesTrak](https://celestrak.org) orbit data, computed locally |

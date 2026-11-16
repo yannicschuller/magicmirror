@@ -35,6 +35,7 @@ import { provider as parcels } from './providers/parcels.js';
 import { provider as airpollen } from './providers/airpollen.js';
 import { provider as energy } from './providers/energy.js';
 import { provider as nowplaying, coverFor, spotifyStart, spotifyFinish } from './providers/nowplaying.js';
+import { provider as status } from './providers/status.js';
 import { provider as bikes } from './providers/bikes.js';
 import { provider as nightsky } from './providers/nightsky.js';
 import { provider as pistatus } from './providers/pistatus.js';
@@ -61,6 +62,7 @@ const providers = {
   airpollen,
   energy,
   nowplaying,
+  status,
   bikes,
   nightsky,
   pistatus,

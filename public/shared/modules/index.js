@@ -17,5 +17,6 @@ import network from './network.js';
 import github from './github.js';
 import energy from './energy.js';
 import nowplaying from './nowplaying.js';
+import status from './status.js';
 
-export default [news, homeassistant, tasks, fuel, sky, football, calendar, countdown, parcels, airpollen, bikes, nightsky, pistatus, network, github, energy, nowplaying];
+export default [news, homeassistant, tasks, fuel, sky, football, calendar, countdown, parcels, airpollen, bikes, nightsky, pistatus, network, github, energy, nowplaying, status];
