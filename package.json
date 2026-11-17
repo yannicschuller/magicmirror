@@ -39,6 +39,6 @@
     "ical-expander": "^3.2.0",
     "leaflet": "1.9",
     "modern-screenshot": "^4.7.0",
-    "satellite.js": "^7.1.0"
+    "satellite.js": "^7.2.0"
   }
 }
