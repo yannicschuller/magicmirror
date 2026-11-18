@@ -327,3 +327,13 @@ test('completeVtodo replaces an old status and keeps alarms', () => {
   assert.match(out, /STATUS:COMPLETED\r\nCOMPLETED:20261103T100000Z/);
   assert.match(out, /BEGIN:VALARM/);
 });
+
+test('arrangeOverdue: first, last or hidden', async () => {
+  const { arrangeOverdue } = await import('../src/providers/tasks.js');
+  const now = new Date('2026-11-18T10:00:00Z');
+  const items = [{ title: 'old', due: '2026-10-28', allDay: true }, { title: 'today', due: '2026-11-18', allDay: true }, { title: 'none', due: null, allDay: false }];
+  const t = (m) => arrangeOverdue(items, m, now, 'Europe/Berlin').map((i) => i.title);
+  assert.deepEqual(t('first'), ['old', 'today', 'none']);
+  assert.deepEqual(t('last'), ['today', 'none', 'old']);
+  assert.deepEqual(t('hide'), ['today', 'none']);
+});

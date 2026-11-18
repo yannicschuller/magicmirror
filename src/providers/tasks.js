@@ -355,6 +355,14 @@ export function sortItems(items, mode) {
   return list.map(({ idx, ...i }) => i);
 }
 
+// Overdue tasks: 'first' (as sorted), 'last' (after everything else) or 'hide'.
+export function arrangeOverdue(items, mode, now, timeZone) {
+  if (mode !== 'last' && mode !== 'hide') return items;
+  const late = items.filter((i) => isOverdue(i, now, timeZone));
+  const rest = items.filter((i) => !isOverdue(i, now, timeZone));
+  return mode === 'hide' ? rest : [...rest, ...late];
+}
+
 // "Due within the next n days" (n = 0: no filter). Overdue tasks always pass; tasks without
 // a due date only with includeNoDue.
 export function filterDue(items, days, includeNoDue, now, timeZone) {
@@ -399,7 +407,8 @@ export async function provider(settings, cfg, mod) {
   }
   const now = new Date();
   all = filterDue(all, settings.dueWithinDays, settings.includeNoDue, now, tz);
-  const items = sortItems(all, settings.sort)
+  all = arrangeOverdue(sortItems(all, settings.sort), settings.overdue, now, tz);
+  const items = all
     .slice(0, settings.maxItems)
     .map((i) => ({ ...i, overdue: isOverdue(i, now, tz) }));
   const stale = Boolean(receivedAt && settings.staleHours > 0 && Date.now() - Date.parse(receivedAt) > settings.staleHours * 3600000);

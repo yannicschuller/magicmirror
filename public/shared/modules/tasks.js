@@ -47,6 +47,11 @@ export default {
       { value: 'priority', label: 'By priority' },
       { value: 'source', label: 'As in the source' },
     ] },
+    { key: 'overdue', label: 'Overdue tasks', type: 'select', default: 'first', options: [
+      { value: 'first', label: 'At the top' },
+      { value: 'last', label: 'At the end' },
+      { value: 'hide', label: 'Hide' },
+    ], help: 'Overdue tasks show how long ago they were due ("3 weeks ago").' },
     { key: 'layout', label: 'Layout', type: 'select', default: 'list', options: [
       { value: 'list', label: 'List (one below the other)' },
       { value: 'columns', label: 'Columns (side by side, as many as fit)' },

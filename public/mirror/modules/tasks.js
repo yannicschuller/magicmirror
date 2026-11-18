@@ -9,7 +9,17 @@ export default function render(el, mod, ctx) {
   const { t } = ctx.fmt;
   let last = null;
 
+  // Long overdue: "vor 3 Wochen" instead of a date that looks like a future one.
+  const ago = (key) => {
+    const days = -ctx.fmt.keyDiff(ctx.fmt.dayKey(new Date()), key);
+    if (days <= 2) return null; // Gestern / Vorgestern
+    const rtf = new Intl.RelativeTimeFormat(ctx.fmt.locale, { numeric: 'always' });
+    return days < 14 ? rtf.format(-days, 'day') : days < 60 ? rtf.format(-Math.floor(days / 7), 'week') : rtf.format(-Math.floor(days / 30), 'month');
+  };
+
   const dueLabel = (item) => {
+    const late = item.due && ago(item.allDay ? item.due : ctx.fmt.dayKey(new Date(item.due)));
+    if (late) return late;
     if (item.allDay) return ctx.fmt.dayLabel(item.due);
     const d = new Date(item.due);
     const key = ctx.fmt.dayKey(d);
