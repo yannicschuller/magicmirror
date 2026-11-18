@@ -179,6 +179,9 @@ td:last-child { padding-right: 0; }
 .w-rain-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 1em; margin-left: .2em; }
 .w-rain-bars i { width: .32em; background: rgba(255, 255, 255, .2); border-radius: 1px; }
 .w-rain-bars i.wet { background: var(--accent); }
+/* aligned like the lines above it */
+.region[data-region$='right'] .weather .w-rain { justify-content: flex-end; }
+.region[data-region$='center'] .weather .w-rain, .region[data-region$='bar'] .weather .w-rain { justify-content: center; }
 .w-hourly { display: flex; gap: 1.1em; margin-top: .9em; justify-content: inherit; }
 .region[data-region$='right'] .w-hourly { justify-content: flex-end; }
 .region[data-region$='center'] .w-hourly { justify-content: center; }
