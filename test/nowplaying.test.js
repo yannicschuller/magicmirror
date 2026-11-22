@@ -68,3 +68,13 @@ test('German strings', () => {
   ids.push('Connect Spotify in the module settings.', 'Enter a media player in the module settings.');
   for (const id of ids) assert.ok(de[id], `missing German: ${id}`);
 });
+
+test('coverId ignores the rotating Home Assistant token', async () => {
+  const { coverId } = await import('../src/providers/nowplaying.js');
+  const a = '/api/media_player_proxy/media_player.kitchen?token=abc123&cache=f00d';
+  const b = '/api/media_player_proxy/media_player.kitchen?token=zzz999&cache=f00d';
+  assert.equal(coverId(a), coverId(b));
+  assert.notEqual(coverId(a), coverId(a.replace('f00d', 'beef')));
+  assert.equal(coverId('/x?token=abc'), '/x');
+  assert.equal(coverId('https://i.scdn.co/image/1'), 'https://i.scdn.co/image/1');
+});

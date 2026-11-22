@@ -10,6 +10,34 @@ export default function render(el, mod, ctx) {
   const { t } = ctx.fmt;
   let item = null;
   let key = '';
+  // One cover element for the module's lifetime: a new cover is loaded in the background
+  // and swapped in once decoded, so a track change or rebuild never shows an empty or
+  // white box (WebKit paints a not-yet-decoded image as a light rectangle).
+  const coverImg = document.createElement('img');
+  coverImg.className = 'np-cover';
+  coverImg.alt = '';
+  coverImg.referrerPolicy = 'no-referrer';
+  let coverSrc = '';
+  let coverWanted = '';
+  const setCover = (src) => {
+    if (src === coverWanted) return;
+    coverWanted = src;
+    const pre = new Image();
+    pre.referrerPolicy = 'no-referrer';
+    pre.onload = () => {
+      if (coverWanted !== src) return;
+      (pre.decode ? pre.decode() : Promise.resolve()).catch(() => {}).then(() => {
+        if (coverWanted !== src) return;
+        coverImg.src = src;
+        coverSrc = src;
+        coverImg.hidden = false;
+      });
+    };
+    pre.onerror = () => {
+      if (coverWanted === src) coverImg.hidden = true;
+    };
+    pre.src = src;
+  };
 
   const pos = () => {
     if (!item || item.position === null) return null;
@@ -42,17 +70,22 @@ export default function render(el, mod, ctx) {
         return;
       }
       // only rebuild when the track changes; the bar moves on in tick()
-      const k = JSON.stringify([item.title, item.artist, item.cover, item.playing, item.device]);
+      const withCover = s.showCover !== false && Boolean(item.cover);
+      const k = JSON.stringify([item.title, item.artist, withCover, item.playing, item.device]);
+      if (withCover) setCover(item.cover);
       if (k !== key) {
         key = k;
-        const cover = s.showCover !== false && item.cover
-          ? `<img class="np-cover" src="${esc(item.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`
-          : `<span class="np-cover np-placeholder">${calIcons.music}</span>`;
+        const cover = withCover ? '<span class="np-cover-slot"></span>' : `<span class="np-cover np-placeholder">${calIcons.music}</span>`;
         const meta = [item.artist, s.showDevice && item.device ? item.device : ''].filter(Boolean).map(esc).join(' · ');
         el.innerHTML = `<div class="np${item.playing ? '' : ' paused'}">${cover}<div class="np-text">`
           + `<div class="np-title">${esc(item.title)}</div>${meta ? `<div class="np-artist">${meta}</div>` : ''}`
           + (s.showProgress !== false && item.duration ? '<div class="np-bar"><i></i></div><div class="np-time"></div>' : '')
           + `${item.playing ? '' : `<div class="np-state">${esc(t('Paused'))}</div>`}</div></div>`;
+        // the same (already decoded) element moves into the new markup
+        if (withCover) {
+          if (!coverSrc) coverImg.hidden = true;
+          el.querySelector('.np-cover-slot')?.replaceWith(coverImg);
+        }
       }
       progress();
     },

@@ -35,6 +35,10 @@ export function fromHaState(st) {
   };
 }
 
+// Home Assistant's entity_picture carries an access token that rotates every few minutes
+// ("…?token=abc&cache=def") – the cover is the same, so the version ignores the token.
+export const coverId = (picture) => String(picture).replace(/([?&])token=[^&]*&?/, '$1').replace(/[?&]$/, '');
+
 async function homeassistant(s, cfg, mod) {
   const ids = String(s.entities || '').split(',').map((x) => x.trim()).filter(Boolean);
   if (!ids.length) return { needsSetup: true };
@@ -47,7 +51,7 @@ async function homeassistant(s, cfg, mod) {
   const item = items.find((x) => x.playing) || items[0] || null;
   if (item?.picture) {
     covers.set(mod.id, { url: item.picture.startsWith('http') ? item.picture : `${base}${item.picture}`, headers: item.picture.startsWith('http') ? {} : headers });
-    item.cover = `/api/module/${encodeURIComponent(mod.id)}/cover?v=${crypto.createHash('sha1').update(item.picture).digest('hex').slice(0, 10)}`;
+    item.cover = `/api/module/${encodeURIComponent(mod.id)}/cover?v=${crypto.createHash('sha1').update(coverId(item.picture)).digest('hex').slice(0, 10)}`;
   }
   if (item) delete item.picture;
   return { item };
