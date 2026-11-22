@@ -506,7 +506,8 @@ td:last-child { padding-right: 0; }
 
 .tiles-dim { filter: brightness(.55) contrast(1.15); }
 .tiles-dark { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.3); }
-.leaflet-container { background: #0b0b0b; font: inherit; }
+/* leaflet.css is loaded later and sets #ddd – the higher specificity keeps the map dark while tiles load (no light flash) */
+.fl-map.leaflet-container, .leaflet-container.leaflet-container { background: #0b0b0b; font: inherit; }
 .leaflet-control-attribution { background: rgba(0, 0, 0, .5) !important; color: #777 !important; font-size: 9px !important; }
 .leaflet-control-attribution a { color: #888 !important; }
 .ac { overflow: visible; }
