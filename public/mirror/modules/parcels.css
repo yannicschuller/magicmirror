@@ -7,9 +7,13 @@
 .mod-parcels .pc-compact .pc-icon { align-self: center; margin-top: 0; }
 .mod-parcels .pc-icon svg { width: 100%; height: 100%; }
 .mod-parcels .pc-main { flex: 1 1 auto; min-width: 0; }
-.mod-parcels .pc-head { display: flex; align-items: baseline; gap: .7em; min-width: 0; }
+.mod-parcels .pc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .7em; min-width: 0; }
 .mod-parcels .pc-name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--weight, 300); }
-.mod-parcels .pc-status { flex: none; margin-left: auto; font-size: .8em; color: var(--dim); white-space: nowrap; }
+/* the status wraps below the name when it does not fit next to a name of ~8em (the name
+   shrinks with an ellipsis before that) */
+.mod-parcels .pc-name { flex: 1 1 8em; max-width: 100%; }
+.mod-parcels .pc-status { flex: none; max-width: 100%; margin-left: auto; font-size: .8em; color: var(--dim); white-space: nowrap; }
+.mod-parcels .pc-compact .pc-item { flex-wrap: wrap; row-gap: 0; }
 .mod-parcels .pc-sub, .mod-parcels .pc-event { font-size: .72em; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 26em; }
 .mod-parcels .pc-event { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .mod-parcels .pc-err { font-size: .7em; color: var(--warn); }
@@ -36,3 +40,14 @@
 /* centred regions: the list as a block in the middle */
 .region[data-region$='center'] .mod-parcels .pc-list,
 .region[data-region$='bar'] .mod-parcels .pc-list { width: fit-content; max-width: 100%; margin: 0 auto; }
+.region[data-region$='right'] .mod-parcels .pc-list { width: fit-content; max-width: 100%; margin-left: auto; }
+
+/* narrow columns (half width on portrait screens): the status goes below the name. The module
+   spans its area so the container query sees the column width. */
+.mod-parcels { width: 100%; container-type: inline-size; }
+@container (max-width: 11em) {
+  .mod-parcels .pc-status, .region[data-region$='right'] .mod-parcels .pc-status { flex: 1 1 100%; min-width: 0; margin: 0; white-space: normal; }
+  .mod-parcels .pc-compact .pc-name { flex: 1 1 0; }
+  .mod-parcels .pc-compact .pc-status { padding-left: 1.75em; }
+  .region[data-region$='right'] .mod-parcels .pc-compact .pc-status { padding-left: 0; padding-right: 1.75em; }
+}

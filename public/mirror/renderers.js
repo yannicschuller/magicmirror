@@ -126,7 +126,7 @@ const clock = (el, mod, ctx) => {
   const hmsFmt = f({ hour: 'numeric', minute: 'numeric', hourCycle: 'h23' });
   const dateFmt = f(s.dateStyle === 'full' ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' } : { dateStyle: s.dateStyle });
   const partsFmt = f({ year: 'numeric', month: 'numeric', day: 'numeric' });
-  const digitalHtml = digital ? `<div class="clock-time"><span class="hm"></span>${s.showSeconds ? '<span class="sec"></span>' : ''}</div>` : '';
+  const digitalHtml = digital ? `<div class="clock-time${s.format24 ? '' : ' h12'}"><span class="hm"></span>${s.showSeconds ? '<span class="sec"></span>' : ''}</div>` : '';
   el.innerHTML = `<div class="clock size-${s.size} style-${style}">${analog ? analogSvg(s.analogFace || 'ticks', secHand) : ''}${digitalHtml}${word ? `<div class="clock-words wc-${s.wordStyle === 'grid' ? 'grid' : 'sentence'}" lang="${lang}"></div>` : ''}${s.showDate ? '<div class="clock-date"></div>' : ''}${s.showWeek ? '<div class="clock-week dim"></div>' : ''}</div>`;
   const $ = (q) => el.querySelector(q);
   const hm = $('.hm');
@@ -166,7 +166,8 @@ const clock = (el, mod, ctx) => {
     lastMin = minKey;
     const p = Object.fromEntries(hmsFmt.formatToParts(now).map((x) => [x.type, Number(x.value)]));
     const h = p.hour % 24;
-    if (hm) hm.textContent = timeFmt.format(now);
+    // AM/PM small next to the time (in full size it wraps in a narrow column)
+    if (hm) hm.innerHTML = timeFmt.formatToParts(now).map((p) => (p.type === 'dayPeriod' ? `<span class="ampm">${esc(p.value.trim())}</span>` : p.type === 'literal' && /^\s+$/.test(p.value) ? '' : esc(p.value))).join('');
     if (hands) {
       hands.hr.style.transform = `rotate(${((h % 12) + p.minute / 60) * 30}deg)`;
       hands.min.style.transform = `rotate(${p.minute * 6}deg)`;
@@ -293,7 +294,7 @@ const weather = (el, mod, ctx) => {
     });
     if (!svg) return '';
     return `<div class="w-chart" style="width:${widthEm}em"><div class="w-cicons">${labels
-      .map((l) => `<span style="left:${l.xPct}%">${smallIcon(l.hour.code, l.hour.isDay)}</span>`)
+      .map((l) => `<span style="left:clamp(.8em, ${l.xPct}%, calc(100% - .8em))">${smallIcon(l.hour.code, l.hour.isDay)}</span>`)
       .join('')}</div>${svg}</div>`;
   }
 
@@ -355,6 +356,8 @@ const weather = (el, mod, ctx) => {
       if (s.showHourly) html += hourly(d);
       if (s.forecastDays > 0) html += daily(d);
       el.innerHTML = html + '</div>';
+      // every part switched off (or no rain coming): hide the module instead of an empty frame
+      el.closest('.module')?.classList.toggle('empty', !el.firstElementChild?.querySelector(':scope > :not(.w-bg)'));
     },
   };
 };

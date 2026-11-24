@@ -1,5 +1,14 @@
 /* ---- football ---- */
-.mod-football .fb { font-variant-numeric: tabular-nums; }
+/* the module spans its area: team names end in "…" at the column's width (cqi), narrow columns drop secondary columns */
+.mod-football { width: 100%; container-type: inline-size; }
+.mod-football .fb { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.mod-football .fb table { max-width: 100%; }
+.region[data-region$='right'] .mod-football .fb table { margin-left: auto; }
+.region[data-region$='center'] .mod-football .fb table, .region[data-region$='bar'] .mod-football .fb table { margin-left: auto; margin-right: auto; }
+.mod-football .fb-name { display: inline-block; max-width: var(--fb-name-max); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+/* name budget: (width − score column − cell padding) / 2 − logo */
+.mod-football .fb-matches { --fb-name-max: calc((100cqi - 9.2em) / 2); }
+.mod-football .fb-table { --fb-name-max: calc(100cqi - 11em); }
 .mod-football .fb-sub { margin-top: .75em; text-transform: uppercase; letter-spacing: .1em; }
 .mod-football .fb > .fb-sub:first-child { margin-top: 0; }
 .mod-football .fb-live-dot { color: #ff4d4d; letter-spacing: .05em; animation: fb-blink 2s ease-in-out infinite; }
@@ -27,3 +36,40 @@
 .mod-football .fb-team-name { font-size: 1.5em; font-weight: var(--weight, 300); line-height: 1.15; }
 .mod-football .fb-team-name .fb-logo { margin-left: 0; }
 .mod-football .fb-team-facts { margin-bottom: .2em; }
+
+/* narrow columns (portrait sides, half widths): the tables become grids that span the column,
+   so the names get all the room left (a long one ends in "…"); goals/played columns drop */
+@container (max-width: 18em) {
+  .mod-football .fb-logo { margin: 0 .2em; }
+  .mod-football .fb-team-name { font-size: 1.25em; }
+  .mod-football .fb-table td:nth-child(3), .mod-football .fb-table td:nth-child(4) { display: none; }
+  .mod-football .fb table, .mod-football .fb tbody { display: block; }
+  .mod-football .fb tr { display: grid; align-items: center; }
+  .mod-football .fb tr > td { padding: .08em 0; min-width: 0; }
+  .mod-football .fb tr.fb-day > td, .mod-football .fb tr.fb-gap > td { grid-column: 1 / -1; }
+  .mod-football .fb tr.fb-day > td { padding-top: .45em; overflow: hidden; text-overflow: ellipsis; }
+  .mod-football .fb-matches tr:not(.fb-day) { grid-template-columns: minmax(0, 1fr) 3em minmax(0, 1fr); column-gap: .3em; }
+  .mod-football .fb-table tr { grid-template-columns: 1.3em minmax(0, 1fr) auto; column-gap: .4em; }
+  .mod-football .fb-matches td.fb-home, .mod-football .fb-matches td.fb-away, .mod-football .fb-table td:nth-child(2) { display: flex; align-items: center; }
+  .mod-football .fb-matches td.fb-home { justify-content: flex-end; }
+  .region[data-region$='right'] .mod-football .fb-table td:nth-child(2) { justify-content: flex-end; }
+  .region[data-region$='center'] .mod-football .fb-table td:nth-child(2), .region[data-region$='bar'] .mod-football .fb-table td:nth-child(2) { justify-content: center; }
+  .mod-football .fb .fb-name { max-width: none; min-width: 0; }
+  .mod-football .fb-logo, .mod-football .fb-x { flex: none; }
+}
+/* half width: each match stacks home over away, the score beside them on the outer side */
+@container (max-width: 12em) {
+  .mod-football .fb-matches .fb-logo, .mod-football .fb-table .fb-logo { display: none; }
+  .mod-football .fb-matches tr:not(.fb-day) { grid-template-columns: minmax(0, 1fr) auto; column-gap: .5em; margin-top: .3em; }
+  .mod-football .fb-matches tr.fb-day + tr { margin-top: .1em; }
+  .mod-football .fb-matches td.fb-home, .mod-football .fb-matches td.fb-away { display: block; text-align: inherit; }
+  .mod-football .fb .fb-matches .fb-name { max-width: 100%; }
+  .mod-football .fb-matches td.fb-home { grid-area: 1 / 1; }
+  .mod-football .fb-matches td.fb-away { grid-area: 2 / 1; }
+  .mod-football .fb-matches td.fb-mid { grid-area: 1 / 2 / 3 / 3; }
+  .region[data-region$='right'] .mod-football .fb-matches tr:not(.fb-day) { grid-template-columns: auto minmax(0, 1fr); }
+  .region[data-region$='right'] .mod-football .fb-matches td.fb-home { grid-area: 1 / 2; }
+  .region[data-region$='right'] .mod-football .fb-matches td.fb-away { grid-area: 2 / 2; }
+  .region[data-region$='right'] .mod-football .fb-matches td.fb-mid { grid-area: 1 / 1 / 3 / 2; }
+  .mod-football .fb-sub { letter-spacing: .04em; }
+}

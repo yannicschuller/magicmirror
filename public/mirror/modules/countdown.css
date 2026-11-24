@@ -34,8 +34,24 @@
 /* compact: one flowing line */
 .mod-countdown .cd-compact { display: flex; flex-wrap: wrap; gap: .25em 1.2em; }
 .mod-countdown .cd-chip { display: inline-flex; align-items: baseline; gap: .35em; white-space: nowrap; }
-.mod-countdown .cd-chip .cd-name { overflow: visible; }
+.mod-countdown .cd-chip { max-width: 100%; }
+/* a chip wider than its column: the name ends in an ellipsis, the time left stays */
+.mod-countdown .cd-chip .cd-name { min-width: 0; }
 .mod-countdown .cd-chip .cd-left { color: var(--dim); }
 .mod-countdown .cd-chip.soon .cd-left { color: var(--accent); }
 .region[data-region$='right'] .mod-countdown .cd-compact { justify-content: flex-end; }
 .region[data-region$='center'] .mod-countdown .cd-compact, .region[data-region$='bar'] .mod-countdown .cd-compact { justify-content: center; }
+
+/* narrow columns (half width on portrait screens): the time left goes below the name, chips
+   and big words may wrap. The module spans its area so the container query sees the width. */
+.mod-countdown { width: 100%; container-type: inline-size; }
+@container (max-width: 11em) {
+  .mod-countdown .cd-item { flex-wrap: wrap; row-gap: 0; }
+  .mod-countdown .cd-main { flex-basis: 0; }
+  .mod-countdown .cd-left { flex: 1 1 100%; min-width: 0; }
+  .mod-countdown .cd-item:has(> .cd-icon) .cd-left { padding-left: 1.9em; }
+  .region[data-region$='right'] .mod-countdown .cd-item:has(> .cd-icon) .cd-left { padding-left: 0; padding-right: 1.9em; }
+  .mod-countdown .cd-big-word { font-size: min(2.8em, 22cqi); overflow-wrap: anywhere; }
+  .mod-countdown .cd-num { font-size: min(4.2em, 36cqi); }
+  .mod-countdown .cd-big-name { overflow-wrap: anywhere; }
+}

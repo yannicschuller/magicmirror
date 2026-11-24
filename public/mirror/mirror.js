@@ -92,6 +92,7 @@ function destroyAll() {
     try { inst.api.destroy?.(); } catch (err) { console.error(err); }
   }
   instances = [];
+  sizeWatch?.disconnect();
   grid.querySelectorAll('.region').forEach((r) => (r.innerHTML = ''));
 }
 
@@ -107,6 +108,7 @@ function build() {
     wrap.innerHTML = `${mod.title ? `<header class="mod-title">${esc(mod.title)}</header>` : ''}<div class="mod-body"><div class="dim small loading">${ctx.fmt.t('Loading …')}</div></div>`;
     wrap.dataset.order = String(mod.order);
     region.append(wrap); // default position; moved per page in place()
+    sizeWatch?.observe(wrap);
     const body = wrap.querySelector('.mod-body');
     let api;
     try {
@@ -270,10 +272,25 @@ function updatePages() {
 
 // Height of what a region actually shows (its row may be taller because of other columns).
 function contentHeight(region) {
-  const kids = [...region.children].filter((c) => c.offsetHeight > 0);
-  if (!kids.length) return 0;
-  return kids.at(-1).getBoundingClientRect().bottom - kids[0].getBoundingClientRect().top;
+  // half-width modules sit side by side, so the last one need not end lowest; what sticks
+  // out of the area is cut off there and takes no room
+  const boxes = [...region.children].filter((c) => c.offsetHeight > 0).map((c) => c.getBoundingClientRect());
+  if (!boxes.length) return 0;
+  const area = region.getBoundingClientRect();
+  const top = Math.max(area.top, Math.min(...boxes.map((b) => b.top)));
+  const bottom = Math.min(area.bottom, Math.max(...boxes.map((b) => b.bottom)));
+  return Math.max(0, bottom - top);
 }
+
+// A module that changes its height without new data (fonts, images, a wrapped line, a
+// clock) changes how much room its "fill" neighbours have: lay out again. layoutFill sets
+// the same values when nothing changed, so this settles after one round.
+const sizeWatch = window.ResizeObserver
+  ? new ResizeObserver(() => {
+      clearTimeout(layoutTimer);
+      layoutTimer = setTimeout(layoutFill, 80);
+    })
+  : null;
 
 // Modules with height "fill" take over empty areas above/below them in their column.
 const COLUMNS = { left: 1, center: 2, right: 3 };

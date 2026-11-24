@@ -25,3 +25,20 @@
 .mod-homeassistant .ha-item.warn .ha-ico,
 .mod-homeassistant .ha-item.warn .ha-value,
 .mod-homeassistant .ha-item.warn .ha-unit { color: var(--warn); }
+
+/* narrow columns (half width on portrait screens). The module spans its area so the container
+   query sees the column width. List: the name goes above the value instead of being squeezed
+   to nothing. Grid: as many tiles per row as fit (at most the set number). */
+.mod-homeassistant { width: 100%; container-type: inline-size; }
+.mod-homeassistant .ha-list { max-width: 100%; }
+/* right / centred areas: the list stays a compact block at the edge / in the middle */
+.region[data-region$='right'] .mod-homeassistant .ha-list { width: fit-content; margin-left: auto; }
+.region[data-region$='center'] .mod-homeassistant .ha-list, .region[data-region$='bar'] .mod-homeassistant .ha-list { width: fit-content; margin: 0 auto; }
+@container (max-width: 12em) {
+  .mod-homeassistant .ha-list { grid-template-columns: auto minmax(0, 1fr); row-gap: 0; }
+  .mod-homeassistant .ha-list .ha-ico { grid-column: 1; grid-row: span 2; align-self: start; margin-top: .3em; }
+  .mod-homeassistant .ha-list .ha-label { grid-column: 2; font-size: .8em; }
+  .mod-homeassistant .ha-list .ha-value { grid-column: 2; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-bottom: .4em; }
+  .mod-homeassistant .ha-grid { column-gap: .8em; }
+  .mod-homeassistant .ha-grid:not([style*='--ha-cols:1']) { grid-template-columns: repeat(auto-fill, minmax(4.2em, max-content)); }
+}

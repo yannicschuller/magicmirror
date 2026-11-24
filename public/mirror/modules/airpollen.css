@@ -5,6 +5,8 @@
   --ap-mid: #fde047;
   --ap-high: #f87171;
 }
+/* the module spans its area so narrow (portrait) columns can shrink the day grid via container queries */
+.mod-airpollen { width: 100%; container-type: inline-size; }
 .mod-airpollen .ap-section + .ap-section { margin-top: .7em; }
 .mod-airpollen .ap-msg { font-size: .85em; }
 
@@ -12,14 +14,16 @@
 .mod-airpollen .ap-list {
   display: inline-grid;
   grid-template-columns: auto repeat(var(--n, 2), auto);
+  max-width: 100%;
   column-gap: 1em;
   row-gap: .3em;
   align-items: center;
 }
-.mod-airpollen .ap-day { font-size: .68em; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); text-align: center; }
-.mod-airpollen .ap-name { text-align: left; white-space: nowrap; }
+.mod-airpollen .ap-day { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: .68em; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); text-align: center; }
+/* the (short) pollen name keeps its width; a long day label ("Übermorgen") ends in "…" instead */
+.mod-airpollen .ap-name { min-width: min-content; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mod-airpollen .ap-cell { text-align: center; }
-.mod-airpollen .ap-lvl { font-size: .8em; color: var(--dim); white-space: nowrap; text-align: left; }
+.mod-airpollen .ap-lvl { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: .8em; color: var(--dim); white-space: nowrap; text-align: left; }
 .mod-airpollen .ap-bar { display: inline-flex; gap: .15em; vertical-align: middle; }
 .mod-airpollen .ap-bar i { width: .9em; height: .42em; border-radius: .1em; background: var(--faint); }
 .mod-airpollen .ap-bar i.f { background: var(--lvl); }
@@ -35,6 +39,7 @@
 .mod-airpollen .ap-chips { display: flex; flex-wrap: wrap; gap: .35em .45em; }
 .mod-airpollen .ap-chip {
   display: inline-flex; align-items: center; gap: .4em;
+  max-width: 100%; min-width: 0; overflow: hidden;
   padding: .12em .55em; border-radius: 1em; font-size: .85em; white-space: nowrap;
   border: 1px solid var(--lvl);
 }
@@ -46,7 +51,7 @@
 .mod-airpollen .aqi-na { --lvl: var(--dim); }
 .mod-airpollen .aqi-good { --lvl: #5eead4; } .mod-airpollen .aqi-fair { --lvl: #4ade80; } .mod-airpollen .aqi-moderate { --lvl: #fde047; }
 .mod-airpollen .aqi-poor { --lvl: #fb923c; } .mod-airpollen .aqi-very-poor { --lvl: #f87171; } .mod-airpollen .aqi-extremely-poor { --lvl: #c084fc; }
-.mod-airpollen .ap-aqi { white-space: nowrap; }
+.mod-airpollen .ap-aqi-text, .mod-airpollen .ap-aqi-val { white-space: nowrap; }
 .mod-airpollen .ap-dot { display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: var(--lvl); margin-right: .45em; vertical-align: .08em; }
 .mod-airpollen .ap-aqi-label { color: var(--dim); }
 .mod-airpollen .ap-aqi-text { color: var(--lvl); }
@@ -56,6 +61,21 @@
 .mod-airpollen .ap-pol-k { color: var(--lvl); }
 .mod-airpollen .ap-peak { margin-top: .2em; font-size: .75em; color: var(--dim); }
 .mod-airpollen .ap-attr { margin-top: .8em; font-size: .62em; color: var(--dim); }
+
+/* narrow columns (portrait sides, half widths): smaller bars and gaps; at half width the
+   pollen name gets a line of its own above its bars */
+@container (max-width: 18em) {
+  .mod-airpollen .ap-list { column-gap: .6em; }
+  .mod-airpollen .ap-bar { gap: .12em; }
+  .mod-airpollen .ap-bar i { width: .62em; }
+  .mod-airpollen .ap-pol { column-gap: .6em; }
+}
+@container (max-width: 11em) {
+  .mod-airpollen .ap-list { grid-template-columns: repeat(var(--n, 2), auto); column-gap: .45em; row-gap: .1em; }
+  .mod-airpollen .ap-list > span:empty { display: none; }
+  .mod-airpollen .ap-name { grid-column: 1 / -1; margin-top: .25em; }
+  .mod-airpollen .ap-bar i { width: min(.62em, calc((100cqi - var(--n, 2) * .5em) / var(--n, 2) / 3 - .12em)); }
+}
 
 /* alignment */
 .region[data-region$='right'] .mod-airpollen .airpollen { text-align: right; }

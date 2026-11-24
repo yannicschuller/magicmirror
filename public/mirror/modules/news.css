@@ -8,7 +8,7 @@
 .region[data-region$='right'] .mod-news .news-list { margin-left: auto; }
 .region[data-region$='center'] .mod-news .news-list, .region[data-region$='bar'] .mod-news .news-list { margin: 0 auto; }
 
-.mod-news .news-ticker { font-size: 1.35em; transition: opacity .6s ease; max-width: 60em; line-height: 1.3; }
+.mod-news .news-ticker { font-size: 1.35em; transition: opacity .6s ease; max-width: 60em; line-height: 1.3; overflow-wrap: anywhere; }
 .mod-news .news-ticker.fading { opacity: 0; }
 .mod-news .news-ticker .news-meta { margin-right: .7em; font-variant-numeric: tabular-nums; }
 .mod-news .news-ticker .news-meta .news-src { color: inherit; }

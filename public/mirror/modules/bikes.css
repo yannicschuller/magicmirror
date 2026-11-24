@@ -1,8 +1,11 @@
 /* ---- bike & scooter sharing ---- */
+/* the module spans its area so narrow (portrait) columns can stack the station list via container queries */
+.mod-bikes { width: 100%; container-type: inline-size; }
 .mod-bikes .bikes { display: flex; flex-direction: column; gap: .7em; max-width: 30em; font-variant-numeric: tabular-nums; }
+.mod-bikes .bikes > * { max-width: 100%; min-width: 0; }
 .mod-bikes .bk-list { display: grid; grid-template-columns: auto minmax(0, auto); column-gap: .7em; row-gap: .45em; align-items: baseline; }
 .mod-bikes .bk-row { display: contents; }
-.mod-bikes .bk-counts { display: inline-flex; gap: .55em; white-space: nowrap; }
+.mod-bikes .bk-counts { display: inline-flex; flex-wrap: wrap; gap: .1em .55em; white-space: nowrap; }
 .mod-bikes .bk-c { display: inline-flex; align-items: baseline; gap: .15em; }
 .mod-bikes .bk-c .ico { width: 1.25em; height: 1.25em; vertical-align: -.25em; align-self: center; }
 .mod-bikes .bk-n { font-size: 1.15em; font-weight: var(--weight, 300); }
@@ -10,21 +13,22 @@
 .mod-bikes .bk-zero { color: var(--dim); }
 .mod-bikes .bk-st { min-width: 0; }
 .mod-bikes .bk-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 18em; }
-.mod-bikes .bk-sub { font-size: .72em; color: var(--dim); white-space: nowrap; }
+.mod-bikes .bk-sub { font-size: .72em; color: var(--dim); }
 .mod-bikes .bk-dir { display: inline-block; margin-right: .2em; line-height: 0; }
 .mod-bikes .bk-dir .ico { width: 1.1em; height: 1.1em; vertical-align: -.2em; }
 .mod-bikes .bk-off { color: var(--warn); }
 .mod-bikes .bk-empty, .mod-bikes .bk-empty .ico { color: var(--dim); }
 .mod-bikes .bk-empty .bk-name { opacity: .75; }
 .mod-bikes .bk-fleets { display: flex; flex-direction: column; gap: .3em; }
-.mod-bikes .bk-fleet { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mod-bikes .bk-fleet .bk-counts { min-width: 0; }
-.mod-bikes .bk-op { color: var(--fg); }
+/* counts · operator · "within 500 m · nearest 90 m": wraps as a whole, a long operator name ends in "…" */
+.mod-bikes .bk-fleet { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1em .35em; }
+.mod-bikes .bk-op { color: var(--fg); min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mod-bikes .bk-empty .bk-op { color: var(--dim); }
 
 /* compact: one line per station */
 .mod-bikes .compact .bk-list { grid-template-columns: auto minmax(0, auto) auto; row-gap: .2em; }
 .mod-bikes .compact .bk-name { max-width: 13em; }
+.mod-bikes .compact .bk-sub { white-space: nowrap; }
 
 /* alignment per region */
 .region[data-region$='right'] .mod-bikes .bikes { margin-left: auto; align-items: flex-end; }
@@ -36,4 +40,25 @@
 .region[data-region$='right'] .mod-bikes .compact .bk-list .bk-counts { grid-column: 3; }
 .region[data-region$='right'] .mod-bikes .compact .bk-list .bk-name { grid-column: 2; }
 .region[data-region$='right'] .mod-bikes .compact .bk-list .bk-sub { grid-column: 1; }
+.region[data-region$='right'] .mod-bikes .bk-fleet { justify-content: flex-end; }
 .region[data-region$='center'] .mod-bikes .bikes, .region[data-region$='bar'] .mod-bikes .bikes { margin: 0 auto; align-items: center; }
+.region[data-region$='center'] .mod-bikes .bk-fleet, .region[data-region$='bar'] .mod-bikes .bk-fleet,
+.region[data-region$='center'] .mod-bikes .bk-counts, .region[data-region$='bar'] .mod-bikes .bk-counts { justify-content: center; }
+
+/* narrow columns: many vehicle counts wrap within half the width, so the station keeps the
+   other half; the compact extra line ends in "…"; at half width counts and station stack */
+@container (max-width: 20em) {
+  .mod-bikes .bk-list { grid-template-columns: fit-content(50%) minmax(0, auto); }
+  .region[data-region$='right'] .mod-bikes .bk-list { grid-template-columns: minmax(0, auto) fit-content(50%); }
+}
+@container (max-width: 16em) {
+  .mod-bikes .compact .bk-list, .region .module.mod-bikes .compact .bk-list { grid-template-columns: auto minmax(0, auto) minmax(0, auto); }
+  .mod-bikes .compact .bk-sub { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+@container (max-width: 12em) {
+  .mod-bikes .bk-list, .region .module.mod-bikes .bikes .bk-list { grid-template-columns: minmax(0, 1fr); row-gap: .1em; }
+  .region .module.mod-bikes .bikes .bk-list .bk-row > * { grid-column: auto; }
+  .mod-bikes .bk-list .bk-counts { margin-top: .35em; }
+  .mod-bikes .bk-list > .bk-row:first-child > .bk-counts { margin-top: 0; }
+  .mod-bikes .compact .bk-sub { white-space: normal; }
+}

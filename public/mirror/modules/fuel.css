@@ -1,14 +1,17 @@
 /* ---- fuel prices ---- */
+/* the module spans its area so narrow (portrait) columns can shrink the price grid via container queries */
+.mod-fuel { width: 100%; container-type: inline-size; }
 .mod-fuel .fuel {
   display: inline-grid;
   grid-template-columns: minmax(0, auto) repeat(var(--n, 3), auto);
+  max-width: 100%;
   column-gap: 1.1em;
   row-gap: .35em;
   align-items: baseline;
   font-variant-numeric: tabular-nums;
 }
 .mod-fuel .fuel-row { display: contents; }
-.mod-fuel .fuel-head > span { font-size: .72em; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); text-align: right; }
+.mod-fuel .fuel-head > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .72em; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); text-align: right; }
 .mod-fuel .fuel-st { min-width: 0; text-align: left; }
 .mod-fuel .fuel-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14em; }
 .mod-fuel .fuel-sub { font-size: .72em; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 19em; }
@@ -21,3 +24,17 @@
 .mod-fuel .lvl-high { color: color-mix(in srgb, var(--severe) 70%, var(--fg)); }
 .mod-fuel .closed .fuel-name, .mod-fuel .closed .fuel-p { color: var(--dim); }
 .mod-fuel .fuel-attr { margin-top: .8em; font-size: .62em; color: var(--dim); }
+
+/* narrow columns (portrait sides, half widths): tighter gaps and smaller prices; at half width
+   the station gets a line of its own above its prices */
+@container (max-width: 17em) {
+  .mod-fuel .fuel { column-gap: .6em; }
+  .mod-fuel .fuel-p { font-size: 1.1em; }
+}
+@container (max-width: 12em) {
+  .mod-fuel .fuel { grid-template-columns: repeat(var(--n, 3), auto); column-gap: .45em; row-gap: .1em; }
+  .mod-fuel .fuel-head > span:empty { display: none; }
+  .mod-fuel .fuel-head > span { letter-spacing: .03em; }
+  .mod-fuel .fuel-st { grid-column: 1 / -1; margin-top: .3em; }
+  .mod-fuel .fuel-p { font-size: clamp(.7em, calc((100cqi - var(--n, 3) * .45em) / var(--n, 3) / 2.7), 1.1em); }
+}

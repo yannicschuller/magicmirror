@@ -18,7 +18,7 @@
 .mod-tasks .tasks-list.style-plain .tasks-item.p3 .tasks-title { font-weight: 400; }
 .mod-tasks .tasks-more { margin-top: .35em; }
 /* columns: as many columns as fit (each at least ~9em wide) */
-.mod-tasks .tasks-list.layout-columns { display: grid; grid-template-columns: repeat(auto-fill, minmax(9em, 1fr)); gap: .3em 1.2em; }
+.mod-tasks .tasks-list.layout-columns { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(9em, 100%), 1fr)); gap: .3em 1.2em; }
 /* flowing: entries one after another, wrapping line by line */
 .mod-tasks .tasks-list.layout-inline { flex-direction: row; flex-wrap: wrap; gap: .3em 1.1em; }
 .region[data-region$='right'] .mod-tasks .tasks-list.layout-inline { justify-content: flex-end; }
@@ -26,3 +26,25 @@
 .mod-tasks .tasks-list.layout-inline .tasks-item { max-width: 100%; }
 .mod-tasks .tasks-list.layout-inline .tasks-title { flex: 0 1 auto; }
 .mod-tasks .tasks-list.layout-inline .tasks-mark { margin-right: -.15em; }
+
+/* right / centred areas: the list is one compact block at the edge / in the middle with its
+   entries aligned to each other (centring every row on its own gives a ragged edge once long
+   titles end in an ellipsis) */
+.region[data-region$='right'] .mod-tasks .tasks-list.layout-list { width: fit-content; max-width: 100%; margin-left: auto; }
+.region[data-region$='center'] .mod-tasks .tasks-list.layout-list, .region[data-region$='bar'] .mod-tasks .tasks-list.layout-list { width: fit-content; max-width: 100%; margin: 0 auto; text-align: left; }
+
+/* narrow columns (half width on portrait screens): the due date goes below the title. The
+   module spans its area so the container query sees the column width. */
+.mod-tasks { width: 100%; container-type: inline-size; }
+@container (max-width: 11em) {
+  .mod-tasks .tasks-list:not(.layout-inline) .tasks-item { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: .55em; align-items: baseline; }
+  .mod-tasks .tasks-list:not(.layout-inline) .tasks-item:has(> .tasks-mark) { grid-template-columns: auto minmax(0, 1fr); }
+  .mod-tasks .tasks-list:not(.layout-inline) .tasks-item > .tasks-mark { grid-column: 1; grid-row: 1; }
+  .mod-tasks .tasks-list:not(.layout-inline) .tasks-item:has(> .tasks-mark) > :not(.tasks-mark) { grid-column: 2; }
+  .region[data-region$='right'] .mod-tasks .tasks-list:not(.layout-inline) .tasks-item:has(> .tasks-mark) { grid-template-columns: minmax(0, 1fr) auto; }
+  .region[data-region$='right'] .mod-tasks .tasks-list:not(.layout-inline) .tasks-item > .tasks-mark { grid-column: 2; }
+  .region[data-region$='right'] .mod-tasks .tasks-list:not(.layout-inline) .tasks-item:has(> .tasks-mark) > :not(.tasks-mark) { grid-column: 1; }
+  .mod-tasks .tasks-list:not(.layout-inline) .tasks-title { grid-row: 1; }
+  .region[data-region$='right'] .mod-tasks .tasks-list:not(.layout-inline) .tasks-due { text-align: right; }
+  .mod-tasks .tasks-list.layout-inline .tasks-item { flex-wrap: wrap; }
+}

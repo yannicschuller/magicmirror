@@ -43,11 +43,12 @@
 .cm { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .1em .15em; text-align: center; }
 .cm-wd { font-size: .68em; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; padding-bottom: .2em; }
 .cm-d { display: flex; flex-direction: column; align-items: center; gap: .1em; padding: .05em 0 .15em; }
-.cm-n { width: 1.95em; height: 1.95em; line-height: 1.95em; border-radius: 50%; font-size: .85em; }
+.cm-n { width: min(1.95em, 100%); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: .85em; } /* shrinks with a narrow column */
+.cm-d { min-width: 0; }
 .cm-d.today .cm-n { box-shadow: 0 0 0 .12em var(--accent); color: var(--accent); font-weight: 600; }
 .cm-d.past { opacity: .5; }
 .cm-d.out { opacity: .25; }
-.cm-dots { display: flex; justify-content: center; gap: .14em; height: .38em; }
+.cm-dots { display: flex; justify-content: center; gap: .14em; height: .38em; max-width: 100%; overflow: hidden; }
 .cm-dots i { width: .38em; height: .38em; border-radius: 50%; }
 
 /* time to leave – compact: text with a small map beside it, so the events below stay visible */

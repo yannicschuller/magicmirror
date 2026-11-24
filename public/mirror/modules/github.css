@@ -122,3 +122,23 @@
 .region[data-region$='bar'] .mod-github .gh { margin: 0 auto; width: fit-content; max-width: 100%; }
 .region[data-region$='center'] .mod-github .gh-streak,
 .region[data-region$='bar'] .mod-github .gh-streak { justify-content: center; }
+
+/* narrow columns (portrait side columns, half width): the module spans its area so container
+   queries can react; long lines wrap instead of sticking out */
+.mod-github { width: 100%; container-type: inline-size; }
+.mod-github .gh-stats { flex: 0 1 auto; min-width: 0; max-width: 100%; flex-wrap: wrap; justify-content: flex-end; row-gap: .1em; }
+.mod-github .gh-stat { white-space: nowrap; }
+@container (max-width: 18em) {
+  /* name on its own line when the stats / time do not fit next to it */
+  .mod-github .gh-line, .mod-github .gh-h, .mod-github .gh-chart-axis { flex-wrap: wrap; row-gap: .1em; }
+  .mod-github .gh-t { max-width: 100%; }
+  .mod-github .gh-ht { min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
+  .mod-github .gh-stats { justify-content: flex-start; }
+  .mod-github .gh-r, .mod-github .gh-stats, .mod-github .gh-hx { margin-left: 0; }
+  .region[data-region$='right'] .mod-github .gh-r,
+  .region[data-region$='right'] .mod-github .gh-stats,
+  .region[data-region$='right'] .mod-github .gh-hx { margin-right: 0; }
+  .region[data-region$='right'] .mod-github .gh-stats { justify-content: flex-end; }
+  .mod-github .gh-r { max-width: 100%; white-space: normal; flex-wrap: wrap; }
+  .mod-github .gh-streak { flex-wrap: wrap; row-gap: .3em; }
+}

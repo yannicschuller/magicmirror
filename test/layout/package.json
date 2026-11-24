@@ -1,0 +1,8 @@
+{
+  "name": "magicmirror-layout-tests",
+  "private": true,
+  "type": "module",
+  "description": "Layout tests of the mirror page with test data (Playwright, WebKit + Chromium)",
+  "scripts": { "test": "node run.mjs" },
+  "devDependencies": { "playwright": "1.49.1" }
+}

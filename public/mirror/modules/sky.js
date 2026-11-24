@@ -155,6 +155,8 @@ export default function render(el, mod, ctx) {
     }
 
     el.innerHTML = html + '</div>';
+    // every part switched off: hide the module instead of showing an empty frame
+    el.closest('.module')?.classList.toggle('empty', !el.firstElementChild?.firstElementChild);
   };
 
   draw();

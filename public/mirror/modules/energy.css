@@ -1,14 +1,19 @@
 /* ---- electricity ---- */
+/* the module spans its area so narrow (half width) columns can thin out the hour labels via container queries */
+.mod-energy { width: 100%; container-type: inline-size; }
 .mod-energy { --en-cheap: #4ade80; --en-normal: var(--fg, #fff); --en-expensive: #f87171; }
-.mod-energy .en-now { display: flex; align-items: baseline; gap: .35em; }
+.mod-energy .en-now { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25em .35em; }
 .mod-energy .en-price { font-size: 2.2em; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
-.mod-energy .en-unit { font-size: .8em; color: var(--dim); }
-.mod-energy .en-level { margin-left: .4em; font-size: .7em; text-transform: uppercase; letter-spacing: .08em; padding: .1em .55em; border-radius: 1em; border: 1px solid currentColor; }
+.mod-energy .en-unit { font-size: .8em; color: var(--dim); white-space: nowrap; }
+.mod-energy .en-level { margin-left: .4em; font-size: .7em; text-transform: uppercase; letter-spacing: .08em; padding: .1em .55em; border-radius: 1em; border: 1px solid currentColor; white-space: nowrap; }
 .mod-energy .en-now.lv-cheap .en-level, .mod-energy .en-now.lv-cheap .en-price { color: var(--en-cheap); }
 .mod-energy .en-now.lv-expensive .en-level, .mod-energy .en-now.lv-expensive .en-price { color: var(--en-expensive); }
 .mod-energy .en-now.lv-normal .en-level { color: var(--dim); }
 .mod-energy .en-sub { font-size: .72em; margin-top: .25em; }
-.mod-energy .en-window { font-size: .85em; margin-top: .45em; display: flex; align-items: center; gap: .35em; flex-wrap: wrap; }
+/* text flow (not flex): a long line wraps between words, the check icon stays with the first word */
+.mod-energy .en-window { font-size: .85em; margin-top: .45em; }
+.mod-energy .en-window .en-ico { display: inline-block; vertical-align: -.12em; margin-right: .35em; }
+.mod-energy .en-window .dim { white-space: nowrap; }
 .mod-energy .en-ico { display: inline-flex; width: 1em; height: 1em; color: var(--en-cheap); flex: none; }
 .mod-energy .en-ico svg, .mod-energy .en-ico .ico { width: 100%; height: 100%; }
 .mod-energy .en-chart { display: block; width: 100%; height: 3.6em; margin-top: .6em; overflow: visible; }
@@ -23,3 +28,9 @@
 .mod-energy .en-home { display: flex; flex-wrap: wrap; gap: .3em 1em; margin-top: .55em; font-size: .8em; }
 .mod-energy .en-home-item { display: inline-flex; align-items: center; gap: .3em; }
 .mod-energy .en-home .en-ico { color: #fde047; }
+.region[data-region$='right'] .mod-energy .en-now { justify-content: flex-end; }
+.region[data-region$='center'] .mod-energy .en-now, .region[data-region$='bar'] .mod-energy .en-now { justify-content: center; }
+/* half width: every other hour label (0 · 12 · 0 · 12), so they don't run into each other */
+@container (max-width: 12em) {
+  .mod-energy .en-ticks span:nth-child(even) { display: none; }
+}

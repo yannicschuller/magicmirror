@@ -13,6 +13,11 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 - Mirror: http://localhost:8080 · Admin: http://localhost:8080/admin
 - The dev setup includes a mock OIDC server (any username works) and mounts `src/` and `public/` into the container. Restart the `magicmirror` container after server changes.
 - Run the tests with `npm test` (or `docker run --rm -v "$PWD":/app -w /app node:22-bookworm-slim npm test`).
+- Layout tests: `test/layout/` loads the real mirror in WebKit (like the kiosk on the Pi) and Chromium, portrait and landscape, with test data for every module (`test/layout/fixtures/<type>.js`). Each module runs in every area with normal and long data, in a few full mirrors, and with every setting value at half width, side by side and with "fill" height. The tests report content that sticks out of its module, overlapping modules, modules off the screen, empty renders and JS errors; content cut off by its area is a warning. Screenshots land in `test/layout/out/`. A full run takes a while; narrow it down with `TYPES`, `SCENARIOS`, `BROWSERS` and `SCREENS` (see `run.mjs`):
+  ```
+  docker run --rm -v "$PWD":/app -w /app/test/layout mcr.microsoft.com/playwright:v1.49.1-noble \
+    sh -c "npm i --no-audit --no-fund --silent && TYPES=weather,tasks node run.mjs"
+  ```
 
 ## Guidelines
 
@@ -25,6 +30,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
   3. optional provider `src/providers/<type>.js` (export `provider`, register it in `src/server.js`)
   4. German strings in `public/shared/locales/de/modules/<type>.js` (imported in `locales/de/index.js`)
   5. a test for parsing/logic with fixtures (no live network)
+  6. layout test data in `test/layout/fixtures/<type>.js` (what the provider returns, plus a `long` stress version)
 - Only use the existing field types – the admin forms are generated from them.
 - Match the existing code style: 2-space indent, single quotes, small functions, and comments only where something is not obvious.
 - Use one topic per pull request, and describe how you tested it.
