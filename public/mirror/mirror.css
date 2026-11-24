@@ -392,12 +392,20 @@ td:last-child { padding-right: 0; }
 .hint-detail { color: var(--dim); font-size: .85em; }
 .hint.lvl-warn { background: color-mix(in srgb, var(--warn) 10%, transparent); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
 .hint.lvl-warn .ico { color: var(--warn); }
-.hint.lvl-severe { background: color-mix(in srgb, var(--severe) 14%, transparent); border-color: var(--severe); animation: pulse 2.5s ease-in-out infinite; }
+.hint.lvl-severe { background: color-mix(in srgb, var(--severe) 14%, transparent); border-color: var(--severe); --pulse: 2.5s; }
 .hint.lvl-severe .ico { color: var(--severe); }
 .hint.lvl-ok { background: transparent; border-color: var(--faint); }
 .hint.lvl-ok .ico { color: var(--ok); }
 .hint.kind-uv .ico { color: #fde047; }
-@keyframes pulse { 50% { box-shadow: 0 0 1.4em color-mix(in srgb, var(--severe) 45%, transparent); } }
+/* glow that pulses: a fixed shadow on a layer whose opacity changes – the graphics chip does
+   that alone, an animated box-shadow would repaint the page area in every frame */
+.hint.lvl-severe, .f1-countdown.live { position: relative; }
+.hint.lvl-severe::after, .f1-countdown.live::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 1.4em color-mix(in srgb, var(--severe) 45%, transparent); opacity: 0;
+  animation: pulse var(--pulse, 2s) ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 1; } }
 
 /* ---- calendar ---- */
 .cal-day + .cal-day { margin-top: .7em; }
@@ -473,7 +481,7 @@ td:last-child { padding-right: 0; }
 }
 .f1-cd-label { font-size: .85em; text-transform: uppercase; letter-spacing: .08em; }
 .f1-cd-value { font-size: 1.25em; font-weight: 600; }
-.f1-countdown.live { animation: pulse 2s ease-in-out infinite; --severe: #e10600; }
+.f1-countdown.live { --severe: #e10600; }
 .f1-countdown.live .f1-cd-value { color: #ff4d4d; }
 .f1-sessions { margin-top: .25em; }
 .f1-sessions tr.past { opacity: .4; }
@@ -729,7 +737,7 @@ body.night-clock .module:not(.mod-clock), body.night-clock #dots, body.night-clo
 .f1 .team { display: inline-block; width: .25em; height: .95em; margin-right: .45em; vertical-align: -.12em; border-radius: 1px; }
 .f1-info { margin-top: .5em; }
 .f1-live-head.live { color: var(--fg); }
-.f1-live-dot { color: #ff4d4d; animation: pulse 2s ease-in-out infinite; }
+.f1-live-dot { color: #ff4d4d; animation: blink 2s ease-in-out infinite; }
 .f1-delayed { margin-left: .3em; padding: 0 .35em; border: 1px solid currentColor; border-radius: .3em; font-size: .85em; text-transform: none; letter-spacing: 0; }
 .f1-live-note { margin-top: .5em; }
 .f1-live td:nth-child(2) { text-align: left; }

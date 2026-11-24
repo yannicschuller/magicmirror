@@ -18,6 +18,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
   docker run --rm -v "$PWD":/app -w /app/test/layout mcr.microsoft.com/playwright:v1.49.1-noble \
     sh -c "npm i --no-audit --no-fund --silent && TYPES=weather,tasks node run.mjs"
   ```
+  `PERF=1 BROWSERS=chromium CONCURRENCY=1` measures the main-thread cost of each scenario on a slowed-down CPU instead (see `run.mjs`). Animate only `transform` and `opacity`: anything else (width, box-shadow, …) makes the browser lay out or repaint 60 times a second.
 
 ## Guidelines
 

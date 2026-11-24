@@ -11,6 +11,11 @@
 //     sh -c "npm i --no-audit --no-fund --silent && node run.mjs"
 // Options (env): TYPES=weather,tasks  SCENARIOS=solo,long,dense,options  BROWSERS=webkit,chromium
 //                SCREENS=portrait,landscape  VERBOSE=1  WARNINGS=1  OUT=out (screenshot folder)  CONCURRENCY=4
+//                ONLY=solo-clock-1,dense-hallway (just these scenarios)
+// Performance: PERF=1 BROWSERS=chromium CONCURRENCY=1 measures, per scenario, the main-thread
+// time per second while the mirror sits idle (CPU slowed down PERF_THROTTLE=6 times, roughly a
+// Pi) and lists running animations with VERBOSE=1. More than a few ms/s, or style/layout
+// ~60 times a second, means something animates a property the graphics chip can't do alone.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -217,6 +222,26 @@ async function runScenario(browser, screenName, sc, server) {
   await page.evaluate(() => document.fonts?.ready);
   await page.waitForTimeout(1600);
   if (process.env.DEBUG_REGIONS) console.log(JSON.stringify(await page.evaluate(() => [...document.querySelectorAll('.region')].filter((r) => r.children.length).map((r) => ({ r: r.dataset.region, box: r.getBoundingClientRect().toJSON(), st: r.getAttribute('style'), kids: [...r.children].map((c) => [c.className, Math.round(c.getBoundingClientRect().top), Math.round(c.getBoundingClientRect().height)]) }))), null, 1));
+  if (process.env.PERF) {
+    // main-thread cost while the mirror just sits there (Chromium only: CDP metrics), on a
+    // CPU slowed down roughly to a Raspberry Pi
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: Number(process.env.PERF_THROTTLE) || 6 });
+    await cdp.send('Performance.enable');
+    const metrics = async () => Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((m) => [m.name, m.value]));
+    const a = await metrics();
+    const secs = Number(process.env.PERF_SECONDS) || 10;
+    await page.waitForTimeout(secs * 1000);
+    const b = await metrics();
+    const d = (k) => (b[k] - a[k]) / secs;
+    const anims = await page.evaluate(() => document.getAnimations().filter((x) => x.playState === 'running').map((x) => {
+      const t = x.effect?.target;
+      const props = [...new Set((x.effect?.getKeyframes?.() || []).flatMap((k) => Object.keys(k)).filter((k) => !['offset', 'easing', 'composite', 'computedOffset'].includes(k)))];
+      return `${x.animationName || x.constructor.name}(${props.join('+')})@${t?.closest?.('.module')?.dataset.id || t?.id || t?.className?.baseVal || t?.className || '?'}`;
+    }));
+    await ctx.close();
+    return { issues: [], shown: 0, perf: { taskMs: d('TaskDuration') * 1000, scriptMs: d('ScriptDuration') * 1000, styleMs: d('RecalcStyleDuration') * 1000, layoutMs: d('LayoutDuration') * 1000, styles: d('RecalcStyleCount'), layouts: d('LayoutCount'), anims } };
+  }
   const res = await page.evaluate(inspect);
   for (const e of jsErrors) res.issues.push({ kind: 'js-error', module: '-', detail: e.slice(0, 200) });
   const dir = path.join(OUT, browser.browserType().name(), screenName);
@@ -233,6 +258,7 @@ const WARN = new Set(['clipped-by-region', 'no-space']);
 const report = [];
 try {
   await fs.rm(OUT, { recursive: true, force: true });
+  await fs.mkdir(OUT, { recursive: true });
   const only = list(process.env.ONLY, null); // run just these scenarios by name
   const all = scenarios(Object.keys(MODULE_TYPES)).filter((sc) => (only ? only.includes(sc.name) : want.scenarios.includes(sc.kind) && (!want.types || sc.types.some((t) => want.types.includes(t)))));
   for (const bName of want.browsers) {
@@ -250,6 +276,12 @@ try {
         }
         const label = `${bName} ${screen} ${sc.name}`;
         report.push({ browser: bName, screen, scenario: sc.name, ...res });
+        if (res.perf) {
+          const p = res.perf;
+          console.log(`${sc.name.padEnd(34)} task ${p.taskMs.toFixed(1).padStart(6)} ms/s · script ${p.scriptMs.toFixed(1).padStart(5)} · style ${p.styleMs.toFixed(1).padStart(5)} (${p.styles.toFixed(1)}/s) · layout ${p.layoutMs.toFixed(1).padStart(5)} (${p.layouts.toFixed(1)}/s) · ${p.anims.length} anim`);
+          if (VERBOSE && p.anims.length) console.log(`    ${[...new Set(p.anims)].join('\n    ')}`);
+          continue;
+        }
         // a module taller than its area is cut off (middle areas fade it out) – that is a matter
         // of how much it shows, so it is a warning; everything else is a layout bug
         res.warnings = res.issues.filter((i) => WARN.has(i.kind));

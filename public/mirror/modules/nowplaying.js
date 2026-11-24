@@ -50,7 +50,7 @@ export default function render(el, mod, ctx) {
     const time = el.querySelector('.np-time');
     const p = pos();
     if (!bar || p === null || !item.duration) return;
-    bar.style.width = `${Math.min(100, (p / item.duration) * 100).toFixed(2)}%`;
+    bar.style.transform = `scaleX(${Math.min(1, p / item.duration).toFixed(4)})`;
     if (time) time.textContent = `${mmss(p)} / ${mmss(item.duration)}`;
   };
 
